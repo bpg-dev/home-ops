@@ -13,6 +13,7 @@
     },
     "yaml.schemaStore.enable": true,
     "yaml.schemas": {
-        "kubernetes": "./kubernetes/**/*.yaml"
+        "kubernetes": "./kubernetes/**/*.yaml",
+        "https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json": "file:///Users/pasha/code/home-ops/kubernetes/apps/flux-system/flux-instance/ks.yaml"
     }
 }
