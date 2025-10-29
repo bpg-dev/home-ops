@@ -10,4 +10,6 @@ components:
 resources:
   - ./namespace.yaml
   - ./external-secrets/ks.yaml
-
+  - ./onepassword/token-secret.sops.yaml
+  - ./onepassword/secretstore.yaml
+  - ./test-secret.yaml
