@@ -7,4 +7,5 @@ resources:
 - ./externalsecrets.yaml
 - ./helmrelease.yaml
 - ./ocirepository.yaml
+- ./serviceaccount.yaml
 - ./storageclasses.yaml
