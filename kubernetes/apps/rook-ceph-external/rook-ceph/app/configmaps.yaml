@@ -19,10 +19,7 @@ kind: ConfigMap
 metadata:
   name: rook-ceph-mon-endpoints
 data:
-  data: |
-    pve1=192.168.1.81:6789
-    pve2=192.168.1.82:6789
-    pve3=192.168.1.83:6789
+  data: pve1=192.168.1.81:6789 pve2=192.168.1.82:6789 pve3=192.168.1.83:6789
   mapping: '{}'
   maxMonId: "2"
 
