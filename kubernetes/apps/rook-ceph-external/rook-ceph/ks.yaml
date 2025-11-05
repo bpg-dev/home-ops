@@ -32,10 +32,10 @@ spec:
   #   - apiVersion: helm.toolkit.fluxcd.io/v2
   #     kind: HelmRelease
   #     name: rook-ceph-cluster
-  #     namespace: rook-ceph
+  #     namespace: rook-ceph-external
   #   - apiVersion: ceph.rook.io/v1
   #     kind: CephCluster
-  #     namespace: rook-ceph
+  #     namespace: rook-ceph-external
   #     name: rook-ceph
   # healthCheckExprs:
   #   - apiVersion: ceph.rook.io/v1
