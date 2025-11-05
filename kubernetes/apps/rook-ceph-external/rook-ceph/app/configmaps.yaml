@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: external-cluster-user-command
+  namespace: rook-ceph-external
+data:
+  args: |
+    [Configurations]
+    namespace = rook-ceph-external
+    rgw-pool-prefix = default
+    format = bash
+    cephfs-filesystem-name = cephfs
+    cephfs-metadata-pool-name = cephfs_metadata
+    cephfs-data-pool-name = cephfs_data
+    rbd-data-pool-name = talos
+    skip-monitoring-endpoint = True
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rook-ceph-mon-endpoints
+  namespace: rook-ceph-external
+data:
+  data: |
+    pve1=192.168.1.81:6789
+    pve2=192.168.1.82:6789
+    pve3=192.168.1.83:6789
+  mapping: '{}'
+  maxMonId: "2"
+
+
