@@ -5,3 +5,4 @@ kind: Kustomization
 resources:
 - ./configmaps.yaml
 - ./storageclasses.yaml
+- ./externalsecrets.yaml
