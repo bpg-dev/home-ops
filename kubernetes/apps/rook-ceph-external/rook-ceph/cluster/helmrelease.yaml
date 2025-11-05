@@ -11,6 +11,8 @@ spec:
   interval: 1h
   values:
     operatorNamespace: rook-ceph-external
+    # Cluster name should match the namespace for external clusters
+    clusterName: rook-ceph-external
     monitoring:
       enabled: true
       createPrometheusRules: true
@@ -19,6 +21,9 @@ spec:
     cephClusterSpec:
       external:
         enable: true
+        # Reference the secret containing Ceph cluster credentials
+        # The ConfigMap rook-ceph-mon-endpoints is automatically discovered
+        secretName: rook-ceph-mon
       crashCollector:
         disable: true
       healthCheck:
