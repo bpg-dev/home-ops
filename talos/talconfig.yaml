@@ -4,11 +4,10 @@ clusterName: kubernetes
 talosVersion: "${talosVersion}"
 kubernetesVersion: "${kubernetesVersion}"
 
-endpoint: https://172.16.3.1:6443
+endpoint: https://192.168.1.21:6443
 additionalApiServerCertSans: &sans
   - "127.0.0.1"
-  - "172.16.3.1"
-  - "k8s-prod.bpglabs.net"
+  - "192.168.1.21"
 additionalMachineCertSans: *sans
 
 clusterPodNets: ["10.224.0.0/16"]
@@ -20,7 +19,7 @@ cniConfig:
 
 nodes:
   - hostname: "talos-prod-1"
-    ipAddress: "172.16.3.11"
+    ipAddress: "192.168.1.11"
     installDisk: "/dev/sda"
     machineSpec:
       secureboot: false
@@ -31,15 +30,15 @@ nodes:
           hardwareAddr: "bc:24:11:b4:62:7d"
         dhcp: false
         addresses:
-          - "172.16.3.11/15"
+          - "192.168.1.11/24"
         routes:
           - network: "0.0.0.0/0"
-            gateway: "172.16.0.1"
+            gateway: "192.168.1.1"
         mtu: 1500
         vip:
-          ip: "172.16.3.1"
+          ip: "192.168.1.21"
   - hostname: "talos-prod-2"
-    ipAddress: "172.16.3.12"
+    ipAddress: "192.168.1.12"
     installDisk: "/dev/sda"
     machineSpec:
       secureboot: false
@@ -50,15 +49,15 @@ nodes:
           hardwareAddr: "bc:24:11:37:2a:c2"
         dhcp: false
         addresses:
-          - "172.16.3.12/15"
+          - "192.168.1.12/24"
         routes:
           - network: "0.0.0.0/0"
-            gateway: "172.16.0.1"
+            gateway: "192.168.1.1"
         mtu: 1500
         vip:
-          ip: "172.16.3.1"
+          ip: "192.168.1.21"
   - hostname: "talos-prod-3"
-    ipAddress: "172.16.3.13"
+    ipAddress: "192.168.1.13"
     installDisk: "/dev/sda"
     machineSpec:
       secureboot: false
@@ -69,13 +68,13 @@ nodes:
           hardwareAddr: "bc:24:11:bf:a0:c5"
         dhcp: false
         addresses:
-          - "172.16.3.13/15"
+          - "192.168.1.13/24"
         routes:
           - network: "0.0.0.0/0"
-            gateway: "172.16.0.1"
+            gateway: "192.168.1.1"
         mtu: 1500
         vip:
-          ip: "172.16.3.1"
+          ip: "192.168.1.21"
 
 # Global patches
 patches:
