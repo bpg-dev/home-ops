@@ -25,6 +25,10 @@ spec:
       enableCephfsDriver: false
       enableCephfsSnapshotter: false
       enableLiveness: true
+      # Use krbd (kernel RBD) instead of nbd for Talos compatibility
+      # krbd is already available in the kernel and doesn't require privileged mode
+      rbd:
+        mounter: krbd
       serviceMonitor:
         enabled: true
     enableDiscoveryDaemon: true

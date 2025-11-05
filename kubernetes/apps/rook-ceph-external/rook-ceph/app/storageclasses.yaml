@@ -14,6 +14,7 @@ parameters:
   csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph-external
   imageFeatures: layering
   imageFormat: "2"
+  mounter: krbd
   pool: talos
 provisioner: rook-ceph.rbd.csi.ceph.com
 reclaimPolicy: Delete
