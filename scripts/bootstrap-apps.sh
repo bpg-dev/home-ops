@@ -84,9 +84,49 @@ function apply_sops_secrets() {
     done
 }
 
+# Apply VolumeSnapshot CRDs from kubernetes-csi/external-snapshotter
+function apply_volumesnapshot_crds() {
+    log debug "Applying VolumeSnapshot CRDs"
+
+    local -r snapshotter_version="v8.2.1"
+    local -r crd_base_url="https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${snapshotter_version}/client/config/crd"
+
+    local -r crds=(
+        "snapshot.storage.k8s.io_volumesnapshotcontents.yaml"
+        "snapshot.storage.k8s.io_volumesnapshotclasses.yaml"
+        "snapshot.storage.k8s.io_volumesnapshots.yaml"
+    )
+
+    for crd in "${crds[@]}"; do
+        local crd_url="${crd_base_url}/${crd}"
+
+        log debug "Applying CRD" "crd=${crd}" "url=${crd_url}"
+
+        if ! crd_content=$(curl --fail --silent --location "${crd_url}"); then
+            log error "Failed to download CRD" "crd=${crd}" "url=${crd_url}"
+            continue
+        fi
+
+        if echo "${crd_content}" | kubectl diff --filename - &>/dev/null; then
+            log debug "CRD is up-to-date" "crd=${crd}"
+            continue
+        fi
+
+        if ! echo "${crd_content}" | kubectl apply --server-side --filename - &>/dev/null; then
+            log error "Failed to apply CRD" "crd=${crd}"
+            continue
+        fi
+
+        log info "CRD applied successfully" "crd=${crd}"
+    done
+}
+
 # CRDs to be applied before the helmfile charts are installed
 function apply_crds() {
     log debug "Applying CRDs"
+
+    # Apply VolumeSnapshot CRDs first (required by CSI snapshotter)
+    apply_volumesnapshot_crds
 
     local -r helmfile_file="${ROOT_DIR}/bootstrap/helmfile.d/00-crds.yaml"
 
@@ -94,16 +134,17 @@ function apply_crds() {
         log fatal "File does not exist" "file" "${helmfile_file}"
     fi
 
-    if ! crds=$(helmfile --file "${helmfile_file}" template --quiet) || [[ -z "${crds}" ]]; then
+    local helmfile_crds
+    if ! helmfile_crds=$(helmfile --file "${helmfile_file}" template --quiet) || [[ -z "${helmfile_crds}" ]]; then
         log fatal "Failed to render CRDs from Helmfile" "file" "${helmfile_file}"
     fi
 
-    if echo "${crds}" | kubectl diff --filename - &>/dev/null; then
+    if echo "${helmfile_crds}" | kubectl diff --filename - &>/dev/null; then
         log info "CRDs are up-to-date"
         return
     fi
 
-    if ! echo "${crds}" | kubectl apply --server-side --filename - &>/dev/null; then
+    if ! echo "${helmfile_crds}" | kubectl apply --server-side --filename - &>/dev/null; then
         log fatal "Failed to apply crds from Helmfile" "file" "${helmfile_file}"
     fi
 
