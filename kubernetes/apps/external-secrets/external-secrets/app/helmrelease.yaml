@@ -22,3 +22,8 @@ spec:
       replicaCount: 2
       serviceMonitor:
         enabled: true
+    # Configure operator to reduce API call frequency
+    # Increase store requeue interval from default 5m to 15m to reduce rate limit hits
+    # This reduces how often the operator reconciles SecretStores, helping avoid rate limits
+    extraArgs:
+      store-requeue-interval: 15m
