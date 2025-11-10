@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
 - ./configmaps.yaml
 - ./externalsecrets.yaml
+- ./grafanadashboard.yaml
 - ./helmrelease.yaml
 - ./ocirepository.yaml
 - ./serviceaccount.yaml
