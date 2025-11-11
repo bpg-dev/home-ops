@@ -16,9 +16,11 @@ spec:
     monitoring:
       enabled: true
       createPrometheusRules: true
+      metricsDisabled: false
     toolbox:
       enabled: true
     cephClusterSpec:
+      # The monitoring section should be removed from the cephClusterSpec
       external:
         enable: true
         # Reference the secret containing Ceph cluster credentials
