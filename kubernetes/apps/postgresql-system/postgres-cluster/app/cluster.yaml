@@ -8,6 +8,11 @@ spec:
   instances: 3
   primaryUpdateStrategy: unsupervised
 
+  # Enable superuser access for external connections
+  enableSuperuserAccess: true
+  superuserSecret:
+    name: postgres-superuser
+
   # Bootstrap configuration for initial database setup
   bootstrap:
     initdb:
