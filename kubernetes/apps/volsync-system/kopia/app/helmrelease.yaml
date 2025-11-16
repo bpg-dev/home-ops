@@ -9,6 +9,7 @@ spec:
     kind: OCIRepository
     name: kopia
   interval: 1h
+  timeout: 10m
   values:
     controllers:
       kopia:
