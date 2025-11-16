@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - ./cluster.yaml
   - ./externalsecrets.yaml
+  - ./grafanadashboard.yaml
   - ./volsync.yaml
   - ./objectstore.yaml
   - ./backup.yaml
