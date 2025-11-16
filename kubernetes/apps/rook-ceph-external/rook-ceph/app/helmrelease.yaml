@@ -30,6 +30,8 @@ spec:
       # krbd is already available in the kernel and doesn't require privileged mode
       rbd:
         mounter: krbd
+      # Enable snapshotter if you want RBD volume snapshots
+      enableRbdSnapshotter: true
       serviceMonitor:
         enabled: true
     enableDiscoveryDaemon: true

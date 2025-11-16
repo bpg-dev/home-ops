@@ -10,3 +10,4 @@ resources:
 - ./ocirepository.yaml
 - ./serviceaccount.yaml
 - ./storageclasses.yaml
+- ./volumesnapshotclasses.yaml
