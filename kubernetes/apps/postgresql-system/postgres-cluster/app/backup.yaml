@@ -1,0 +1,15 @@
+---
+# Backup resource using Barman Cloud Plugin
+# This creates on-demand backups to S3
+# The plugin uses the ObjectStore configured in the Cluster's plugins section
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: postgres-backup
+spec:
+  cluster:
+    name: postgres
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+

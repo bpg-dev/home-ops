@@ -42,26 +42,12 @@ spec:
     size: 20Gi
     storageClass: ceph-rbd
 
-  # Backup configuration (CloudNativePG built-in backups)
-  backup:
-    barmanObjectStore:
-      destinationPath: s3://postgres-backups
-      s3Credentials:
-        accessKeyId:
-          name: postgres-backup-credentials
-          key: ACCESS_KEY_ID
-        secretAccessKey:
-          name: postgres-backup-credentials
-          key: SECRET_ACCESS_KEY
-      wal:
-        retention: "7d"
-      data:
-        retention: "30d"
-    retentionPolicy: "30d"
-
-  # Monitoring
-  monitoring:
-    enabled: true
+  # Barman Cloud Plugin configuration for WAL archiving
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: postgres-s3-backup
 
   # Resources
   resources:

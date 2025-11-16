@@ -9,5 +9,6 @@ components:
 resources:
   - ./namespace.yaml
   - ./cloudnative-pg/ks.yaml
+  - ./barman-cloud-plugin/ks.yaml
   - ./postgres-cluster/ks.yaml
 

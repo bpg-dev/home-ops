@@ -1,0 +1,20 @@
+---
+# ObjectStore for Barman Cloud Plugin S3 backups
+# This resource requires the Barman Cloud Plugin to be installed
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: postgres-s3-backup
+spec:
+  configuration:
+    destinationPath: s3://https://truenas.bpghome.net:30292/postgres-backups
+    s3Credentials:
+      accessKeyId:
+        name: postgres-backup-credentials
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: postgres-backup-credentials
+        key: SECRET_ACCESS_KEY
+    wal:
+      compression: gzip
+
