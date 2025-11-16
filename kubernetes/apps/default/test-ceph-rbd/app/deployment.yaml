@@ -1,0 +1,61 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-ceph-rbd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-ceph-rbd
+  template:
+    metadata:
+      labels:
+        app: test-ceph-rbd
+    spec:
+      initContainers:
+        - name: init-data
+          image: busybox:latest
+          command:
+            - sh
+            - -c
+            - |
+              echo "<html><body><h1>Ceph RBD Test App</h1><p>PVC: test-ceph-rbd-pvc</p><p>StorageClass: ceph-rbd</p><p>Timestamp: $(date)</p></body></html>" > /data/index.html
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      containers:
+        - name: app
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+              name: http
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/nginx/html
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: test-ceph-rbd
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-ceph-rbd
+spec:
+  selector:
+    app: test-ceph-rbd
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  type: ClusterIP
+

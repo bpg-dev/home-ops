@@ -1,0 +1,39 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: test-ceph-rbd
+spec:
+  components:
+    - ../../../../components/volsync
+  interval: 1h
+  path: ./kubernetes/apps/default/test-ceph-rbd/app
+  postBuild:
+    substitute:
+      APP: test-ceph-rbd
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
+  patches:
+    # Rename the volsync component's restore PVC to avoid conflict with our app PVC
+    # The volsync component's pvc.yaml creates a restore PVC with name ${APP} (test-ceph-rbd)
+    # which conflicts with our app PVC. We rename it to test-ceph-rbd-restore.
+    # Our app PVC has label app.kubernetes.io/component=source, so this patch won't match it.
+    - patch: |-
+        - op: replace
+          path: /metadata/name
+          value: test-ceph-rbd-restore
+      target:
+        kind: PersistentVolumeClaim
+        name: test-ceph-rbd
+        # Only match PVCs without the source label (i.e., the volsync restore PVC)
+        labelSelector: "!app.kubernetes.io/component"
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: default
+  wait: false
+
