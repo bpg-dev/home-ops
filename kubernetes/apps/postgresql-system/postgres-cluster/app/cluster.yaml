@@ -41,6 +41,13 @@ spec:
       work_mem: "4MB"
       min_wal_size: "1GB"
       max_wal_size: "4GB"
+    # Configure pg_hba to allow password authentication with TLS
+    # This is required even when enableSuperuserAccess is true
+    pg_hba:
+      # Allow password authentication over TLS for all connections
+      - hostssl all all 0.0.0.0/0 scram-sha-256
+      # Allow local connections (for internal operations)
+      - local all all peer
 
   # Storage configuration
   storage:
