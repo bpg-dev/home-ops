@@ -7,7 +7,7 @@ metadata:
   name: postgres-s3-backup
 spec:
   configuration:
-    destinationPath: s3://https://truenas.bpghome.net:30292/postgres-backups
+    destinationPath: s3://nas.internal:30292/postgres-backups
     s3Credentials:
       accessKeyId:
         name: postgres-backup-credentials
