@@ -1,0 +1,86 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kopia-repository-init
+  namespace: volsync-system
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: kopia-init
+          image: ghcr.io/home-operations/kopia:0.21.1@sha256:f666b5f2c1ea4649cd2bd703507d4b81c2b515782e8476ba4a145b091a704a53
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "Checking if repository exists..."
+              # Try to connect to existing repository first
+              if kopia repository connect filesystem --path /repository --config-file /config/repository.config --password "$KOPIA_PASSWORD" 2>/dev/null; then
+                echo "Repository already exists and is valid, skipping initialization"
+                exit 0
+              fi
+              echo "No valid repository found. Checking for existing data..."
+              if [ "$(ls -A /repository 2>/dev/null)" ]; then
+                echo "WARNING: Found existing data in /repository. This may be leftover files."
+                echo "Attempting to create repository (will fail if data conflicts)..."
+              fi
+              echo "Initializing repository at /repository..."
+              kopia repository create filesystem \
+                --path /repository \
+                --config-file /config/repository.config \
+                --password "$KOPIA_PASSWORD" || {
+                echo "ERROR: Failed to create repository. If there's existing data, you may need to:"
+                echo "1. Backup and remove existing files from /mnt/tank/nfs/volsync-kopia on the NAS"
+                echo "2. Or manually initialize the repository"
+                exit 1
+              }
+              echo "Repository initialized successfully!"
+          env:
+            - name: KOPIA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kopia-secret
+                  key: KOPIA_PASSWORD
+          volumeMounts:
+            - name: config-file
+              mountPath: /config/repository.config
+              subPath: repository.config
+              readOnly: true
+            - name: repository
+              mountPath: /repository
+            - name: tmpfs
+              mountPath: /tmp
+              subPath: tmp
+            - name: tmpfs
+              mountPath: /config/cache
+              subPath: cache
+            - name: tmpfs
+              mountPath: /config/logs
+              subPath: logs
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: config-file
+          configMap:
+            name: kopia
+        - name: repository
+          nfs:
+            server: nas.internal
+            path: /mnt/tank/nfs/volsync-kopia
+        - name: tmpfs
+          emptyDir: {}
+
