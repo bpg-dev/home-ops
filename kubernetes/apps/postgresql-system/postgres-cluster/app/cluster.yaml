@@ -49,6 +49,11 @@ spec:
       parameters:
         barmanObjectName: postgres-s3-backup
 
+  # Monitoring configuration
+  # Enable PodMonitor for Prometheus scraping
+  monitoring:
+    enablePodMonitor: true
+
   # Resources
   resources:
     requests:
