@@ -5,24 +5,4 @@ kind: Kustomization
 resources:
   - ./pvc.yaml
   - ./deployment.yaml
-patches:
-  # Rename the volsync component's restore PVC to avoid conflict with our app PVC
-  # The volsync component's pvc.yaml creates a restore PVC with name ${APP} (test-ceph-rbd)
-  # which conflicts with our app PVC. We rename it to test-ceph-rbd-restore.
-  # The restore PVC can be identified by having dataSourceRef (our app PVC doesn't have it)
-  - patch: |-
-      - op: replace
-        path: /metadata/name
-        value: test-ceph-rbd-restore
-    target:
-      kind: PersistentVolumeClaim
-      name: test-ceph-rbd
-      # Match PVCs that have dataSourceRef (the restore PVC from volsync component)
-      # Our app PVC doesn't have dataSourceRef, so it won't be matched
-      labelSelector: "app.kubernetes.io/component!=source"
-# Note: The volsync component includes a restore PVC (pvc.yaml) that uses the same name as our app PVC.
-# This will cause a conflict, but it's expected and harmless - the restore PVC is only needed for
-# restore scenarios. For normal backup operations, only the ReplicationSource and ReplicationDestination
-# are needed, which will work correctly. If you need to restore, create the restore PVC manually
-# with a different name or in a different namespace.
 
