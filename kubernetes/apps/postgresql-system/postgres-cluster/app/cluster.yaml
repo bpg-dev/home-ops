@@ -1,0 +1,74 @@
+---
+# yaml-language-server: $schema=https://cloudnative-pg.io/documentation/1.23/reference/crd/#cluster
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+spec:
+  instances: 3
+  primaryUpdateStrategy: unsupervised
+
+  # Bootstrap configuration for initial database setup
+  bootstrap:
+    initdb:
+      # Use custom secret for postgres superuser password
+      secret:
+        name: postgres-superuser
+      # Database initialization options
+      database: postgres
+      owner: postgres
+      encoding: UTF8
+      localeCType: C
+      localeCollate: C
+
+  # PostgreSQL configuration
+  postgresql:
+    parameters:
+      max_connections: "200"
+      shared_buffers: "256MB"
+      effective_cache_size: "1GB"
+      maintenance_work_mem: "64MB"
+      checkpoint_completion_target: "0.9"
+      wal_buffers: "16MB"
+      default_statistics_target: "100"
+      random_page_cost: "1.1"
+      effective_io_concurrency: "200"
+      work_mem: "4MB"
+      min_wal_size: "1GB"
+      max_wal_size: "4GB"
+
+  # Storage configuration
+  storage:
+    size: 20Gi
+    storageClass: ceph-rbd
+
+  # Backup configuration (CloudNativePG built-in backups)
+  backup:
+    barmanObjectStore:
+      destinationPath: s3://postgres-backups
+      s3Credentials:
+        accessKeyId:
+          name: postgres-backup-credentials
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: postgres-backup-credentials
+          key: SECRET_ACCESS_KEY
+      wal:
+        retention: "7d"
+      data:
+        retention: "30d"
+    retentionPolicy: "30d"
+
+  # Monitoring
+  monitoring:
+    enabled: true
+
+  # Resources
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+

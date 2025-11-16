@@ -1,0 +1,103 @@
+---
+# VolSync backups for PostgreSQL cluster PVCs
+# Each PostgreSQL instance gets its own PVC and needs its own ReplicationSource
+
+---
+# ReplicationSource for postgres-1 PVC
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: postgres-1
+spec:
+  sourcePVC: postgres-1
+  trigger:
+    schedule: "0 */6 * * *"  # Every 6 hours
+  kopia:
+    accessModes:
+      - ReadWriteOnce
+    cacheAccessModes:
+      - ReadWriteOnce
+    cacheCapacity: 10Gi
+    cacheStorageClassName: openebs-hostpath
+    compression: zstd-fastest
+    copyMethod: Snapshot
+    moverSecurityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    parallelism: 2
+    repository: postgres-volsync-secret
+    retain:
+      hourly: 24
+      daily: 7
+      weekly: 4
+      monthly: 12
+    storageClassName: ceph-rbd
+    volumeSnapshotClassName: csi-ceph-rbd
+
+---
+# ReplicationSource for postgres-2 PVC
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: postgres-2
+spec:
+  sourcePVC: postgres-2
+  trigger:
+    schedule: "0 */6 * * *"  # Every 6 hours
+  kopia:
+    accessModes:
+      - ReadWriteOnce
+    cacheAccessModes:
+      - ReadWriteOnce
+    cacheCapacity: 10Gi
+    cacheStorageClassName: openebs-hostpath
+    compression: zstd-fastest
+    copyMethod: Snapshot
+    moverSecurityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    parallelism: 2
+    repository: postgres-volsync-secret
+    retain:
+      hourly: 24
+      daily: 7
+      weekly: 4
+      monthly: 12
+    storageClassName: ceph-rbd
+    volumeSnapshotClassName: csi-ceph-rbd
+
+---
+# ReplicationSource for postgres-3 PVC
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: postgres-3
+spec:
+  sourcePVC: postgres-3
+  trigger:
+    schedule: "0 */6 * * *"  # Every 6 hours
+  kopia:
+    accessModes:
+      - ReadWriteOnce
+    cacheAccessModes:
+      - ReadWriteOnce
+    cacheCapacity: 10Gi
+    cacheStorageClassName: openebs-hostpath
+    compression: zstd-fastest
+    copyMethod: Snapshot
+    moverSecurityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    parallelism: 2
+    repository: postgres-volsync-secret
+    retain:
+      hourly: 24
+      daily: 7
+      weekly: 4
+      monthly: 12
+    storageClassName: ceph-rbd
+    volumeSnapshotClassName: csi-ceph-rbd
+
