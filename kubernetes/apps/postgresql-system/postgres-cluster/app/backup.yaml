@@ -2,6 +2,7 @@
 # Backup resource using Barman Cloud Plugin
 # This creates on-demand backups to S3
 # The plugin uses the ObjectStore configured in the Cluster's plugins section
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/postgresql.cnpg.io/backup_v1.json
 apiVersion: postgresql.cnpg.io/v1
 kind: Backup
 metadata:

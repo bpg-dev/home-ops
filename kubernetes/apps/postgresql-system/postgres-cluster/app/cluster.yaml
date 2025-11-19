@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://cloudnative-pg.io/documentation/1.23/reference/crd/#cluster
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/postgresql.cnpg.io/cluster_v1.json
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
