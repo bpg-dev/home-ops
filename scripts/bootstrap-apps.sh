@@ -121,12 +121,45 @@ function apply_volumesnapshot_crds() {
     done
 }
 
+# Apply Dragonfly operator from dragonflydb/dragonfly-operator
+function apply_dragonfly_operator() {
+    log debug "Applying Dragonfly operator"
+
+    local -r operator_version="main"
+    local -r operator_url="https://raw.githubusercontent.com/dragonflydb/dragonfly-operator/${operator_version}/manifests/dragonfly-operator.yaml"
+
+    log debug "Downloading Dragonfly operator manifest" "url=${operator_url}"
+
+    if ! operator_content=$(curl --fail --silent --location "${operator_url}"); then
+        log error "Failed to download Dragonfly operator manifest" "url=${operator_url}"
+        return 1
+    fi
+
+    log debug "Applying Dragonfly operator manifest"
+
+    # Check if the operator is up-to-date
+    if echo "${operator_content}" | kubectl diff --filename - &>/dev/null; then
+        log debug "Dragonfly operator is up-to-date"
+        return 0
+    fi
+
+    if ! echo "${operator_content}" | kubectl apply --server-side --filename - &>/dev/null; then
+        log error "Failed to apply Dragonfly operator manifest"
+        return 1
+    fi
+
+    log info "Dragonfly operator applied successfully"
+}
+
 # CRDs to be applied before the helmfile charts are installed
 function apply_crds() {
     log debug "Applying CRDs"
 
     # Apply VolumeSnapshot CRDs first (required by CSI snapshotter)
     apply_volumesnapshot_crds
+
+    # Apply Dragonfly operator
+    apply_dragonfly_operator
 
     local -r helmfile_file="${ROOT_DIR}/bootstrap/helmfile.d/00-crds.yaml"
 
