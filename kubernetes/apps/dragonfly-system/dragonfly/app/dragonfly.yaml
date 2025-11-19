@@ -1,0 +1,32 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/dragonflydb/dragonfly-operator/main/config/crd/bases/dragonflydb.io_dragonflies.yaml
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  name: dragonfly
+  namespace: dragonfly-system
+spec:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+  snapshot:
+    persistentVolumeClaimSpec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: ceph-rbd
+      resources:
+        requests:
+          storage: 10Gi
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              dragonflydb.io/name: dragonfly
+          topologyKey: kubernetes.io/hostname
+
