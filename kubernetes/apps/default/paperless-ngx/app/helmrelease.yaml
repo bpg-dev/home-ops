@@ -30,7 +30,7 @@ spec:
               repository: ghcr.io/paperless-ngx/paperless-ngx
               tag: latest
             env:
-              PAPERLESS_ALLOWED_HOSTS: paperless.${SECRET_DOMAIN}
+              #PAPERLESS_ALLOWED_HOSTS: paperless.${SECRET_DOMAIN}
               PAPERLESS_CONSUMER_POLLING: 60
               PAPERLESS_CONSUMER_RECURSIVE: "true"
               PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"

@@ -56,5 +56,5 @@ spec:
                 path: /mnt/tank/nfs/paperless-backup
             - name: library
               persistentVolumeClaim:
-                claimName: paperless-ngx-library
+                claimName: paperless-ngx
 
