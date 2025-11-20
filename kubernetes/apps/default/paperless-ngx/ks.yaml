@@ -14,7 +14,7 @@ spec:
   postBuild:
     substitute:
       APP: paperless-ngx
-      VOLSYNC_CAPACITY: 1Gi
+      VOLSYNC_CAPACITY: 100Gi
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
