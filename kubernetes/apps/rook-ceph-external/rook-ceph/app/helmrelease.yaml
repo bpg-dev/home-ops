@@ -28,10 +28,30 @@ spec:
       enableLiveness: true
       # Use krbd (kernel RBD) instead of nbd for Talos compatibility
       # krbd is already available in the kernel and doesn't require privileged mode
-      rbd:
-        mounter: krbd
       # Enable snapshotter if you want RBD volume snapshots
       enableRbdSnapshotter: true
+      # High availability for CSI controllers
+      cephfs:
+        provisioner:
+          replicaCount: 2
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: rook-ceph-external.cephfs.csi.ceph.com-ctrlplugin
+                  topologyKey: kubernetes.io/hostname
+      rbd:
+        mounter: krbd
+        provisioner:
+          replicaCount: 2
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: rook-ceph-external.rbd.csi.ceph.com-ctrlplugin
+                  topologyKey: kubernetes.io/hostname
       serviceMonitor:
         enabled: true
     enableDiscoveryDaemon: true
