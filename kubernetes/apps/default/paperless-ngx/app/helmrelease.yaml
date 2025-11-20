@@ -1,0 +1,137 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: paperless-ngx
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: paperless-ngx
+  interval: 1h
+  values:
+    controllers:
+      paperless-ngx:
+        type: statefulset
+        strategy: RollingUpdate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        initContainers:
+          01-init-db:
+            image:
+              repository: ghcr.io/onedr0p/postgres-init
+              tag: 16.3
+            envFrom:
+              - secretRef:
+                  name: paperless-secret
+        containers:
+          main:
+            dependsOn: [gotenberg, tika]
+            image:
+              repository: ghcr.io/paperless-ngx/paperless-ngx
+              tag: latest
+            env:
+              PAPERLESS_ALLOWED_HOSTS: paperless.${SECRET_DOMAIN}
+              PAPERLESS_CONSUMER_POLLING: 60
+              PAPERLESS_CONSUMER_RECURSIVE: "true"
+              PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
+              PAPERLESS_CONSUMPTION_DIR: /consume
+              PAPERLESS_DATA_DIR: /library/data
+              PAPERLESS_ENABLE_HTTP_REMOTE_USER: "true"
+              PAPERLESS_EXPORT_DIR: /library/export
+              PAPERLESS_HTTP_REMOTE_USER_HEADER_NAME: HTTP_REMOTE_USER
+              PAPERLESS_MEDIA_ROOT: /library/media
+              PAPERLESS_OCR_LANGUAGE: eng
+              PAPERLESS_PORT: &port 80
+              PAPERLESS_REDIS: redis://dragonfly.dragonfly-system.svc.cluster.local:6379
+              PAPERLESS_TASK_WORKERS: 2
+              PAPERLESS_TIKA_ENABLED: 1
+              PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://localhost:3000
+              PAPERLESS_TIKA_ENDPOINT: http://localhost:9998
+              PAPERLESS_TIME_ZONE: UTC
+              PAPERLESS_TRUSTED_PROXIES: 10.42.0.0/16,192.168.1.0/24
+              PAPERLESS_URL: https://paperless.${SECRET_DOMAIN}
+            envFrom:
+              - secretRef:
+                  name: paperless-secret
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/
+                    port: *port
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 500m
+                memory: 1Gi
+              limits:
+                cpu: 2000m
+                memory: 4Gi
+          gotenberg:
+            image:
+              repository: gotenberg/gotenberg
+              tag: 8.8.1
+            env:
+              DISABLE_GOOGLE_CHROME: "1"
+          tika:
+            image:
+              repository: ghcr.io/paperless-ngx/tika
+              tag: 2.9.1-full
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+    service:
+      main:
+        ports:
+          http:
+            port: *port
+    route:
+      main:
+        hostnames: ["paperless.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: *port
+    persistence:
+      library:
+        enabled: true
+        type: persistentVolumeClaim
+        storageClass: ceph-rbd
+        size: "100Gi"
+        retain: true
+        accessMode: ReadWriteOnce
+        globalMounts:
+          - path: /library
+      consume:
+        enabled: true
+        type: nfs
+        server: nas.internal
+        path: /tank/scanner
+        globalMounts:
+          - path: /consume
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+

@@ -1,0 +1,63 @@
+---
+# CronJob for backing up paperless-ngx documents
+# Uses document_exporter to export all documents, thumbnails, and metadata
+# Schedule: Daily at 22:36 (10:36 PM)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: paperless-backup
+  namespace: default
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 2
+  schedule: "36 22 * * *"  # Daily at 10:36 PM
+  suspend: false
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          automountServiceAccountToken: true
+          serviceAccountName: default
+          containers:
+            - name: backup
+              command:
+                - /usr/local/bin/document_exporter
+              args:
+                - --use-folder-prefix
+                - --compare-checksums
+                - --no-color
+                - --skip-checks
+                - /backup
+              image: ghcr.io/paperless-ngx/paperless-ngx:latest
+              env:
+                - name: PAPERLESS_DATA_DIR
+                  value: /library/data
+                - name: PAPERLESS_MEDIA_ROOT
+                  value: /library/media
+              envFrom:
+                - secretRef:
+                    name: paperless-secret
+              ports: []
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 512Mi
+                limits:
+                  cpu: 1000m
+                  memory: 2Gi
+              volumeMounts:
+                - mountPath: /backup
+                  name: backup
+                - mountPath: /library
+                  name: library
+          restartPolicy: Never
+          volumes:
+            - name: backup
+              nfs:
+                server: nas.internal
+                path: /mnt/tank/nfs/paperless-backup
+            - name: library
+              persistentVolumeClaim:
+                claimName: paperless-ngx-library
+
