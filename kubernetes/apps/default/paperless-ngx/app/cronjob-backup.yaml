@@ -22,19 +22,22 @@ spec:
           containers:
             - name: backup
               command:
-                - /usr/local/bin/document_exporter
+                - /bin/bash
+                - -c
               args:
-                - --use-folder-prefix
-                - --compare-checksums
-                - --no-color
-                - --skip-checks
-                - /backup
+                - |
+                  cd /usr/src/paperless/src
+                  python3 manage.py document_exporter --use-folder-prefix --compare-checksums --no-color --skip-checks /backup
               image: ghcr.io/paperless-ngx/paperless-ngx:latest
               env:
                 - name: PAPERLESS_DATA_DIR
                   value: /library/data
                 - name: PAPERLESS_MEDIA_ROOT
                   value: /library/media
+                - name: PAPERLESS_SRC_DIR
+                  value: /usr/src/paperless/src
+                - name: PAPERLESS_REDIS
+                  value: redis://dragonfly.dragonfly-system.svc.cluster.local:6379
               envFrom:
                 - secretRef:
                     name: paperless-secret
@@ -51,6 +54,9 @@ spec:
                   name: backup
                 - mountPath: /library
                   name: library
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
           restartPolicy: Never
           volumes:
             - name: backup
