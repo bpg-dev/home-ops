@@ -51,6 +51,7 @@ spec:
               PAPERLESS_TRUSTED_PROXIES: 10.42.0.0/16,192.168.1.0/24
               PAPERLESS_URL: https://paperless.${SECRET_DOMAIN}
               USERMAP_UID: 1000
+              USERMAP_GID: 1000
             envFrom:
               - secretRef:
                   name: paperless-secret
@@ -67,11 +68,11 @@ spec:
                   timeoutSeconds: 5
                   failureThreshold: 3
               readiness: *probes
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
-              capabilities:
-                drop: ["ALL"]
+            # securityContext:
+            #   allowPrivilegeEscalation: false
+            #   readOnlyRootFilesystem: false
+            #   capabilities:
+            #     drop: ["ALL"]
             resources:
               requests:
                 cpu: 500m
@@ -89,8 +90,6 @@ spec:
             image:
               repository: docker.io/apache/tika
               tag: 3.2.3.0-full
-            env:
-              USERMAP_UID: 1000
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
