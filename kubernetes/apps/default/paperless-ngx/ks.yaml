@@ -4,9 +4,17 @@ kind: Kustomization
 metadata:
   name: paperless-ngx
 spec:
+  components:
+    - ../../../../components/volsync
+  dependsOn:
+    - name: rook-ceph-cluster
+      namespace: rook-ceph-external
   interval: 1h
   path: ./kubernetes/apps/default/paperless-ngx/app
   postBuild:
+    substitute:
+      APP: paperless-ngx
+      VOLSYNC_CAPACITY: 1Gi
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
