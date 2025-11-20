@@ -11,11 +11,28 @@ spec:
   interval: 1h
   values:
     leaderElect: true
+    replicaCount: 2
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: external-secrets
+            topologyKey: kubernetes.io/hostname
     serviceMonitor:
       enabled: true
     # grafanaDashboard:
     #   enabled: true
     certController:
+      replicaCount: 2
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: external-secrets
+                  app.kubernetes.io/component: cert-controller
+              topologyKey: kubernetes.io/hostname
       serviceMonitor:
         enabled: true
     webhook:
