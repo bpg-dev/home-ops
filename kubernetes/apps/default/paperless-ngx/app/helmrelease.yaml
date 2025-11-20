@@ -28,7 +28,7 @@ spec:
             dependsOn: [gotenberg, tika]
             image:
               repository: ghcr.io/paperless-ngx/paperless-ngx
-              tag: latest
+              tag: 2.19.6
             env:
               #PAPERLESS_ALLOWED_HOSTS: paperless.${SECRET_DOMAIN}
               PAPERLESS_CONSUMER_POLLING: 60
@@ -68,11 +68,6 @@ spec:
                   timeoutSeconds: 5
                   failureThreshold: 3
               readiness: *probes
-            # securityContext:
-            #   allowPrivilegeEscalation: false
-            #   readOnlyRootFilesystem: false
-            #   capabilities:
-            #     drop: ["ALL"]
             resources:
               requests:
                 cpu: 500m
