@@ -56,8 +56,15 @@ spec:
         enabled: true
         serviceMonitor:
           enabled: true
-      replicas: 1
+      replicas: 2
       rollOutPods: true
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: cilium-operator
+              topologyKey: kubernetes.io/hostname
     prometheus:
       enabled: true
       serviceMonitor:
