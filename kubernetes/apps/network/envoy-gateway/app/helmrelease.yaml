@@ -11,6 +11,16 @@ spec:
   values:
     global:
       imageRegistry: mirror.gcr.io
+    deployment:
+      replicas: 2
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: gateway-helm
+                  control-plane: envoy-gateway
+              topologyKey: kubernetes.io/hostname
     config:
       envoyGateway:
         provider:
