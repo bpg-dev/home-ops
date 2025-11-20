@@ -86,8 +86,8 @@ spec:
               DISABLE_GOOGLE_CHROME: "1"
           tika:
             image:
-              repository: ghcr.io/paperless-ngx/tika
-              tag: 2.9.1-full
+              repository: docker.io/apache/tika
+              tag: 3.2.3.0-full
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
