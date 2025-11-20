@@ -27,6 +27,6 @@ spec:
       requiredDuringSchedulingIgnoredDuringExecution:
         - labelSelector:
             matchLabels:
-              dragonflydb.io/name: dragonfly
+              app.kubernetes.io/name: dragonfly
           topologyKey: kubernetes.io/hostname
 

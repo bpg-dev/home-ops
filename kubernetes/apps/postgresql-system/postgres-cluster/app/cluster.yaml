@@ -75,3 +75,9 @@ spec:
       cpu: 2000m
       memory: 4Gi
 
+  # Affinity configuration
+  # Enable pod anti-affinity to ensure PostgreSQL pods are distributed across different nodes
+  affinity:
+    enablePodAntiAffinity: true
+    podAntiAffinityType: required
+
