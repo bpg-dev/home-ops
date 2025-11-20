@@ -14,13 +14,6 @@ spec:
       cloudflare-tunnel:
         replicas: 2
         strategy: RollingUpdate
-        affinity:
-          podAntiAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              - labelSelector:
-                  matchLabels:
-                    app.kubernetes.io/name: cloudflare-tunnel
-            topologyKey: kubernetes.io/hostname
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
@@ -64,6 +57,15 @@ spec:
         runAsNonRoot: true
         runAsUser: 65534
         runAsGroup: 65534
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: cloudflare-tunnel
+                topologyKey: kubernetes.io/hostname
     service:
       app:
         ports:
