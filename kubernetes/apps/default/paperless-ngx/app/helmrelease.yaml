@@ -50,6 +50,7 @@ spec:
               PAPERLESS_TIME_ZONE: UTC
               PAPERLESS_TRUSTED_PROXIES: 10.42.0.0/16,192.168.1.0/24
               PAPERLESS_URL: https://paperless.${SECRET_DOMAIN}
+              USERMAP_UID: 1000
             envFrom:
               - secretRef:
                   name: paperless-secret
@@ -88,12 +89,15 @@ spec:
             image:
               repository: docker.io/apache/tika
               tag: 3.2.3.0-full
+            env:
+              USERMAP_UID: 1000
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
     service:
       main:
         ports:
@@ -127,6 +131,11 @@ spec:
         path: /mnt/tank/scanner
         globalMounts:
           - path: /consume
+      run-tmpfs:
+        enabled: true
+        type: emptyDir
+        globalMounts:
+          - path: /run
     resources:
       requests:
         cpu: 500m
