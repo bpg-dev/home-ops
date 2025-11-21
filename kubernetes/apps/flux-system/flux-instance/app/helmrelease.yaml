@@ -30,28 +30,6 @@ spec:
           app.kubernetes.io/name: flux
       kustomize:
         patches:
-          - # Increase replicas for high availability
-            patch: |
-              - op: replace
-                path: /spec/replicas
-                value: 2
-            target:
-              kind: Deployment
-              name: (kustomize-controller|helm-controller|source-controller|notification-controller)
-          - # Add pod anti-affinity for better distribution
-            patch: |
-              - op: add
-                path: /spec/template/spec/affinity
-                value:
-                  podAntiAffinity:
-                    requiredDuringSchedulingIgnoredDuringExecution:
-                      - labelSelector:
-                          matchLabels:
-                            app.kubernetes.io/part-of: flux
-                        topologyKey: kubernetes.io/hostname
-            target:
-              kind: Deployment
-              name: (kustomize-controller|helm-controller|source-controller|notification-controller)
           - # Increase the number of workers
             patch: |
               - op: add
