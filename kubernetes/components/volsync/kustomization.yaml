@@ -7,6 +7,6 @@ resources:
   # PVC with Volume Populator pattern - uses dataSourceRef to ReplicationDestination
   # This PVC will automatically populate from ReplicationDestination when created
   # Note: For restore scenarios, delete existing PVC first, then this will be created and populated
-  # - ./pvc.yaml
+  - ./pvc.yaml
   - ./replicationdestination.yaml
   - ./replicationsource.yaml
