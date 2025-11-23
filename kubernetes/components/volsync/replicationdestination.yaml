@@ -14,8 +14,12 @@ spec:
       - ${VOLSYNC_ACCESSMODES:=ReadWriteOnce}
     cacheAccessModes:
       - ${VOLSYNC_CACHE_ACCESSMODES:=ReadWriteOnce}
+    # Capacity should match the source PVC size to ensure restore can accommodate all data
+    # Cache capacity set to match main capacity to avoid resize issues
     cacheCapacity: ${VOLSYNC_CAPACITY:=5Gi}
-    cacheStorageClassName: ${VOLSYNC_CACHE_SNAPSHOTCLASS:=openebs-hostpath}
+    # Use same storage class as main volume (ceph-rbd) to ensure resize support
+    # This prevents "PVC resize forbidden" errors that block status updates
+    cacheStorageClassName: ${VOLSYNC_STORAGECLASS:=ceph-rbd}
     capacity: ${VOLSYNC_CAPACITY:=5Gi}
     cleanupCachePVC: true
     cleanupTempPVC: true

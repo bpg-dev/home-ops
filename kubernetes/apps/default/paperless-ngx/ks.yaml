@@ -14,6 +14,7 @@ spec:
   postBuild:
     substitute:
       APP: paperless-ngx
+      # VOLSYNC_CAPACITY must match the source PVC size (paperless-ngx PVC is 100Gi)
       VOLSYNC_CAPACITY: 100Gi
     substituteFrom:
       - name: cluster-secrets
