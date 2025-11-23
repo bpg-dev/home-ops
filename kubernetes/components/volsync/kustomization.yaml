@@ -4,8 +4,9 @@ apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 resources:
   - ./externalsecret.yaml
-  # Temporarily excluded restore PVC to avoid conflicts with app PVCs
-  # The restore PVC (pvc.yaml) is only needed for restore scenarios and can be created manually when needed
-  # - ./pvc.yaml
+  # PVC with Volume Populator pattern - uses dataSourceRef to ReplicationDestination
+  # This PVC will automatically populate from ReplicationDestination when created
+  # Note: For restore scenarios, delete existing PVC first, then this will be created and populated
+  - ./pvc.yaml
   - ./replicationdestination.yaml
   - ./replicationsource.yaml
