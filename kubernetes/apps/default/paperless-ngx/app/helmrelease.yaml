@@ -28,7 +28,7 @@ spec:
             dependsOn: [gotenberg, tika]
             image:
               repository: ghcr.io/paperless-ngx/paperless-ngx
-              tag: 2.19.6
+              tag: 2.20.0
             env:
               #PAPERLESS_ALLOWED_HOSTS: paperless.${SECRET_DOMAIN}
               PAPERLESS_CONSUMER_POLLING: 60
@@ -78,7 +78,7 @@ spec:
           backup:
             image:
               repository: ghcr.io/paperless-ngx/paperless-ngx
-              tag: 2.19.6
+              tag: 2.20.0
             command:
               - /bin/bash
               - -c
