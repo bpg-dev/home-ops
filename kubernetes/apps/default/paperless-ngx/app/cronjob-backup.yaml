@@ -1,5 +1,7 @@
 ---
 # CronJob for backing up paperless-ngx documents
+# DEPRECATED: Backup is now handled by a sidecar container in the StatefulSet
+# This CronJob is suspended and kept for reference only
 # Uses document_exporter to export all documents, thumbnails, and metadata
 # Schedule: Daily at 22:36 (10:36 PM)
 apiVersion: batch/v1
@@ -11,7 +13,7 @@ spec:
   concurrencyPolicy: Forbid
   failedJobsHistoryLimit: 2
   schedule: "36 22 * * *"  # Daily at 10:36 PM
-  suspend: false
+  suspend: true  # Suspended - backup now runs as sidecar
   successfulJobsHistoryLimit: 1
   jobTemplate:
     spec:

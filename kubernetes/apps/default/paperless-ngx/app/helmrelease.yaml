@@ -75,6 +75,85 @@ spec:
               limits:
                 cpu: 2000m
                 memory: 4Gi
+          backup:
+            image:
+              repository: ghcr.io/paperless-ngx/paperless-ngx
+              tag: 2.19.6
+            command:
+              - /bin/bash
+              - -c
+            args:
+              - |
+                set -euo pipefail
+                # Backup schedule: Daily at 22:36 (10:36 PM)
+                BACKUP_HOUR=22
+                BACKUP_MINUTE=36
+                LAST_BACKUP_FILE=/tmp/last_backup_timestamp
+
+                # Function to run backup
+                run_backup() {
+                  local timestamp=$(date +%Y%m%d%H%M)
+                  echo "[$(date +%Y-%m-%d\ %H:%M:%S)] Starting paperless-ngx backup..."
+                  cd /usr/src/paperless/src
+                  if python3 manage.py document_exporter --use-folder-prefix --compare-checksums --no-color --skip-checks /backup; then
+                    echo "$timestamp" > "$LAST_BACKUP_FILE"
+                    echo "[$(date +%Y-%m-%d\ %H:%M:%S)] Backup completed successfully"
+                  else
+                    echo "[$(date +%Y-%m-%d\ %H:%M:%S)] Backup failed with exit code $?"
+                    return 1
+                  fi
+                }
+
+                # Wait for main container to be ready (check if database is accessible)
+                echo "[$(date +%Y-%m-%d\ %H:%M:%S)] Waiting for paperless-ngx to be ready..."
+                max_wait=300
+                waited=0
+                while [ $waited -lt $max_wait ]; do
+                  if python3 -c "import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paperless.settings'); import django; django.setup(); from django.db import connection; connection.ensure_connection()" 2>/dev/null; then
+                    echo "[$(date +%Y-%m-%d\ %H:%M:%S)] Paperless-ngx is ready"
+                    break
+                  fi
+                  sleep 5
+                  waited=$((waited + 5))
+                done
+
+                # Main loop - check every minute if it's time to backup
+                while true; do
+                  current_hour=$(date +%H)
+                  current_minute=$(date +%M)
+                  current_timestamp=$(date +%Y%m%d%H%M)
+
+                  # Check if it's backup time and we haven't backed up in this minute
+                  if [ "$current_hour" -eq "$BACKUP_HOUR" ] && [ "$current_minute" -eq "$BACKUP_MINUTE" ]; then
+                    last_backup=$(cat "$LAST_BACKUP_FILE" 2>/dev/null || echo "0")
+                    if [ "$current_timestamp" != "$last_backup" ]; then
+                      run_backup
+                    fi
+                  fi
+
+                  # Sleep for 60 seconds before next check
+                  sleep 60
+                done
+            env:
+              - name: PAPERLESS_DATA_DIR
+                value: /library/data
+              - name: PAPERLESS_MEDIA_ROOT
+                value: /library/media
+              - name: PAPERLESS_SRC_DIR
+                value: /usr/src/paperless/src
+              - name: PAPERLESS_REDIS
+                value: redis://dragonfly.dragonfly-system.svc.cluster.local:6379
+              - name: TZ
+                value: UTC
+            envFrom:
+              - secretRef:
+                  name: paperless-secret
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                memory: 512Mi
           gotenberg:
             image:
               repository: gotenberg/gotenberg
@@ -118,6 +197,13 @@ spec:
         accessMode: ReadWriteOnce
         globalMounts:
           - path: /library
+      backup:
+        enabled: true
+        type: nfs
+        server: nas.internal
+        path: /mnt/tank/nfs/paperless-backup
+        globalMounts:
+          - path: /backup
       consume:
         enabled: true
         type: nfs
