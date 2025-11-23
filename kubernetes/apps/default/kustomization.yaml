@@ -9,4 +9,4 @@ components:
 resources:
   - ./namespace.yaml
   - ./echo/ks.yaml
-  - ./paperless-ngx/ks.yaml
+  # - ./paperless-ngx/ks.yaml
