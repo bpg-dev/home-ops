@@ -15,7 +15,7 @@ alerting:
 
 endpoints:
   - name: Ping
-    group: buddy
+    group: apex
     url: icmp://${BUDDY_DDNS_HOSTNAME}
     interval: 1m
     ui:
@@ -26,8 +26,8 @@ endpoints:
     alerts:
       - type: pushover
 
-  - name: Status Page
-    group: buddy
+  - name: CV Page
+    group: apex
     url: https://${BUDDY_STATUS_HOSTNAME}
     interval: 1m
     ui:

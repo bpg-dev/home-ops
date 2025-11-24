@@ -57,6 +57,7 @@
     "https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json": "file:///Users/pasha/code/home-ops/kubernetes/apps/flux-system/flux-instance/ks.yaml"
   },
   "cSpell.words": [
+    "gatus",
     "onepassword",
     "Populator"
   ],
