@@ -9,4 +9,4 @@ resources:
   - ./volsync.yaml
   - ./objectstore.yaml
   - ./backup.yaml
-
+  - ./scheduledbackup.yaml
