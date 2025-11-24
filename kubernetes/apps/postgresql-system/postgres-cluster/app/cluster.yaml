@@ -26,6 +26,9 @@ spec:
       localeCType: C
       localeCollate: C
 
+  backup:
+    retentionPolicy: 30d
+
   # PostgreSQL configuration
   postgresql:
     parameters:
