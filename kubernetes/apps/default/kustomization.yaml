@@ -11,3 +11,4 @@ resources:
   - ./namespace.yaml
   - ./echo/ks.yaml
   - ./paperless-ngx/ks.yaml
+  - ./cv-site/ks.yaml
