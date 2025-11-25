@@ -6,4 +6,5 @@ resources:
   - ./externalsecret.yaml
   - ./db-bootstrap-job.yaml
   - ./helmrelease.yaml
+  - ./httproute-tracker.yaml
 
