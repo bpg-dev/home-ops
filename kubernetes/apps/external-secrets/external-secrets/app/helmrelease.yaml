@@ -39,9 +39,5 @@ spec:
       replicaCount: 2
       serviceMonitor:
         enabled: true
-    # Configure operator to reduce API call frequency for 1Password Families
-    # 1Password Families: 1,000 reads/hour, 1,000 total/day per account
-    # Increased store requeue interval to 30m to reduce rate limit hits
-    # This reduces how often the operator reconciles SecretStores, helping avoid rate limits
     extraArgs:
       store-requeue-interval: 30m
