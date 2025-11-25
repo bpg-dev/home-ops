@@ -16,7 +16,7 @@ spec:
           app:
             image:
               repository: ghcr.io/bpg/cv
-              tag: latest
+              tag: '20251125-901401f'
             probes:
               liveness: &probes
                 enabled: true
