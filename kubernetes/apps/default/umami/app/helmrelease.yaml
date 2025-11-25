@@ -67,14 +67,7 @@ spec:
           - matches:
               - path:
                   type: PathPrefix
-                  value: /um/api
-            backendRefs:
-              - identifier: tracker
-                port: 3000
-          - matches:
-              - path:
-                  type: PathExact
-                  value: /um/um.js
+                  value: /um
             backendRefs:
               - identifier: tracker
                 port: 3000
