@@ -16,21 +16,21 @@ spec:
           app:
             image:
               repository: ghcr.io/umami-software/umami
-              tag: postgresql-latest
+              tag: postgresql-v2.19.0
             env:
               BASE_PATH: /um
               DATABASE_TYPE: postgresql
               DISABLE_TELEMETRY: "1"
-              HOSTNAME: "pavel.${SECRET_DOMAIN}"
               NEXT_PUBLIC_APP_URL: "https://pavel.${SECRET_DOMAIN}/um"
               NODE_ENV: production
               TRACKER_SCRIPT_NAME: um.js
+              PORT: &port 3000
             envFrom:
               - secretRef:
                   name: umami-config
             securityContext:
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
+              readOnlyRootFilesystem: false
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
@@ -42,8 +42,10 @@ spec:
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        fsGroupChangePolicy: OnRootMismatch
     service:
       tracker:
         controller: umami
