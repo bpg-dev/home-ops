@@ -32,6 +32,19 @@ spec:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
               capabilities: { drop: ["ALL"] }
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: *port
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  timeoutSeconds: 2
+                  failureThreshold: 3
+              readiness: *probes
             resources:
               requests:
                 cpu: 50m
@@ -57,6 +70,11 @@ spec:
         ports:
           http:
             port: 3000
+    serviceMonitor:
+      tracker:
+        serviceName: tracker
+        endpoints:
+          - port: http
     route:
       tracker:
         hostnames:
