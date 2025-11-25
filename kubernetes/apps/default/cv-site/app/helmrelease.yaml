@@ -56,7 +56,7 @@ spec:
           - port: http
     route:
       app:
-        hostnames: ["pavel.${SECRET_DOMAIN}"]
+        hostnames: ["pasha.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-external
             namespace: network
