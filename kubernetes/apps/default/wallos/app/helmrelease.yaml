@@ -17,7 +17,7 @@ spec:
           app:
             image:
               repository: bellamy/wallos
-              tag: latest
+              tag: 4.5.0
             env:
               TZ: "America/Toronto"
             probes:
@@ -36,6 +36,7 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
+              runAsUser: 0
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
@@ -44,13 +45,6 @@ spec:
               limits:
                 cpu: 250m
                 memory: 512Mi
-    defaultPodOptions:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 33
-        runAsGroup: 33
-        fsGroup: 33
-        fsGroupChangePolicy: OnRootMismatch
     service:
       app:
         controller: wallos
@@ -74,7 +68,7 @@ spec:
               - identifier: app
                 port: 80
     persistence:
-      db:
+      data:
         enabled: true
         type: persistentVolumeClaim
         storageClass: ceph-rbd
@@ -84,14 +78,6 @@ spec:
         globalMounts:
           - path: /var/www/html/db
             subPath: db
-      logos:
-        enabled: true
-        type: persistentVolumeClaim
-        storageClass: ceph-rbd
-        size: "1Gi"
-        retain: true
-        accessMode: ReadWriteOnce
-        globalMounts:
           - path: /var/www/html/images/uploads/logos
             subPath: logos
       log:
@@ -99,4 +85,8 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /var/log
-
+      tmp:
+        enabled: true
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
