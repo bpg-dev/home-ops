@@ -1,0 +1,102 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: wallos
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: wallos
+  interval: 1h
+  values:
+    controllers:
+      wallos:
+        replicas: 1
+        strategy: RollingUpdate
+        containers:
+          app:
+            image:
+              repository: bellamy/wallos
+              tag: latest
+            env:
+              TZ: "America/Toronto"
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 80
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  timeoutSeconds: 2
+                  failureThreshold: 3
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                cpu: 250m
+                memory: 512Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 33
+        runAsGroup: 33
+        fsGroup: 33
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        controller: wallos
+        ports:
+          http:
+            port: 80
+    serviceMonitor:
+      app:
+        endpoints:
+          - port: http
+    route:
+      app:
+        hostnames:
+          - "wallos.${SECRET_DOMAIN}"
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: 80
+    persistence:
+      db:
+        enabled: true
+        type: persistentVolumeClaim
+        storageClass: ceph-rbd
+        size: "1Gi"
+        retain: true
+        accessMode: ReadWriteOnce
+        globalMounts:
+          - path: /var/www/html/db
+            subPath: db
+      logos:
+        enabled: true
+        type: persistentVolumeClaim
+        storageClass: ceph-rbd
+        size: "1Gi"
+        retain: true
+        accessMode: ReadWriteOnce
+        globalMounts:
+          - path: /var/www/html/images/uploads/logos
+            subPath: logos
+      log:
+        enabled: true
+        type: emptyDir
+        globalMounts:
+          - path: /var/log
+

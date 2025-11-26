@@ -13,3 +13,4 @@ resources:
   - ./paperless-ngx/ks.yaml
   - ./cv-site/ks.yaml
   - ./umami/ks.yaml
+  - ./wallos/ks.yaml

@@ -1,0 +1,31 @@
+---
+# VolSync backup for wallos-logos PVC
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: wallos-logos
+spec:
+  sourcePVC: wallos-logos
+  trigger:
+    schedule: "0 * * * *"  # Every hour
+  kopia:
+    accessModes:
+      - ReadWriteOnce
+    cacheAccessModes:
+      - ReadWriteOnce
+    cacheCapacity: 1Gi
+    cacheStorageClassName: openebs-hostpath
+    compression: zstd-fastest
+    copyMethod: Snapshot
+    moverSecurityContext:
+      runAsUser: 33
+      runAsGroup: 33
+      fsGroup: 33
+    parallelism: 2
+    repository: wallos-db-volsync-secret
+    retain:
+      hourly: 24
+      daily: 7
+    storageClassName: ceph-rbd
+    volumeSnapshotClassName: csi-ceph-rbd
+
