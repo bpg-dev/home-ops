@@ -28,6 +28,7 @@ spec:
 
   backup:
     retentionPolicy: 30d
+    target: prefer-standby
 
   # PostgreSQL configuration
   postgresql:
