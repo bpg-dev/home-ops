@@ -11,7 +11,5 @@ spec:
       grafana.internal/instance: grafana
   datasources:
     - datasourceName: prometheus
-      inputName: DS_PROMETHEUS
-  configMapRef:
-    name: external-secrets-dashboard
-    key: external-secrets.json
+      inputName: DS_METRICS
+  url: https://grafana.com/api/dashboards/21640/revisions/4/download
