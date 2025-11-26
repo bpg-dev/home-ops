@@ -21,8 +21,8 @@ spec:
             topologyKey: kubernetes.io/hostname
     serviceMonitor:
       enabled: true
-    # grafanaDashboard:
-    #   enabled: true
+    grafanaDashboard:
+      enabled: true
     certController:
       replicaCount: 2
       affinity:
