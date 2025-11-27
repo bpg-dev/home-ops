@@ -13,9 +13,10 @@ spec:
   path: ./kubernetes/apps/default/wallos/app
   postBuild:
     substitute:
-      APP: wallos-db
-      # VOLSYNC_CAPACITY must match the source PVC size (wallos-db PVC is 1Gi)
-      VOLSYNC_CAPACITY: 1Gi
+      APP: wallos
+      VOLSYNC_CLAIM: wallos
+      # VOLSYNC_CAPACITY must match the source PVC size (wallos PVC is 2Gi)
+      VOLSYNC_CAPACITY: 2Gi
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
