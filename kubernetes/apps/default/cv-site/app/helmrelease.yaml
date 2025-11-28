@@ -16,7 +16,7 @@ spec:
           app:
             image:
               repository: ghcr.io/bpg/cv
-              tag: '20251125-901401f'
+              tag: '20251128-736d0c0'
             probes:
               liveness: &probes
                 enabled: true
@@ -50,10 +50,12 @@ spec:
         ports:
           http:
             port: 80
+          monitor:
+            port: 2019
     serviceMonitor:
       app:
         endpoints:
-          - port: http
+          - port: monitor
     route:
       app:
         hostnames: ["pavel.${SECRET_DOMAIN}"]
