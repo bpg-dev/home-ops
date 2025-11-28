@@ -27,3 +27,16 @@ spec:
       runAsNonRoot: true
       runAsUser: 1000
       runAsGroup: 1000
+    resources:
+      manager:
+        requests:
+          cpu: 500m
+          memory: 128Mi
+        limits:
+          memory: 1Gi
+      kube-rbac-proxy:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          memory: 128Mi
