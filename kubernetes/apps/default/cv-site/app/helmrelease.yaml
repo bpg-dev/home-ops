@@ -16,7 +16,10 @@ spec:
           app:
             image:
               repository: ghcr.io/bpg/cv
-              tag: '20251128-736d0c0'
+              tag: '20251128-5f5c141'
+            env:
+              XDG_DATA_HOME: /data
+              XDG_CONFIG_HOME: /config
             probes:
               liveness: &probes
                 enabled: true
@@ -67,4 +70,14 @@ spec:
           - backendRefs:
               - identifier: app
                 port: 80
+    persistence:
+      # we don't use caddy certs, etc, so don't need persistent volumes here
+      data:
+        type: emptyDir
+        globalMounts:
+          - path: /data
+      config:
+        type: emptyDir
+        globalMounts:
+          - path: /config
 
