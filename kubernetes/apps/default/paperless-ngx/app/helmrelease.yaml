@@ -157,8 +157,21 @@ spec:
             image:
               repository: gotenberg/gotenberg
               tag: 8.25.0
+            command:
+              - gotenberg
+            args:
+              - "--chromium-disable-javascript=true"
+              - "--chromium-allow-list=file:///tmp/.*"
+              - "--api-timeout=60s"
             env:
-              DISABLE_GOOGLE_CHROME: "1"
+              - name: HOME
+                value: /tmp
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                memory: 2Gi
           tika:
             image:
               repository: docker.io/apache/tika
