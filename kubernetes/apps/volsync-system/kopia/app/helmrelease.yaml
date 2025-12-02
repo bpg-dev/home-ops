@@ -37,10 +37,6 @@ spec:
                   httpGet:
                     path: /
                     port: *port
-                  initialDelaySeconds: 0
-                  periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
               readiness: *probes
             securityContext:
               allowPrivilegeEscalation: false
@@ -49,6 +45,7 @@ spec:
             resources:
               requests:
                 cpu: 10m
+                memory: 512Mi
               limits:
                 memory: 1Gi
     defaultPodOptions:
@@ -81,7 +78,7 @@ spec:
                   "path": "/repository"
                 }
               },
-              "hostname": "volsync.{{ .Release.Namespace }}.svc.cluster.local",
+              "hostname": "volsync.{{ .Release.Namespace }}",
               "username": "volsync",
               "description": "volsync",
               "enableActions": false
