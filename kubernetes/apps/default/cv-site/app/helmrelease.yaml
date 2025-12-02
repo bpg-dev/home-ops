@@ -28,10 +28,6 @@ spec:
                   httpGet:
                     path: /
                     port: 80
-                  initialDelaySeconds: 0
-                  periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
               readiness: *probes
             securityContext:
               allowPrivilegeEscalation: false
@@ -40,6 +36,7 @@ spec:
             resources:
               requests:
                 cpu: 10m
+                memory: 32Mi
               limits:
                 memory: 64Mi
     defaultPodOptions:

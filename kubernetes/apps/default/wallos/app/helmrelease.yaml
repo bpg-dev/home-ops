@@ -14,8 +14,11 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         replicas: 1
-        strategy: RollingUpdate
+        strategy: Recreate
         containers:
+          # NOTE: Container-level security contexts are NOT used for wallos
+          # because the bellamy/wallos image requires root privileges.
+          # Git history shows security contexts caused deployment failures.
           app:
             image:
               repository: bellamy/wallos
@@ -31,9 +34,6 @@ spec:
                     path: /
                     port: 80
                   initialDelaySeconds: 5
-                  periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
               readiness: *probes
             resources:
               requests:
