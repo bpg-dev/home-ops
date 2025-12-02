@@ -27,6 +27,7 @@ spec:
             resources:
               requests:
                 cpu: 10m
+                memory: 32Mi
               limits:
                 memory: 64Mi
             restartPolicy: Always
@@ -51,10 +52,6 @@ spec:
                   httpGet:
                     path: /health
                     port: *port
-                  initialDelaySeconds: 0
-                  periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
               readiness: *probes
             securityContext:
               allowPrivilegeEscalation: false
@@ -63,6 +60,7 @@ spec:
             resources:
               requests:
                 cpu: 100m
+                memory: 128Mi
               limits:
                 memory: 256Mi
         statefulset:
