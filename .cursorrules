@@ -198,7 +198,7 @@ readiness: *probes
 - **Image registries** (preference order): Official upstream (docker.io, ghcr.io, quay.io) → Trusted community
 - **SHA256 digests**: Let Renovate automatically add for immutability
 - **Container command/args**: Use bracket notation `command: ["cmd", "arg1", "arg2"]`
-- **Avoid** containers using s6-overlay, gosu, or other privileged init systems
+- **AVOID containers using s6-overlay, gosu, or other privileged init systems** - These require elevated privileges and break with strict container security contexts (allowPrivilegeEscalation: false, capabilities drop ALL)
 
 ### Helm Charts
 
@@ -291,6 +291,7 @@ securityContext:
 
 - **readOnlyRootFilesystem**: Use `true` whenever possible, provide writable emptyDir for `/tmp` and cache dirs
 - **fsGroupChangePolicy**: Use `OnRootMismatch` for performance (avoid recursive chown)
+- **EXCEPTION: s6-overlay containers** - Do NOT apply container-level security contexts to containers using s6-overlay, gosu, or similar init systems. They require privileges to fix permissions on directories like `/run`. Pod-level security context is sufficient. Add comment to manifest explaining why.
 
 ### ConfigMaps
 
@@ -505,6 +506,7 @@ securityContext:
 - **Minimal configuration**: Prefer YAML defaults by omission
 - **YAML anchors for probes**: Define liveness, reference for readiness (`readiness: *probes`)
 - **Check existing apps**: Review similar applications before implementing new patterns
+- **Check for s6-overlay before adding security contexts**: Containers using s6-overlay, gosu, or similar init systems cannot use strict container-level security contexts
 
 **Reference implementations:**
 
