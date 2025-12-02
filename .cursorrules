@@ -167,6 +167,23 @@ readiness: *probes
 - Comment complex or non-obvious configurations
 - Use YAML anchors and aliases to reduce duplication
 - Keep line length under 120 characters
+- **ALWAYS add yaml-language-server schema directive** at the top of manifest files (after `---`)
+- **Schema sources** (in order of preference):
+  1. `kubernetes-schemas.pages.dev` - For Flux, monitoring, and common CRDs
+  2. `json.schemastore.org` - For kustomization.yaml files
+  3. `raw.githubusercontent.com/datreeio/CRDs-catalog` - For CRDs not in kubernetes-schemas
+  4. `raw.githubusercontent.com/yannh/kubernetes-json-schema` - For core Kubernetes resources
+  5. Direct CRD URLs from upstream projects (e.g., dragonfly-operator)
+- **Schema format**: `# yaml-language-server: $schema=<URL>`
+- **Finding schemas**: Check existing files in the project for similar resource types
+- **Common schema examples**:
+  - HelmRelease: `kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json`
+  - Kustomization (Flux): `kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json`
+  - Kustomization (file): `json.schemastore.org/kustomization`
+  - ExternalSecret: `kubernetes-schemas.pages.dev/external-secrets.io/externalsecret_v1.json`
+  - ClusterSecretStore: `kubernetes-schemas.pages.dev/external-secrets.io/clustersecretstore_v1.json`
+  - PrometheusRule: `kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json`
+  - GrafanaDashboard: `kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadashboard_v1beta1.json`
 
 ### Markdown Documentation
 
@@ -208,7 +225,7 @@ readiness: *probes
 - **Prefer upstream charts** - Use maintained community charts when available
 - **Use `valuesFrom` for secret injection** - Reference ConfigMaps/Secrets in HelmRelease spec
 - **Service naming pattern**: Helm auto-prefixes with release name: `${.Release.Name}-${service-identifier}`
-- **YAML language server**: Include `# yaml-language-server: $schema=...` directive at top of HelmRelease files
+- **Schema directive**: See YAML Standards section for yaml-language-server schema requirements
 
 ### Talos Linux
 

@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -34,7 +35,7 @@ spec:
               repository: ghcr.io/paperless-ngx/paperless-ngx
               tag: 2.20.0
             env:
-              #PAPERLESS_ALLOWED_HOSTS: paperless.${SECRET_DOMAIN}
+              # PAPERLESS_ALLOWED_HOSTS: paperless.${SECRET_DOMAIN}
               PAPERLESS_CONSUMER_POLLING: 60
               PAPERLESS_CONSUMER_RECURSIVE: "true"
               PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
@@ -240,4 +241,3 @@ spec:
         memory: 1Gi
       limits:
         memory: 4Gi
-
