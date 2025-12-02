@@ -38,10 +38,6 @@ spec:
                   httpGet:
                     path: /ready
                     port: &port 8080
-                  initialDelaySeconds: 0
-                  periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
               readiness: *probes
             securityContext:
               allowPrivilegeEscalation: false
@@ -50,6 +46,7 @@ spec:
             resources:
               requests:
                 cpu: 10m
+                memory: 128Mi
               limits:
                 memory: 256Mi
     defaultPodOptions:
@@ -84,7 +81,7 @@ spec:
                 originRequest:
                   http2Origin: true
                   originServerName: external.${SECRET_DOMAIN}
-                service: https://envoy-external.{{ .Release.Namespace }}.svc.cluster.local:443
+                service: https://envoy-external.{{ .Release.Namespace }}:443
               - service: http_status:404
     persistence:
       config-file:
