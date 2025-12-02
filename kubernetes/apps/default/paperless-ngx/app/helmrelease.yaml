@@ -12,7 +12,7 @@ spec:
     controllers:
       paperless-ngx:
         type: statefulset
-        strategy: Recreate
+        strategy: RollingUpdate
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
