@@ -9,6 +9,7 @@ components:
 
 resources:
   - ./namespace.yaml
+  - ./actual-budget/ks.yaml
   - ./echo/ks.yaml
   - ./paperless-ngx/ks.yaml
   - ./cv-site/ks.yaml

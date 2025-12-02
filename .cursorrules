@@ -32,15 +32,31 @@ This is a home-ops GitOps repository managing a Kubernetes cluster using:
 - **Observability**: Kube-Prometheus-Stack, Grafana, Victoria Logs, Fluent-bit, Gatus
 - **Security**: Cert-Manager for TLS, Reloader for config refresh
 
+## Meta Rules
+
+- **ALWAYS update .cursorrules when user asks to "remember" something** - When the user says "remember" or asks you to note something for future reference, immediately update this .cursorrules file with the new rule or pattern
+- **Update .cursorrules proactively** - If you discover important patterns or make repeated mistakes, add them to this file
+
 ## Critical Rules (NEVER)
 
 These rules prevent immediate cluster failures, data corruption, or GitOps drift. Violations cause production issues.
+
+### Pattern Discovery and Research
+
+- **NEVER make assumptions about cluster configuration** - Always check existing applications first
+- **ALWAYS examine similar applications before implementing** - Search for apps with similar requirements (persistence, databases, networking) and follow their patterns
+- **MANDATORY: Check existing apps for common patterns BEFORE writing any manifests** - Look for: storage dependencies (rook-ceph vs openebs), security contexts, probe configurations, resource limits, Volsync setup, etc.
+- **Pattern sources in order of priority**:
+  1. Existing applications in this repository (kubernetes/apps/)
+  2. Components and templates (kubernetes/components/)
+  3. Reference implementations (onedr0p/home-ops, bjw-s-labs/home-ops, buroa/k8s-gitops)
 
 ### GitOps and Validation
 
 - **NEVER run git commit/push without explicit user request** - GitOps requires user commits for accountability
 - **NEVER use kubectl apply/create/patch/delete** - Bypasses GitOps, creates configuration drift. Use manifest changes only.
 - **NEVER proceed without validation** - Always validate YAML syntax and run dry-run checks before committing
+- **ALWAYS monitor deployment after pushing cluster manifests** - After git push, monitor Flux reconciliation, Kustomization status, HelmRelease status, and pod health until deployment is confirmed successful or fails
 
 ### Storage and Volumes
 
