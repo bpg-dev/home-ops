@@ -12,7 +12,7 @@ spec:
     controllers:
       paperless-ngx:
         type: statefulset
-        strategy: RollingUpdate
+        strategy: Recreate
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
@@ -42,7 +42,7 @@ spec:
               PAPERLESS_MEDIA_ROOT: /library/media
               PAPERLESS_OCR_LANGUAGE: eng
               PAPERLESS_PORT: &port 80
-              PAPERLESS_REDIS: redis://dragonfly.dragonfly-system.svc.cluster.local:6379
+              PAPERLESS_REDIS: redis://dragonfly.dragonfly-system:6379
               PAPERLESS_TASK_WORKERS: 2
               PAPERLESS_TIKA_ENABLED: 1
               PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://localhost:3000
@@ -55,6 +55,11 @@ spec:
             envFrom:
               - secretRef:
                   name: paperless-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
             probes:
               liveness: &probes
                 enabled: true
@@ -64,9 +69,7 @@ spec:
                     path: /api/
                     port: *port
                   initialDelaySeconds: 30
-                  periodSeconds: 10
                   timeoutSeconds: 5
-                  failureThreshold: 3
               readiness: *probes
             resources:
               requests:
@@ -141,12 +144,17 @@ spec:
               - name: PAPERLESS_SRC_DIR
                 value: /usr/src/paperless/src
               - name: PAPERLESS_REDIS
-                value: redis://dragonfly.dragonfly-system.svc.cluster.local:6379
+                value: redis://dragonfly.dragonfly-system:6379
               - name: TZ
                 value: UTC
             envFrom:
               - secretRef:
                   name: paperless-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
             resources:
               requests:
                 cpu: 100m
@@ -166,6 +174,11 @@ spec:
             env:
               - name: HOME
                 value: /tmp
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
             resources:
               requests:
                 cpu: 100m
@@ -176,6 +189,11 @@ spec:
             image:
               repository: docker.io/apache/tika
               tag: 3.2.3.0-full
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -207,8 +225,12 @@ spec:
         size: "100Gi"
         retain: true
         accessMode: ReadWriteOnce
-        globalMounts:
-          - path: /library
+        advancedMounts:
+          paperless-ngx:
+            main:
+              - path: /library
+            backup:
+              - path: /library
       backup:
         enabled: true
         type: nfs
