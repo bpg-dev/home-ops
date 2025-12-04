@@ -159,7 +159,7 @@ spec:
           gotenberg:
             image:
               repository: gotenberg/gotenberg
-              tag: 8.25.0
+              tag: 8.25.1
             command:
               - gotenberg
             args:
