@@ -90,6 +90,28 @@ spec:
         matchLabels:
           grafana.internal/instance: grafana
     additionalPrometheusRulesMap:
+      node-down-rules:
+        groups:
+          - name: node-down
+            rules:
+              - alert: NodeDown
+                annotations:
+                  summary: Node {{ $labels.node }} is down
+                  description: Node {{ $labels.node }} has been unreachable for more than 2 minutes.
+                expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+                for: 2m
+                labels:
+                  severity: critical
+              - alert: NodeUnreachable
+                annotations:
+                  summary: Node {{ $labels.node }} is unreachable
+                  description: Node {{ $labels.node }} is unreachable and has been unschedulable for more than 2 minutes.
+                expr: |
+                  (kube_node_spec_taint{key="node.kubernetes.io/unreachable"} == 1)
+                  * on (node) group_left() (kube_node_status_condition{condition="Ready",status="unknown"} == 1)
+                for: 2m
+                labels:
+                  severity: critical
       dockerhub-rules:
         groups:
           - name: dockerhub
