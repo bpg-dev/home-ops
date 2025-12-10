@@ -41,8 +41,6 @@ spec:
                   httpGet:
                     path: /
                     port: *port
-                  initialDelaySeconds: 10
-                  timeoutSeconds: 2
               readiness: *probes
             resources:
               requests:

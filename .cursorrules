@@ -489,7 +489,9 @@ securityContext:
    - Set `spec.targetNamespace` (NOT `metadata.namespace`)
    - Add dependencies (`dependsOn`) for required infrastructure
 4. **Resources**: Create `kustomization.yaml` in app directory
-   - List resources: `helmrelease.yaml`, `pvc.yaml`, `externalsecret.yaml`, etc.
+   - List resources in **alphabetical order** (e.g., `cronjob-backup.yaml`, `externalsecret.yaml`, `helmrelease.yaml`, `ocirepository.yaml`, `serviceaccount.yaml`)
+   - Alphabetical ordering is simple, consistent, and easy to maintain
+   - Kubernetes handles dependencies automatically, so order doesn't affect functionality
    - Configure `configMapGenerator` for config files
 5. **Storage**: Create `pvc.yaml` if persistence needed (RWO vs RWX determines deployment strategy)
 6. **Secrets**: Create `externalsecret.yaml` (External Secrets Operator → 1Password)
@@ -538,6 +540,8 @@ securityContext:
 - **Namespace inheritance**: Set namespace in parent kustomization.yaml, let it inherit
 - **Minimal configuration**: Prefer YAML defaults by omission
 - **YAML anchors for probes**: Define liveness, reference for readiness (`readiness: *probes`)
+- **Resource ordering in kustomization.yaml**: Always list resources in **alphabetical order** - simple, consistent, and easy to maintain. Kubernetes handles dependencies automatically.
+- **YAML anchor references as keys**: Use space before colon when anchor references are used as keys (e.g., `*app :` not `*app:`) to avoid parsing errors
 - **Check existing apps**: Review similar applications before implementing new patterns
 - **Check for s6-overlay before adding security contexts**: Containers using s6-overlay, gosu, or similar init systems cannot use strict container-level security contexts
 

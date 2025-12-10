@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &name wallos
+  name: &app wallos
 spec:
   chartRef:
     kind: OCIRepository
@@ -11,7 +11,7 @@ spec:
   interval: 1h
   values:
     controllers:
-      *name :
+      *app :
         annotations:
           reloader.stakater.com/auto: "true"
         replicas: 1
@@ -34,7 +34,6 @@ spec:
                   httpGet:
                     path: /
                     port: 80
-                  initialDelaySeconds: 5
               readiness: *probes
             resources:
               requests:
@@ -44,7 +43,7 @@ spec:
                 memory: 256Mi
     service:
       app:
-        controller: *name
+        controller: *app
         ports:
           http:
             port: 80
@@ -64,7 +63,7 @@ spec:
       data:
         existingClaim: "${VOLSYNC_CLAIM:=${APP}}"
         advancedMounts:
-          *name :
+          *app :
             app:
               - path: /var/www/html/db
                 subPath: db

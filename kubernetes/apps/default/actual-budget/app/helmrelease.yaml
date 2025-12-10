@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &name actual-budget
+  name: &app actual-budget
 spec:
   chartRef:
     kind: OCIRepository
@@ -11,7 +11,7 @@ spec:
   interval: 1h
   values:
     controllers:
-      *name :
+      *app :
         annotations:
           reloader.stakater.com/auto: "true"
         replicas: 1
@@ -53,7 +53,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
     service:
       app:
-        controller: *name
+        controller: *app
         ports:
           http:
             port: 5006
@@ -73,7 +73,7 @@ spec:
       data:
         existingClaim: "${VOLSYNC_CLAIM:=${APP}}"
         advancedMounts:
-          *name :
+          *app :
             app:
               - path: /data
       tmp:

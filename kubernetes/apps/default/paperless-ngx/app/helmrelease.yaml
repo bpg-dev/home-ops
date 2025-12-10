@@ -68,8 +68,6 @@ spec:
                   httpGet:
                     path: /api/
                     port: *port
-                  initialDelaySeconds: 30
-                  timeoutSeconds: 5
               readiness: *probes
             resources:
               requests:
