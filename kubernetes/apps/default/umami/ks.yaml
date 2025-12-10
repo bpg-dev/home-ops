@@ -1,21 +1,25 @@
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: umami
+  name: &app umami
 spec:
+  targetNamespace: default
   interval: 1h
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
   path: ./kubernetes/apps/default/umami/app
   postBuild:
+    substitute:
+      APP: *app
     substituteFrom:
-      - kind: Secret
-        name: cluster-secrets
-        optional: false
+      - name: cluster-secrets
+        kind: Secret
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  targetNamespace: default
   wait: false
-
