@@ -27,8 +27,6 @@ spec:
                 set -e
                 echo "Copying config files to /app/config..."
                 cp -v /app/config.d/* /app/config/ || true
-                echo "Creating Next.js cache directory..."
-                mkdir -p /tmp/.next
                 echo "Config files copied successfully"
             resources:
               requests:
@@ -44,7 +42,6 @@ spec:
             env:
               PORT: &port 3000
               HOMEPAGE_ALLOWED_HOSTS: homepage.${SECRET_DOMAIN}
-              NEXT_PRIVATE_CACHE_DIR: /tmp/.next
             probes:
               liveness: &probes
                 enabled: true
@@ -56,7 +53,7 @@ spec:
               readiness: *probes
             securityContext:
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
+              readOnlyRootFilesystem: false
               capabilities: {drop: ["ALL"]}
             resources:
               requests:
