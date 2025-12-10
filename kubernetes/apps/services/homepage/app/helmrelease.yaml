@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: homepage
+  name: &app homepage
 spec:
   chartRef:
     kind: OCIRepository
@@ -11,7 +11,7 @@ spec:
   interval: 1h
   values:
     controllers:
-      homepage:
+      *app :
         annotations:
           reloader.stakater.com/auto: "true"
         strategy: RollingUpdate
@@ -78,6 +78,7 @@ spec:
               resources:
                 - namespaces
                 - pods
+                - nodes
               verbs:
                 - get
                 - list
@@ -92,9 +93,19 @@ spec:
                 - list
                 - watch
             - apiGroups:
+                - extensions
                 - networking.k8s.io
               resources:
                 - ingresses
+              verbs:
+                - get
+                - list
+                - watch
+            - apiGroups:
+              - metrics.k8s.io
+              resources:
+                - nodes
+                - pods
               verbs:
                 - get
                 - list
@@ -103,9 +114,9 @@ spec:
         homepage:
           type: ClusterRoleBinding
           roleRef:
-            identifier: homepage
+            identifier: *app
           subjects:
-            - identifier: homepage
+            - identifier: *app
     serviceAccount:
       homepage: {}
     service:
@@ -127,9 +138,9 @@ spec:
     persistence:
       config-source:
         type: configMap
-        name: "{{ .Release.Name }}-config"
+        name: homepage-config
         advancedMounts:
-          homepage:
+          *app :
             copy-config:
               - path: /app/config.d
       config:

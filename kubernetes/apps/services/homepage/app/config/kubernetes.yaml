@@ -2,6 +2,6 @@
 # Homepage Kubernetes integration configuration
 # See https://gethomepage.dev/configs/kubernetes/ for full documentation
 
-mode: default
+mode: cluster
 ingress: true
 gateway: true
