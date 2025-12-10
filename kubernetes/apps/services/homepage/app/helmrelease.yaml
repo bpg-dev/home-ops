@@ -15,6 +15,25 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         strategy: RollingUpdate
+        initContainers:
+          copy-config:
+            image:
+              repository: busybox
+              tag: 1.36
+            command:
+              - /bin/sh
+              - -c
+              - |
+                set -e
+                echo "Copying config files to /app/config..."
+                cp -v /app/config.d/* /app/config/ || true
+                echo "Config files copied successfully"
+            resources:
+              requests:
+                cpu: 10m
+                memory: 16Mi
+              limits:
+                memory: 32Mi
         containers:
           app:
             image:
@@ -66,16 +85,18 @@ spec:
               - identifier: app
                 port: *port
     persistence:
-      config:
+      config-source:
         type: configMap
         name: "{{ .Release.Name }}-config"
+        advancedMounts:
+          homepage:
+            copy-config:
+              - path: /app/config.d
+      config:
+        enabled: true
+        type: emptyDir
         globalMounts:
-          - path: /app/config/kubernetes.yaml
-            subPath: kubernetes.yaml
-          - path: /app/config/services.yaml
-            subPath: services.yaml
-          - path: /app/config/settings.yaml
-            subPath: settings.yaml
+          - path: /app/config
       logs:
         enabled: true
         type: emptyDir
