@@ -57,6 +57,12 @@ spec:
             port: 5006
     route:
       app:
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: "Actual Budget"
+          gethomepage.dev/description: "Budget tracking and financial planning"
+          gethomepage.dev/group: "Personal & Finance"
+          gethomepage.dev/icon: "actual-budget.png"
         hostnames: ["actual.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-internal

@@ -49,6 +49,12 @@ spec:
             port: 80
     route:
       app:
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: "Wallos"
+          gethomepage.dev/description: "Expense tracking and budgeting"
+          gethomepage.dev/group: "Personal & Finance"
+          gethomepage.dev/icon: "wallos.png"
         hostnames: ["wallos.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-internal

@@ -1,10 +1,7 @@
 ---
 # Homepage services configuration
 # See https://gethomepage.dev/configs/services/ for full documentation
-
-# Example service - customize as needed
-# - Services:
-#     - name: Example Service
-#       icon: example.png
-#       href: https://example.com
-#       description: Example service description
+#
+# Services are now automatically discovered via Kubernetes HTTPRoute annotations.
+# Add gethomepage.dev/* annotations to your HTTPRoutes for automatic discovery.
+# This file is kept for manual service entries if needed.

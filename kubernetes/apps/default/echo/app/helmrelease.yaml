@@ -59,6 +59,12 @@ spec:
           - port: http
     route:
       app:
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: "Echo"
+          gethomepage.dev/description: "HTTP request testing tool"
+          gethomepage.dev/group: "Development & Testing"
+          gethomepage.dev/icon: "echo.png"
         hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-external

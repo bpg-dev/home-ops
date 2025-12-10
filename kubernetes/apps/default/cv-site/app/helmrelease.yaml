@@ -60,6 +60,12 @@ spec:
           - port: monitor
     route:
       app:
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: "CV Site"
+          gethomepage.dev/description: "Personal portfolio website"
+          gethomepage.dev/group: "Personal Sites"
+          gethomepage.dev/icon: "cv-site.png"
         hostnames: ["pavel.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-external

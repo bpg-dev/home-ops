@@ -191,6 +191,12 @@ spec:
             port: *port
     route:
       main:
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: "Paperless NGX"
+          gethomepage.dev/description: "Document management system"
+          gethomepage.dev/group: "Documentation & Notes"
+          gethomepage.dev/icon: "paperless-ngx.png"
         hostnames: ["paperless.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-internal
