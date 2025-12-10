@@ -35,9 +35,7 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities:
-                drop:
-                  - ALL
+              capabilities: {drop: ["ALL"]}
             resources:
               requests:
                 cpu: 10m
@@ -59,8 +57,7 @@ spec:
             port: 5006
     route:
       app:
-        hostnames:
-          - "actual.${SECRET_DOMAIN}"
+        hostnames: ["actual.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-internal
             namespace: network

@@ -73,8 +73,7 @@ spec:
           - port: http
     route:
       tracker:
-        hostnames:
-          - "pavel.${SECRET_DOMAIN}"
+        hostnames: ["pavel.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-external
             namespace: network
@@ -88,8 +87,7 @@ spec:
               - identifier: tracker
                 port: 3000
       admin:
-        hostnames:
-          - "umami.${SECRET_DOMAIN}"
+        hostnames: ["umami.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-internal
             namespace: network

@@ -49,8 +49,7 @@ spec:
             port: 80
     route:
       app:
-        hostnames:
-          - "wallos.${SECRET_DOMAIN}"
+        hostnames: ["wallos.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-internal
             namespace: network
