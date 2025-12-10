@@ -65,7 +65,7 @@ spec:
           gethomepage.dev/name: "CV Site"
           gethomepage.dev/description: "Personal portfolio website"
           gethomepage.dev/group: "Personal Sites"
-          gethomepage.dev/icon: "cv-site.png"
+          gethomepage.dev/icon: "https://pavel.${SECRET_DOMAIN}/assets/images/profile.jpg"
         hostnames: ["pavel.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-external
