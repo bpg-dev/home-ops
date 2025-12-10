@@ -1,0 +1,10 @@
+---
+# Homepage settings configuration
+# See https://gethomepage.dev/configs/settings/ for full documentation
+
+title: Home
+logo: /logo.png
+favicon: /favicon.png
+headerStyle: center
+footerStyle: center
+footerText: Made with ❤️ using Homepage

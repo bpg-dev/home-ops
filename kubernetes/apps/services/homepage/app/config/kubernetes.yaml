@@ -1,0 +1,7 @@
+---
+# Homepage Kubernetes integration configuration
+# See https://gethomepage.dev/configs/kubernetes/ for full documentation
+
+mode: default
+ingress: true
+gateway: true

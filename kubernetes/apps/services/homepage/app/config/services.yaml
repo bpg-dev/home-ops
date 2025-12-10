@@ -1,0 +1,10 @@
+---
+# Homepage services configuration
+# See https://gethomepage.dev/configs/services/ for full documentation
+
+# Example service - customize as needed
+# - Services:
+#     - name: Example Service
+#       icon: example.png
+#       href: https://example.com
+#       description: Example service description
