@@ -7,9 +7,6 @@ metadata:
   namespace: flux-system
 spec:
   targetNamespace: services
-  dependsOn:
-    - name: external-secrets-stores
-      namespace: external-secrets
   interval: 30m
   retryInterval: 1m
   timeout: 5m
