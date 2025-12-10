@@ -70,6 +70,14 @@ spec:
         name: "{{ .Release.Name }}-config"
         globalMounts:
           - path: /app/config
+      logs:
+        enabled: true
+        type: emptyDir
+        advancedMounts:
+          homepage:
+            app:
+              - path: /app/config/logs
+                subPath: logs
       tmp:
         enabled: true
         type: emptyDir
