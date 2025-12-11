@@ -24,23 +24,23 @@
           url: http://192.168.1.1
           username: {{HOMEPAGE_VAR_OPNSENSE_USERNAME}}
           password: {{HOMEPAGE_VAR_OPNSENSE_PASSWORD}}
-- Infrastructure:
-  - TrueNAS:
-      href: http://truenas.rafaribe.com
-      icon: truenas.png
-      description: TrueNAS Scale
-      widget:
-        type: truenas
-        url: http://truenas.rafaribe.com
-        key: {{HOMEPAGE_VAR_TRUENAS_APIKEY}}
-        enablePools: true
-  - Proxmox:
-      href: https://10.0.0.2:8006
-      icon: https://www.45drives.com/solutions/proxmox/img/proxmox_Logo.png
-      description: Virtualized Router
-      widget:
-        type: proxmox
-        url: https://10.0.0.2:8006
-        username: {{HOMEPAGE_VAR_PROXMOX_API_USER}}
-        password: {{HOMEPAGE_VAR_PROXMOX_API_USER_KEY}}
-        node: router
+# - Infrastructure:
+#   - TrueNAS:
+#       href: http://truenas.rafaribe.com
+#       icon: truenas.png
+#       description: TrueNAS Scale
+#       widget:
+#         type: truenas
+#         url: http://truenas.rafaribe.com
+#         key: {{HOMEPAGE_VAR_TRUENAS_APIKEY}}
+#         enablePools: true
+#   - Proxmox:
+#       href: https://10.0.0.2:8006
+#       icon: https://www.45drives.com/solutions/proxmox/img/proxmox_Logo.png
+#       description: Virtualized Router
+#       widget:
+#         type: proxmox
+#         url: https://10.0.0.2:8006
+#         username: {{HOMEPAGE_VAR_PROXMOX_API_USER}}
+#         password: {{HOMEPAGE_VAR_PROXMOX_API_USER_KEY}}
+#         node: router
