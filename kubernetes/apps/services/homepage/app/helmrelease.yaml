@@ -19,7 +19,7 @@ spec:
           copy-config:
             image:
               repository: busybox
-              tag: 1.36
+              tag: 1.37
             command:
               - /bin/sh
               - -c
