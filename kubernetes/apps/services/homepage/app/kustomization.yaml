@@ -13,5 +13,6 @@ configMapGenerator:
       - services.yaml=./config/services.yaml
       - settings.yaml=./config/settings.yaml
       - widgets.yaml=./config/widgets.yaml
+      - proxmox.yaml=./config/proxmox.yaml
 generatorOptions:
   disableNameSuffixHash: true

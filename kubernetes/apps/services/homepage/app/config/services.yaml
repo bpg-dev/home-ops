@@ -43,16 +43,6 @@
         url: https://truenas.${SECRET_INTERNAL_DOMAIN}
         key: {{HOMEPAGE_VAR_TRUENAS_APIKEY}}
         enablePools: true
-  - Proxmox:
-      href: https://pve-cluster.${SECRET_INTERNAL_DOMAIN}:8006
-      icon: https://www.45drives.com/solutions/proxmox/img/proxmox_Logo.png
-      description: Proxmox Lab Cluster
-      widget:
-        type: proxmox
-        url: https://pve-cluster.${SECRET_INTERNAL_DOMAIN}:8006
-        username: {{HOMEPAGE_VAR_PROXMOX_API_USER}}
-        password: {{HOMEPAGE_VAR_PROXMOX_API_USER_KEY}}
-
 - Documentation & Notes:
   - Paperless NGX:
       href: https://paperless.${SECRET_DOMAIN}

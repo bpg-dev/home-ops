@@ -1,12 +1,12 @@
 ---
 # Homepage widgets configuration
 # See https://gethomepage.dev/widgets/ for full documentation
-- logo:
-    icon: md-home-account
+# - logo:
+#     icon: mdi-home-account
 - search:
     provider: [brave]
     focus: true
-    target: _self
+    target: _blank
 - greeting:
     text_size: xl
     text: "Hey 👋, how are you doing today?"

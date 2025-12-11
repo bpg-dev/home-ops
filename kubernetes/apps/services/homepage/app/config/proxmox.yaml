@@ -1,0 +1,13 @@
+pve1: # must match your actual Proxmox node name
+  url: https://pve1.${SECRET_INTERNAL_DOMAIN}:8006
+  token: {{HOMEPAGE_VAR_PROXMOX_API_USER}}
+  secret: {{HOMEPAGE_VAR_PROXMOX_API_USER_KEY}}
+pve2: # must match your actual Proxmox node name
+  url: https://pve2.${SECRET_INTERNAL_DOMAIN}:8006
+  token: {{HOMEPAGE_VAR_PROXMOX_API_USER}}
+  secret: {{HOMEPAGE_VAR_PROXMOX_API_USER_KEY}}
+pve3: # must match your actual Proxmox node name
+  url: https://pve3.${SECRET_INTERNAL_DOMAIN}:8006
+  token: {{HOMEPAGE_VAR_PROXMOX_API_USER}}
+  secret: {{HOMEPAGE_VAR_PROXMOX_API_USER_KEY}}
+
