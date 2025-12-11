@@ -34,15 +34,6 @@
         username: {{HOMEPAGE_VAR_OPNSENSE_USERNAME}}
         password: {{HOMEPAGE_VAR_OPNSENSE_PASSWORD}}
 - Infrastructure:
-  - TrueNAS:
-      href: https://truenas.${SECRET_INTERNAL_DOMAIN}
-      icon: truenas.png
-      description: TrueNAS Scale
-      widget:
-        type: truenas
-        url: https://truenas.${SECRET_INTERNAL_DOMAIN}
-        key: {{HOMEPAGE_VAR_TRUENAS_APIKEY}}
-        enablePools: true
   - Proxmox:
       href: https://pve-cluster.${SECRET_INTERNAL_DOMAIN}:8006
       icon: https://www.45drives.com/solutions/proxmox/img/proxmox_Logo.png
@@ -52,6 +43,17 @@
         url: https://pve-cluster.${SECRET_INTERNAL_DOMAIN}:8006
         username: {{HOMEPAGE_VAR_PROXMOX_API_USER}}
         password: {{HOMEPAGE_VAR_PROXMOX_API_USER_KEY}}
+
+  # should be last in the list
+  - TrueNAS:
+      href: https://truenas.${SECRET_INTERNAL_DOMAIN}
+      icon: truenas.png
+      description: TrueNAS Scale
+      widget:
+        type: truenas
+        url: https://truenas.${SECRET_INTERNAL_DOMAIN}
+        key: {{HOMEPAGE_VAR_TRUENAS_APIKEY}}
+        enablePools: true
 
 - Documentation & Notes:
   - Paperless NGX:
