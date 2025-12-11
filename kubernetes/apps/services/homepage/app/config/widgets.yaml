@@ -7,9 +7,9 @@
     provider: [brave]
     focus: true
     target: _blank
-- greeting:
-    text_size: xl
-    text: "Hey 👋, how are you doing today?"
+# - greeting:
+#     text_size: xl
+#     text: "Hey 👋, how are you doing today?"
 - kubernetes:
     cluster:
         cpu: true
