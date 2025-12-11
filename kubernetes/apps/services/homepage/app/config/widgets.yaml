@@ -2,14 +2,14 @@
 # Homepage widgets configuration
 # See https://gethomepage.dev/widgets/ for full documentation
 - logo:
-    icon: https://avatars.githubusercontent.com/u/627562
+    icon: md-home-account
 - search:
-    provider: [google]
-    focus: false
-    target: _blank
+    provider: [brave]
+    focus: true
+    target: _self
 - greeting:
     text_size: xl
-    text: "Hey Pavel, how are you doing today?"
+    text: "Hey 👋, how are you doing today?"
 - kubernetes:
     cluster:
         cpu: true

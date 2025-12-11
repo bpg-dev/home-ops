@@ -8,39 +8,57 @@
 
 - Network:
   - Cloudflared:
-        href: https://dash.cloudflare.com/
-        icon: cloudflare-zero-trust.png
-        description: Cloudflared Tunnel Status
-        widget:
-          type: cloudflared
-          accountid: {{HOMEPAGE_VAR_CLOUDFLARED_ACCOUNTID}}
-          tunnelid: {{HOMEPAGE_VAR_CLOUDFLARED_TUNNELID}}
-          key: {{HOMEPAGE_VAR_CLOUDFLARED_API_TOKEN}}
+      href: https://dash.cloudflare.com/
+      icon: cloudflare-zero-trust.png
+      description: Cloudflared Tunnel Status
+      widget:
+        type: cloudflared
+        accountid: {{HOMEPAGE_VAR_CLOUDFLARED_ACCOUNTID}}
+        tunnelid: {{HOMEPAGE_VAR_CLOUDFLARED_TUNNELID}}
+        key: {{HOMEPAGE_VAR_CLOUDFLARED_API_TOKEN}}
+  - NextDNS:
+      href: https://dash.nextdns.io/
+      icon: nextdns.png
+      description: NextDNS
+      widget:
+        type: nextdns
+        profile: {{HOMEPAGE_VAR_NEXTDNS_PROFILEID}}
+        key: {{HOMEPAGE_VAR_NEXTDNS_API_TOKEN}}
   - OPNSense:
-        href: https://192.168.1.1
-        description: OPNSense
-        widget:
-          type: opnsense
-          url: https://192.168.1.1
-          username: {{HOMEPAGE_VAR_OPNSENSE_USERNAME}}
-          password: {{HOMEPAGE_VAR_OPNSENSE_PASSWORD}}
-# - Infrastructure:
-#   - TrueNAS:
-#       href: http://truenas.rafaribe.com
-#       icon: truenas.png
-#       description: TrueNAS Scale
-#       widget:
-#         type: truenas
-#         url: http://truenas.rafaribe.com
-#         key: {{HOMEPAGE_VAR_TRUENAS_APIKEY}}
-#         enablePools: true
-#   - Proxmox:
-#       href: https://10.0.0.2:8006
-#       icon: https://www.45drives.com/solutions/proxmox/img/proxmox_Logo.png
-#       description: Virtualized Router
-#       widget:
-#         type: proxmox
-#         url: https://10.0.0.2:8006
-#         username: {{HOMEPAGE_VAR_PROXMOX_API_USER}}
-#         password: {{HOMEPAGE_VAR_PROXMOX_API_USER_KEY}}
-#         node: router
+      href: https://opnsense.${SECRET_INTERNAL_DOMAIN}
+      icon: opnsense.png
+      description: OPNSense
+      widget:
+        type: opnsense
+        url: https://opnsense.${SECRET_INTERNAL_DOMAIN}
+        username: {{HOMEPAGE_VAR_OPNSENSE_USERNAME}}
+        password: {{HOMEPAGE_VAR_OPNSENSE_PASSWORD}}
+- Infrastructure:
+  - TrueNAS:
+      href: http://truenas.${SECRET_INTERNAL_DOMAIN}
+      icon: truenas.png
+      description: TrueNAS Scale
+      widget:
+        type: truenas
+        url: http://truenas.${SECRET_INTERNAL_DOMAIN}
+        key: {{HOMEPAGE_VAR_TRUENAS_APIKEY}}
+        enablePools: true
+  - Proxmox:
+      href: https://pve-cluster.${SECRET_INTERNAL_DOMAIN}:8006
+      icon: https://www.45drives.com/solutions/proxmox/img/proxmox_Logo.png
+      description: Proxmox Lab Cluster
+      widget:
+        type: proxmox
+        url: https://pve-cluster.${SECRET_INTERNAL_DOMAIN}:8006
+        username: {{HOMEPAGE_VAR_PROXMOX_API_USER}}
+        password: {{HOMEPAGE_VAR_PROXMOX_API_USER_KEY}}
+
+- Documentation & Notes:
+  - Paperless NGX:
+      href: https://paperless.${SECRET_DOMAIN}
+      icon: paperless-ngx.png
+      description: Document management system
+      widget:
+        type: paperlessngx
+        url: https://paperless.${SECRET_DOMAIN}
+        key: {{HOMEPAGE_VAR_PAPERLESS_NGX_API_TOKEN}}
