@@ -1,12 +1,18 @@
 ---
+# this job should not be included in the kustomization.yaml file
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/job.json
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: kopia-repository-init
-  namespace: volsync-system
+  labels:
+    app.kubernetes.io/name: kopia-repository-init
 spec:
   ttlSecondsAfterFinished: 300
   template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kopia-repository-init
     spec:
       restartPolicy: OnFailure
       securityContext:
