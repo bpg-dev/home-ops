@@ -20,6 +20,7 @@ spec:
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
+        optional: false
   prune: true
   sourceRef:
     kind: GitRepository

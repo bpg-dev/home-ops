@@ -17,7 +17,7 @@
         tunnelid: {{HOMEPAGE_VAR_CLOUDFLARED_TUNNELID}}
         key: {{HOMEPAGE_VAR_CLOUDFLARED_API_TOKEN}}
   - NextDNS:
-      href: https://dash.nextdns.io/
+      href: https://my.nextdns.io/
       icon: nextdns.png
       description: NextDNS
       widget:
@@ -35,12 +35,12 @@
         password: {{HOMEPAGE_VAR_OPNSENSE_PASSWORD}}
 - Infrastructure:
   - TrueNAS:
-      href: http://truenas.${SECRET_INTERNAL_DOMAIN}
+      href: https://truenas.${SECRET_INTERNAL_DOMAIN}
       icon: truenas.png
       description: TrueNAS Scale
       widget:
         type: truenas
-        url: http://truenas.${SECRET_INTERNAL_DOMAIN}
+        url: https://truenas.${SECRET_INTERNAL_DOMAIN}
         key: {{HOMEPAGE_VAR_TRUENAS_APIKEY}}
         enablePools: true
   - Proxmox:
