@@ -6,3 +6,8 @@ title: Home
 headerStyle: boxed
 useEqualHeights: true
 showStats: true
+
+layout:
+  Network:
+    style: row
+    columns: 3

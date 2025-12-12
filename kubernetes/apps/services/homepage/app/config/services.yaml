@@ -41,6 +41,14 @@
         url: https://opnsense.${SECRET_INTERNAL_DOMAIN}
         username: {{HOMEPAGE_VAR_OPNSENSE_USERNAME}}
         password: {{HOMEPAGE_VAR_OPNSENSE_PASSWORD}}
+  - Unifi Network Application:
+      href: https://cloudkey.${SECRET_INTERNAL_DOMAIN}
+      icon: unifi.png
+      description: Unifi Network Application
+      widget:
+        type: unifi
+        url: https://cloudkey.${SECRET_INTERNAL_DOMAIN}
+        key: {{HOMEPAGE_VAR_UNIFI_API_KEY}}
 
 - Infrastructure:
   - Proxmox:
@@ -52,15 +60,6 @@
         url: https://pve-cluster.${SECRET_INTERNAL_DOMAIN}:8006
         username: {{HOMEPAGE_VAR_PROXMOX_API_USER}}
         password: {{HOMEPAGE_VAR_PROXMOX_API_USER_KEY}}
-
-  - Unifi Network Application:
-      href: https://cloudkey.${SECRET_INTERNAL_DOMAIN}
-      icon: unifi.png
-      description: Unifi Network Application
-      widget:
-        type: unifi
-        url: https://cloudkey.${SECRET_INTERNAL_DOMAIN}
-        key: {{HOMEPAGE_VAR_UNIFI_API_KEY}}
 
   # should be last in the list
   - TrueNAS:

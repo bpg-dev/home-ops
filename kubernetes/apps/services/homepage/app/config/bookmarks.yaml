@@ -1,12 +1,15 @@
 - Developer:
     - Github:
         - abbr: GH
+          icon: github.png
           href: https://github.com/bpg
     - Library.tf:
-        - abbr: Library.tf
+        - abbr: LT
+          icon: https://library.tf/images/icon192.png
           href: https://library.tf/insights
     - Terraform Registry:
-        - abbr: TF Registry
+        - abbr: TF
+          icon: terraform.png
           href: https://registry.terraform.io/providers/bpg/proxmox/latest
 
 - Social:
