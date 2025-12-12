@@ -1,0 +1,90 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app authentik
+spec:
+  chart:
+    spec:
+      chart: authentik
+      sourceRef:
+        kind: HelmRepository
+        name: authentik
+      version: "2024.6.0"
+  interval: 1h
+  timeout: 15m
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    # Authentik configuration
+    # Secrets will be injected via valuesFrom from the authentik-config Secret
+    authentik:
+      secret_key: "${AUTHENTIK_SECRET_KEY}"
+      error_reporting:
+        enabled: false
+
+    # PostgreSQL configuration - use external PostgreSQL cluster
+    postgresql:
+      enabled: false
+
+    # External PostgreSQL connection
+    externalDatabase:
+      host: postgres-rw.postgresql-system.svc.cluster.local
+      port: 5432
+      database: "${AUTHENTIK_DB_NAME}"
+      user: "${AUTHENTIK_DB_USER}"
+      password: "${AUTHENTIK_DB_PASSWORD}"
+
+    # Redis configuration - enable embedded Redis
+    redis:
+      enabled: true
+      auth:
+        enabled: true
+        password: "${AUTHENTIK_REDIS_PASSWORD}"
+
+    # Server configuration
+    server:
+      replicas: 1
+      resources:
+        requests:
+          cpu: 200m
+          memory: 512Mi
+        limits:
+          memory: 1Gi
+      # Disable ingress - we'll use HTTPRoute
+      ingress:
+        enabled: false
+
+    # Worker configuration
+    worker:
+      replicas: 1
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+
+    # Security context
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+
+    # Pod security context
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+

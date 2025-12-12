@@ -1,0 +1,33 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app authentik
+spec:
+  targetNamespace: security
+  interval: 1h
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
+  path: ./kubernetes/apps/security/authentik/app
+  postBuild:
+    substitute:
+      APP: *app
+      AUTHENTIK_SECRET_KEY: "${SECRET_KEY}"
+      AUTHENTIK_DB_NAME: "${DB_NAME}"
+      AUTHENTIK_DB_USER: "${DB_USER}"
+      AUTHENTIK_DB_PASSWORD: "${DB_PASSWORD}"
+      AUTHENTIK_REDIS_PASSWORD: "${REDIS_PASSWORD}"
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
+      - name: authentik-config
+        kind: Secret
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: false
+
