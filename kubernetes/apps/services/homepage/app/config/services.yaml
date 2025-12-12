@@ -7,6 +7,14 @@
 # This file is kept for manual service entries if needed.
 
 - Network:
+  - Uptime Robot:
+      href: https://uptimerobot.com/dashboard
+      icon: uptimerobot.png
+      description: Uptime Robot
+      widget:
+        type: uptimerobot
+        url: https://api.uptimerobot.com
+        key: {{HOMEPAGE_VAR_UPTIME_ROBOT_API_KEY}}
   - Cloudflared:
       href: https://dash.cloudflare.com/
       icon: cloudflare-zero-trust.png
@@ -33,6 +41,7 @@
         url: https://opnsense.${SECRET_INTERNAL_DOMAIN}
         username: {{HOMEPAGE_VAR_OPNSENSE_USERNAME}}
         password: {{HOMEPAGE_VAR_OPNSENSE_PASSWORD}}
+
 - Infrastructure:
   - Proxmox:
       href: https://pve-cluster.${SECRET_INTERNAL_DOMAIN}:8006
@@ -44,9 +53,18 @@
         username: {{HOMEPAGE_VAR_PROXMOX_API_USER}}
         password: {{HOMEPAGE_VAR_PROXMOX_API_USER_KEY}}
 
+  - Unifi Network Application:
+      href: https://cloudkey.${SECRET_INTERNAL_DOMAIN}
+      icon: unifi.png
+      description: Unifi Network Application
+      widget:
+        type: unifi
+        url: https://cloudkey.${SECRET_INTERNAL_DOMAIN}
+        key: {{HOMEPAGE_VAR_UNIFI_API_KEY}}
+
   # should be last in the list
   - TrueNAS:
-      href: https://truenas.${SECRET_INTERNAL_DOMAIN}
+      href: https://cloudkey.${SECRET_INTERNAL_DOMAIN}
       icon: truenas.png
       description: TrueNAS Scale
       widget:
