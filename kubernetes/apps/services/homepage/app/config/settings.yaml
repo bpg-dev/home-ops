@@ -8,6 +8,25 @@ useEqualHeights: true
 showStats: true
 
 layout:
+  # Personal & Documents (Priority)
+  Personal & Finance:
+    style: row
+    columns: 2
+  Documentation & Notes:
+    style: columns
+  Personal Sites:
+    style: columns
+
+  # Network & Infrastructure
   Network:
     style: row
     columns: 3
+  Infrastructure:
+    style: row
+    columns: 3
+
+  # Monitoring & Development
+  Analytics & Monitoring:
+    style: columns
+  Development & Testing:
+    style: columns
