@@ -29,27 +29,25 @@ spec:
       secret_key: ""
       error_reporting:
         enabled: false
+      # PostgreSQL configuration - use external PostgreSQL cluster
+      postgresql:
+        host: postgres-rw.postgresql-system.svc.cluster.local
+        port: 5432
+        name: ""
+        user: ""
+        password: ""
+      # Redis configuration - use external Dragonfly (Redis-compatible)
+      redis:
+        host: dragonfly.dragonfly-system
+        port: 6379
 
-    # PostgreSQL configuration - use external PostgreSQL cluster
+    # Disable embedded PostgreSQL
     postgresql:
       enabled: false
 
-    # External PostgreSQL connection
-    externalDatabase:
-      host: postgres-rw.postgresql-system.svc.cluster.local
-      port: 5432
-      database: ""
-      user: ""
-      password: ""
-
-    # Redis configuration - use external Dragonfly (Redis-compatible)
+    # Disable embedded Redis
     redis:
       enabled: false
-    # External Redis (Dragonfly) connection
-    externalRedis:
-      host: dragonfly.dragonfly-system
-      port: 6379
-      password: ""
 
     # Server configuration
     server:
@@ -98,13 +96,13 @@ spec:
     - kind: Secret
       name: authentik-config
       valuesKey: DB_NAME
-      targetPath: externalDatabase.database
+      targetPath: authentik.postgresql.name
     - kind: Secret
       name: authentik-config
       valuesKey: DB_USER
-      targetPath: externalDatabase.user
+      targetPath: authentik.postgresql.user
     - kind: Secret
       name: authentik-config
       valuesKey: DB_PASSWORD
-      targetPath: externalDatabase.password
+      targetPath: authentik.postgresql.password
 
