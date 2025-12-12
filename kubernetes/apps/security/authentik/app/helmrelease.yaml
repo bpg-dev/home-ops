@@ -89,4 +89,22 @@ spec:
       runAsGroup: 1000
       fsGroup: 1000
       fsGroupChangePolicy: OnRootMismatch
+  valuesFrom:
+    # Inject secrets from ExternalSecret
+    - kind: Secret
+      name: authentik-config
+      valuesKey: SECRET_KEY
+      targetPath: authentik.secret_key
+    - kind: Secret
+      name: authentik-config
+      valuesKey: DB_NAME
+      targetPath: externalDatabase.database
+    - kind: Secret
+      name: authentik-config
+      valuesKey: DB_USER
+      targetPath: externalDatabase.user
+    - kind: Secret
+      name: authentik-config
+      valuesKey: DB_PASSWORD
+      targetPath: externalDatabase.password
 
