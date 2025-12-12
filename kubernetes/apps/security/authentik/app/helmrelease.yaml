@@ -42,17 +42,14 @@ spec:
       user: ""
       password: ""
 
-    # Redis configuration - enable embedded Redis
+    # Redis configuration - use external Dragonfly (Redis-compatible)
     redis:
-      enabled: true
-      auth:
-        enabled: true
-        password: ""
-      master:
-        persistence:
-          enabled: true
-          storageClass: ceph-rbd
-          size: 8Gi
+      enabled: false
+    # External Redis (Dragonfly) connection
+    externalRedis:
+      host: dragonfly.dragonfly-system
+      port: 6379
+      password: ""
 
     # Server configuration
     server:
