@@ -26,7 +26,7 @@ spec:
     # Authentik configuration
     # Secrets will be injected via valuesFrom from the authentik-config Secret
     authentik:
-      secret_key: "${AUTHENTIK_SECRET_KEY}"
+      secret_key: ""
       error_reporting:
         enabled: false
 
@@ -38,16 +38,16 @@ spec:
     externalDatabase:
       host: postgres-rw.postgresql-system.svc.cluster.local
       port: 5432
-      database: "${AUTHENTIK_DB_NAME}"
-      user: "${AUTHENTIK_DB_USER}"
-      password: "${AUTHENTIK_DB_PASSWORD}"
+      database: ""
+      user: ""
+      password: ""
 
     # Redis configuration - enable embedded Redis
     redis:
       enabled: true
       auth:
         enabled: true
-        password: "${AUTHENTIK_REDIS_PASSWORD}"
+        password: ""
       master:
         persistence:
           enabled: true

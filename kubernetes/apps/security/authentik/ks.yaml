@@ -14,17 +14,9 @@ spec:
   postBuild:
     substitute:
       APP: *app
-      AUTHENTIK_SECRET_KEY: "${SECRET_KEY}"
-      AUTHENTIK_DB_NAME: "${DB_NAME}"
-      AUTHENTIK_DB_USER: "${DB_USER}"
-      AUTHENTIK_DB_PASSWORD: "${DB_PASSWORD}"
-      AUTHENTIK_REDIS_PASSWORD: "${REDIS_PASSWORD}"
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
-      - name: authentik-config
-        kind: Secret
-        optional: true
   prune: true
   sourceRef:
     kind: GitRepository
