@@ -5,13 +5,9 @@ kind: HelmRelease
 metadata:
   name: &app authentik
 spec:
-  chart:
-    spec:
-      chart: authentik
-      sourceRef:
-        kind: HelmRepository
-        name: authentik
-      version: "2024.6.0"
+  chartRef:
+    kind: OCIRepository
+    name: authentik
   interval: 1h
   timeout: 15m
   install:
@@ -23,54 +19,69 @@ spec:
       strategy: rollback
       retries: 3
   values:
-    # Authentik configuration
-    # Secrets will be injected via valuesFrom from the authentik-config Secret
+    global:
+      podAnnotations:
+        secret.reloader.stakater.com/reload: &secret authentik-config
+      deploymentStrategy:
+        type: RollingUpdate
+      envFrom:
+        - secretRef:
+            name: *secret
+
     authentik:
-      secret_key: ""
-      error_reporting:
-        enabled: false
-      # PostgreSQL configuration - use external PostgreSQL cluster
-      postgresql:
-        host: postgres-rw.postgresql-system.svc.cluster.local
-        port: 5432
-        name: ""
-        user: ""
-        password: ""
-      # Redis configuration - use external Dragonfly (Redis-compatible)
       redis:
         host: dragonfly.dragonfly-system
-        port: 6379
-
-    # Disable embedded PostgreSQL
     postgresql:
       enabled: false
-
-    # Disable embedded Redis
     redis:
       enabled: false
 
-    # Server configuration
     server:
-      replicas: 1
+      initContainers:
+        - name: init-db
+          image: ghcr.io/home-operations/postgres-init:18.1.0@sha256:866f15038ed5185a2b8118821f470bb7ca0df8c4231b8e277446e681ebb1ed84
+          envFrom:
+            - secretRef:
+                name: *secret
+      autoscaling:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
       resources:
         requests:
           cpu: 200m
           memory: 512Mi
         limits:
           memory: 1Gi
-      # Disable ingress - we'll use HTTPRoute
+      metrics:
+        prometheus:
+          serviceMonitor:
+            enabled: true
+      route:
+        main:
+          enabled: true
+          hostnames: ["sso.${SECRET_DOMAIN}"]
+          parentRefs:
+            # TODO: Use external
+            - name: envoy-internal
+              namespace: network
       ingress:
+        enabled: false
+
+    prometheus:
+      rules:
         enabled: false
 
     # Worker configuration
     worker:
-      replicas: 1
+      autoscaling:
+        enabled: true
+        minReplicas: 1
       resources:
         requests:
-          cpu: 100m
-          memory: 256Mi
+          cpu: 200m
         limits:
-          memory: 512Mi
+          memory: 1Gi
 
     # Security context
     securityContext:
@@ -87,22 +98,5 @@ spec:
       runAsGroup: 1000
       fsGroup: 1000
       fsGroupChangePolicy: OnRootMismatch
-  valuesFrom:
-    # Inject secrets from ExternalSecret
-    - kind: Secret
-      name: authentik-config
-      valuesKey: SECRET_KEY
-      targetPath: authentik.secret_key
-    - kind: Secret
-      name: authentik-config
-      valuesKey: DB_NAME
-      targetPath: authentik.postgresql.name
-    - kind: Secret
-      name: authentik-config
-      valuesKey: DB_USER
-      targetPath: authentik.postgresql.user
-    - kind: Secret
-      name: authentik-config
-      valuesKey: DB_PASSWORD
-      targetPath: authentik.postgresql.password
+
 
