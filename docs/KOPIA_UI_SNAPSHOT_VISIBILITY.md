@@ -2,7 +2,7 @@
 
 ## Issue
 
-Snapshots created by VolSync are not visible in the Kopia UI at `https://kopia.boldyrev.me/snapshots`.
+Snapshots created by VolSync are not visible in the Kopia UI at `https://kopia.${SECRET_DOMAIN}/snapshots`.
 
 ## Root Cause
 
@@ -33,7 +33,7 @@ paperless-ngx@default:/data
 
 The Kopia UI should allow you to change filters in the web interface:
 
-1. Open `https://kopia.boldyrev.me/snapshots`
+1. Open `https://kopia.${SECRET_DOMAIN}/snapshots`
 2. Look for filter controls (user/host dropdowns or search)
 3. Select "All" or search for `paperless-ngx@default`
 4. Or modify the URL to include query parameters (if supported)
@@ -41,7 +41,7 @@ The Kopia UI should allow you to change filters in the web interface:
 ### Option 2: Access via Direct URL
 
 Try accessing snapshots directly:
-- `https://kopia.boldyrev.me/snapshots/single-source?userName=paperless-ngx&host=default&path=/data`
+- `https://kopia.${SECRET_DOMAIN}/snapshots/single-source?userName=paperless-ngx&host=default&path=/data`
 
 ### Option 3: Use Kopia CLI
 
