@@ -14,18 +14,6 @@ alerting:
     user-key: ${BUDDY_PUSHOVER_USER_KEY}
 
 endpoints:
-  - name: Ping
-    group: apex
-    url: icmp://${BUDDY_DDNS_HOSTNAME}
-    interval: 1m
-    ui:
-      hide-url: true
-      hide-hostname: true
-    conditions:
-      - "[CONNECTED] == true"
-    alerts:
-      - type: pushover
-
   - name: CV Page
     group: apex
     url: https://${BUDDY_STATUS_HOSTNAME}
