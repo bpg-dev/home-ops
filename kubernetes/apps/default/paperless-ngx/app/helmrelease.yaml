@@ -61,6 +61,8 @@ spec:
               PAPERLESS_AUTO_LOGIN: "true"
               PAPERLESS_AUTO_CREATE: "true"
               PAPERLESS_LOGOUT_REDIRECT_URL: "https://sso.${SECRET_DOMAIN}/application/o/paperless-ngx/end-session/"
+              PAPERLESS_REDIRECT_LOGIN_TO_SSO: "true"
+              PAPERLESS_DISABLE_REGULAR_LOGIN: "true"
               PAPERLESS_SOCIAL_AUTO_SIGNUP: "true"
               PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS: "true"
               PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: "true"
