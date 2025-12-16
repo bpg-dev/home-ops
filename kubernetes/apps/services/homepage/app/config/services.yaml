@@ -51,7 +51,7 @@
         key: {{HOMEPAGE_VAR_UNIFI_API_KEY}}
 
 - Infrastructure:
-  - Proxmox:
+  - Proxmox Cluster:
       href: https://pve-cluster.${SECRET_INTERNAL_DOMAIN}:8006
       icon: https://www.45drives.com/solutions/proxmox/img/proxmox_Logo.png
       description: Proxmox Lab Cluster
@@ -60,6 +60,15 @@
         url: https://pve-cluster.${SECRET_INTERNAL_DOMAIN}:8006
         username: {{HOMEPAGE_VAR_PROXMOX_API_USER}}
         password: {{HOMEPAGE_VAR_PROXMOX_API_USER_KEY}}
+  - Proxmox Dev:
+      href: https://pve.${SECRET_INTERNAL_DOMAIN}:8006
+      icon: https://www.45drives.com/solutions/proxmox/img/proxmox_Logo.png
+      description: Proxmox Dev Box
+      widget:
+        type: proxmox
+        url: https://pve.${SECRET_INTERNAL_DOMAIN}:8006
+        username: {{HOMEPAGE_VAR_PROXMOX_BOX_API_USER}}
+        password: {{HOMEPAGE_VAR_PROXMOX_BOX_API_USER_KEY}}
   - Grafana:
       href: https://grafana.${SECRET_DOMAIN}
       icon: grafana.png
