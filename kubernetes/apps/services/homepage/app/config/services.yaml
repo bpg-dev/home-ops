@@ -49,6 +49,12 @@
         type: unifi
         url: https://cloudkey.${SECRET_INTERNAL_DOMAIN}
         key: {{HOMEPAGE_VAR_UNIFI_API_KEY}}
+  - TP-Link PoE8:
+      href: https://tp-link-poe8.${SECRET_INTERNAL_DOMAIN}
+      icon: tp-link.png
+  - TP-Link 10g:
+      href: https://tp-link-10g.${SECRET_INTERNAL_DOMAIN}
+      icon: tp-link.png
 
 - Infrastructure:
   - Proxmox Cluster:
