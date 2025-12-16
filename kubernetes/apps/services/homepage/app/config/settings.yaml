@@ -20,13 +20,8 @@ layout:
   # Network & Infrastructure
   Network:
     style: row
-    columns: 3
+    columns: 5
   Infrastructure:
     style: row
-    columns: 3
+    columns: 5
 
-  # Monitoring & Development
-  Analytics & Monitoring:
-    style: columns
-  Development & Testing:
-    style: columns

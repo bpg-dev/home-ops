@@ -91,7 +91,7 @@ spec:
           gethomepage.dev/enabled: "true"
           gethomepage.dev/name: "Umami"
           gethomepage.dev/description: "Privacy-focused web analytics"
-          gethomepage.dev/group: "Analytics & Monitoring"
+          gethomepage.dev/group: "Network"
           gethomepage.dev/icon: "umami.png"
           gethomepage.dev/pod-selector: "app.kubernetes.io/name=umami"
         hostnames: ["umami.${SECRET_DOMAIN}"]
