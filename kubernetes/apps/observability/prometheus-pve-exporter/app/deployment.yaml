@@ -23,6 +23,9 @@ spec:
           args:
             - --config.file=/config/config.yml
             - --web.listen-address=:9221
+          env:
+            - name: TMPDIR
+              value: /tmp
           ports:
             - name: http
               containerPort: 9221
@@ -57,9 +60,17 @@ spec:
             - name: config
               mountPath: /config
               readOnly: true
+            - name: tmp
+              mountPath: /tmp
+            - name: var-tmp
+              mountPath: /var/tmp
       securityContext:
         fsGroup: 65532
       volumes:
         - name: config
           secret:
             secretName: prometheus-pve-exporter
+        - name: tmp
+          emptyDir: {}
+        - name: var-tmp
+          emptyDir: {}
