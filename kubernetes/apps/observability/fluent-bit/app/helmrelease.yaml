@@ -39,7 +39,8 @@ spec:
           mode udp
           listen 0.0.0.0
           port 5514
-          parser syslog-rfc3164
+          # Proxmox forwards with RSYSLOG_SyslogProtocol23Format (RFC5424 / syslog protocol 23)
+          parser syslog-rfc5424
           tag proxmox.*
 
       filters: |-

@@ -53,4 +53,4 @@ mkdir -p /var/log/journal
 systemctl restart systemd-journald
 ```
 
-No further changes are needed; rsyslog will continue forwarding everything.*** End Patch
+No further changes are needed; rsyslog will continue forwarding everything.
