@@ -13,6 +13,8 @@
 # Kubernetes
 kubeconfig
 talosconfig
+# Agent guidance
+AGENTS.md
 # Misc.
 .private/
 .task/
