@@ -19,5 +19,6 @@ AGENTS.md
 .private/
 .task/
 .venv/
+.tmp/
 .DS_Store
 Thumbs.db

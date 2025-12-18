@@ -4,7 +4,6 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: blackbox-exporter
-  namespace: flux-system
 spec:
   interval: 30m
   path: ./kubernetes/apps/observability/blackbox-exporter/app
@@ -12,4 +11,6 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
+    namespace: flux-system
+  targetNamespace: observability
   wait: true
