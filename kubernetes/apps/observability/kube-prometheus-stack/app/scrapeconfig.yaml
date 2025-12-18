@@ -4,13 +4,15 @@ apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
   name: ceph-metrics-exporter
+  labels:
+    release: kube-prometheus-stack
 spec:
+  metricsPath: /metrics
   staticConfigs:
     - targets:
         - 192.168.1.82:9283
         - 192.168.1.83:9283
         - 192.168.1.81:9283
-  metricsPath: /metrics
   relabelings:
     - action: replace
       targetLabel: job
@@ -21,15 +23,58 @@ apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
   name: pve-node-exporter
+  labels:
+    release: kube-prometheus-stack
 spec:
+  metricsPath: /metrics
   staticConfigs:
     - targets:
         - 192.168.1.81:9100
         - 192.168.1.82:9100
         - 192.168.1.83:9100
-  metricsPath: /metrics
   relabelings:
     - action: replace
       targetLabel: job
       replacement: pve-node-exporter
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/scrapeconfig_v1alpha1.json
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: nas-blackbox
+  labels:
+    release: kube-prometheus-stack
+spec:
+  metricsPath: /probe
+  params:
+    module:
+      - tcp_connect
+  staticConfigs:
+    - targets:
+        - nas.bpghome.net:2049
+  relabelings:
+    - sourceLabels: [__address__]
+      targetLabel: __param_target
+    - sourceLabels: [__param_target]
+      targetLabel: instance
+    - targetLabel: __address__
+      replacement: blackbox-exporter.observability.svc.cluster.local:9115
+    - action: replace
+      targetLabel: job
+      replacement: nas-blackbox
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/scrapeconfig_v1alpha1.json
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: prometheus-pve-exporter
+  labels:
+    release: kube-prometheus-stack
+spec:
+  staticConfigs:
+    - targets:
+        - prometheus-pve-exporter.observability.svc.cluster.local:9221
+  relabelings:
+    - action: replace
+      targetLabel: job
+      replacement: prometheus-pve-exporter

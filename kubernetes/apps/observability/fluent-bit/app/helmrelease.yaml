@@ -33,6 +33,15 @@ spec:
           skip_empty_lines on
           skip_long_lines on
 
+        [INPUT]
+          name syslog
+          alias proxmox
+          mode udp
+          listen 0.0.0.0
+          port 5514
+          parser syslog-rfc3164
+          tag proxmox.*
+
       filters: |-
         [FILTER]
           name kubernetes
@@ -80,6 +89,17 @@ spec:
           host victoria-logs-server.observability
           port 9428
           uri /insert/jsonline?_stream_fields=stream,k_namespace_name,k_pod_name,app&_msg_field=log&_time_field=date
+          format json_lines
+          json_date_format iso8601
+          compress gzip
+          log_response_payload false
+
+        [OUTPUT]
+          name http
+          match proxmox.*
+          host victoria-logs-server.observability
+          port 9428
+          uri /insert/jsonline?_stream_fields=hostname,facility,severity&_msg_field=message&_time_field=time
           format json_lines
           json_date_format iso8601
           compress gzip

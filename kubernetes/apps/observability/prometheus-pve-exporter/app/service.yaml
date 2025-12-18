@@ -1,0 +1,16 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/service.json
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-pve-exporter
+  labels:
+    app.kubernetes.io/name: prometheus-pve-exporter
+spec:
+  selector:
+    app.kubernetes.io/name: prometheus-pve-exporter
+  ports:
+    - name: http
+      port: 9221
+      targetPort: http
+      protocol: TCP

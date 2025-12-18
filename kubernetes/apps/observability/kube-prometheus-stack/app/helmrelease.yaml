@@ -142,3 +142,39 @@ spec:
                 expr: node_zfs_zpool_state{state!="online"} > 0
                 labels:
                   severity: critical
+      pve-exporter-rules:
+        groups:
+          - name: pve-exporters
+            rules:
+              - alert: ProxmoxNodeExporterDown
+                expr: up{job="pve-node-exporter"} == 0
+                for: 5m
+                labels:
+                  severity: critical
+                annotations:
+                  summary: Proxmox node exporter down ({{ $labels.instance }})
+                  description: Prometheus cannot scrape the node exporter on {{ $labels.instance }} for >5 minutes.
+              - alert: CephMetricsExporterDown
+                expr: up{job="ceph-metrics-exporter"} == 0
+                for: 5m
+                labels:
+                  severity: warning
+                annotations:
+                  summary: Ceph metrics exporter down ({{ $labels.instance }})
+                  description: Prometheus cannot scrape the Ceph metrics exporter {{ $labels.instance }} for >5 minutes.
+              - alert: NasUnreachable
+                expr: probe_success{job="nas-blackbox"} == 0
+                for: 2m
+                labels:
+                  severity: warning
+                annotations:
+                  summary: NAS endpoint unreachable
+                  description: The NAS TCP endpoint ({{ $labels.instance }}) is not responding to blackbox probes.
+              - alert: ProxmoxApiExporterDown
+                expr: up{job="prometheus-pve-exporter"} == 0
+                for: 5m
+                labels:
+                  severity: warning
+                annotations:
+                  summary: Proxmox API exporter down
+                  description: prometheus-pve-exporter is unreachable, so Proxmox API metrics are stale.
