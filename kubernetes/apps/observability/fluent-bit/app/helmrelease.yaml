@@ -47,6 +47,8 @@ spec:
         [FILTER]
           name kubernetes
           match kubernetes.*
+          # kube-apiserver responses (pod metadata) can exceed the default 32K; increase to avoid http_client buffer warnings
+          buffer_size 128k
           merge_log on
           kube_tag_prefix kubernetes.var.log.containers.
           k8s-logging.parser on

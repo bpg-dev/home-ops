@@ -51,7 +51,7 @@ spec:
       - tcp_connect
   staticConfigs:
     - targets:
-        - nas.bpghome.net:2049
+        - nas.${SECRET_INTERNAL_DOMAIN}:2049
   relabelings:
     - sourceLabels: [__address__]
       targetLabel: __param_target
