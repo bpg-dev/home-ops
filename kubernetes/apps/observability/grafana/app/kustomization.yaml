@@ -9,3 +9,15 @@ resources:
   - ./proxmox-dashboard.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
+
+configMapGenerator:
+  - name: grafana-dashboard-authentik
+    files:
+      - authentik.json=./dashboards/authentik-lite.json
+  - name: grafana-dashboard-proxmox
+    files:
+      - proxmox-overview.json=./dashboards/proxmox-overview.json
+
+generatorOptions:
+  # GrafanaDashboard.spec.configMapRef requires a stable ConfigMap name.
+  disableNameSuffixHash: true
