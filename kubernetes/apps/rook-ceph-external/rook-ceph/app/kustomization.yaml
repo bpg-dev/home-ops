@@ -19,3 +19,6 @@ configMapGenerator:
   - name: ceph-cluster-dashboard
     files:
       - ceph-cluster.json=./dashboards/ceph-cluster-2842-r18.patched.json
+  - name: ceph-osd-dashboard
+    files:
+      - ceph-osd.json=./dashboards/ceph-osd-5336-r9.patched.json
