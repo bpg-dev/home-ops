@@ -47,6 +47,57 @@ To correlate metrics and logs reliably:
 - Ensure dashboard variables and Explore queries use the same labels.
 - Configure Grafana datasource “derived fields” / links so users can jump from a log line → relevant Prometheus/Thanos metrics.
 
+### Grafana Datasources: Prometheus vs Thanos (What to Use Where)
+
+Important distinction: **applications never “use a Grafana datasource”**. Applications only **expose `/metrics`**; Prometheus scrapes those metrics
+and (in our setup) the **Thanos sidecar** uploads TSDB blocks to object storage for long-range querying.
+
+We keep **two** Prometheus-compatible datasources in Grafana:
+
+- **`prometheus`** (default): `http://prometheus-operated.observability.svc.cluster.local:9090`
+- **`thanos`** (long-range): `http://thanos-thanos-query.observability.svc.cluster.local:9090`
+
+#### Rule of thumb (dashboards)
+
+- **Use `prometheus`** for “live”/fast dashboards:
+  - high refresh rate (e.g., 5s–30s)
+  - troubleshooting last minutes/hours
+  - alert debugging / near-real-time signal
+- **Use `thanos`** for long-range dashboards:
+  - trends over days/weeks (especially > Prometheus retention window)
+  - capacity planning and historical comparisons
+  - any view that needs the full 90d history
+
+You can query “recent” data via Thanos too, but it’s usually not worth switching everything globally because it can be slower/heavier.
+
+#### GitOps pattern: keep dashboards flexible via datasource variables
+
+Most upstream dashboards (Grafana.com) use a datasource **variable** like `DS_PROMETHEUS`.
+Instead of manually editing dashboards in the Grafana UI, we bind that variable in Git using `GrafanaDashboard.spec.datasources`.
+
+Example:
+
+```yaml
+spec:
+  datasources:
+    - datasourceName: thanos
+      inputName: DS_PROMETHEUS
+```
+
+This makes the same JSON dashboard work with either `prometheus` or `thanos` by changing only the `GrafanaDashboard` CR.
+
+#### Should we “change all dashboards to Thanos”?
+
+No. Prefer:
+
+- Dashboards intended for **long-range history** → bind `DS_PROMETHEUS` to **`thanos`**
+- Dashboards intended for **live operations** → keep using **`prometheus`** (default), or explicitly bind to it if needed
+
+#### House rule (for PR reviews)
+
+- If a dashboard is primarily used for **operational/live** views (fast refresh, “what’s happening right now?”): default it to **`prometheus`**.
+- If a dashboard is primarily used for **historical/trend** views (days/weeks, capacity, “how did this change over time?”): default it to **`thanos`**.
+
 ---
 
 ## Prerequisites
@@ -86,10 +137,10 @@ Each phase is designed to be low risk and reversible (Git revert).
 
 #### 1.1 Update kube-prometheus-stack (Prometheus + sidecar)
 
-- [ ] Keep Prometheus hot retention at **14d** (already set).
-- [ ] Enable/configure **Thanos sidecar** to upload blocks to `s3://thanos`.
-- [ ] Ensure any required sidecar flags are set for object storage + endpoints.
-- [ ] Ensure ServiceMonitors/metrics for Thanos components are enabled (observability).
+- [x] Keep Prometheus hot retention at **14d** (already set).
+- [x] Enable/configure **Thanos sidecar** to upload blocks to `s3://thanos`.
+- [x] Ensure any required sidecar flags are set for object storage + endpoints.
+- [x] Ensure ServiceMonitors/metrics for Thanos components are enabled (observability).
 
 Artifacts (expected repo changes):
 
@@ -110,7 +161,7 @@ Optional (not required initially):
 
 #### 1.3 Add Grafana Thanos datasource
 
-- [ ] Add a `GrafanaDatasource` named `thanos` (type `prometheus` pointing to `thanos-query` service).
+- [x] Add a `GrafanaDatasource` named `thanos` (type `prometheus` pointing to `thanos-query` service).
 - [ ] Decide usage convention:
   - Recent (≤14d): Prometheus datasource
   - Long-range (>14d): Thanos datasource
@@ -121,10 +172,15 @@ Artifact:
 
 #### 1.4 Metrics validation (must pass before moving on)
 
-- [ ] Confirm Thanos Query is reachable from Grafana.
+- [x] Confirm Thanos Query is reachable from Grafana.
 - [ ] Confirm Prometheus sidecar is uploading blocks (check sidecar metrics/logs).
-- [ ] Confirm Store Gateway can read blocks.
-- [ ] Confirm Compactor is running; retention is set to **90d**.
+- [x] Confirm Store Gateway can read blocks.
+- [x] Confirm Compactor is running; retention is set to **90d**.
+
+Notes:
+
+- Thanos sidecar is up and Query has a live gRPC connection to it. Initial uploads may still be `0` until the first TSDB block is cut (expected).
+- If you don't see `thanos` in Grafana UI (Explore datasource picker), verify you're on the correct Grafana instance/org and hard-refresh; as a fallback, confirm via Grafana API: `GET /api/datasources/name/thanos`.
 
 Operational checks (examples; do not `kubectl apply` anything manually):
 
@@ -290,10 +346,17 @@ Use this section to record execution notes, dates, and outcomes per phase.
 
 ### Phase 1 Notes (Thanos)
 
-- Date started:
-- Date completed:
+- Date started: 2025-12-19
+- Date completed: 2025-12-19
 - Issues encountered:
+  - ExternalSecret item/key mismatch in 1Password initially prevented creation of `Secret/thanos-objstore`.
+  - Thanos Query crashed due to deprecated `--store` flag (Thanos v0.40 uses `--endpoint`).
+  - Compactor initially exited after a single pass (needed `--wait`).
+  - HelmRelease got stuck in failed remediation due to missing rollback target after initial install failure; remediation strategy updated to `uninstall`.
+  - Garage S3 permissions initially blocked compactor bucket iteration (403 Forbidden); fixed by adjusting key permissions.
 - Decisions/changes:
+  - Grafana Thanos datasource points to `thanos-thanos-query`.
+  - Thanos Query uses SRV discovery for Prometheus sidecar + explicit endpoint for storegateway.
 
 ### Phase 2 Notes (Loki)
 
@@ -322,5 +385,3 @@ Use this section to record execution notes, dates, and outcomes per phase.
 - Date completed:
 - Issues encountered:
 - Decisions/changes:
-
-
