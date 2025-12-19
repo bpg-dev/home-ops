@@ -252,13 +252,13 @@ Goal: make Loki the source of truth for new logs while keeping VictoriaLogs runn
 
 Steps:
 
-- [ ] Update Fluent Bit outputs:
-  - [ ] Remove VictoriaLogs outputs (Kubernetes + Proxmox).
-  - [ ] Keep Loki outputs enabled.
-- [ ] Validate:
-  - [ ] Loki continues receiving new logs from Kubernetes and Proxmox.
-  - [ ] No Fluent Bit error spikes / backpressure.
-  - [ ] Grafana Explore works for common queries (namespace/app/pod).
+- [x] Update Fluent Bit outputs:
+  - [x] Remove VictoriaLogs outputs (Kubernetes + Proxmox).
+  - [x] Keep Loki outputs enabled.
+- [x] Validate:
+  - [x] Loki continues receiving new logs from Kubernetes and Proxmox.
+  - [x] Grafana Explore works for common queries (namespace/app/pod).
+  - [ ] (Optional) Check Fluent Bit metrics for sustained retries/backpressure.
 
 Rollback:
 
@@ -303,6 +303,11 @@ Steps:
 - [ ] Switch day-to-day log viewing and dashboards to Loki.
 - [ ] Stop Fluent Bit dual-write: remove VictoriaLogs output.
 - [ ] Remove VictoriaLogs app manifests (including any HTTPRoute and dashboards).
+
+Status (current):
+
+- [x] Cutover complete: Fluent Bit writes **only** to Loki (no VictoriaLogs outputs).
+- [ ] Decommission in progress: remove `victoria-logs` from GitOps so Flux prunes it.
 
 Rollback:
 
