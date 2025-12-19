@@ -11,3 +11,11 @@ resources:
 - ./serviceaccount.yaml
 - ./storageclasses.yaml
 - ./volumesnapshotclasses.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: ceph-cluster-dashboard
+    files:
+      - ceph-cluster.json=./dashboards/ceph-cluster-2842-r18.patched.json
