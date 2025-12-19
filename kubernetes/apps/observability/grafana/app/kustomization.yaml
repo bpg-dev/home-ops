@@ -6,6 +6,7 @@ resources:
   - ./authentik-dashboard.yaml
   - ./externalsecret.yaml
   - ./grafanadashboard.yaml
+  - ./garage-app-metrics-dashboard.yaml
   - ./garage-dashboard.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
@@ -15,6 +16,9 @@ configMapGenerator:
   - name: grafana-dashboard-authentik
     files:
       - authentik.json=./dashboards/authentik-lite.json
+  - name: grafana-dashboard-garage-app-metrics
+    files:
+      - garage-app-metrics.json=./dashboards/garage-app-metrics.json
   - name: grafana-dashboard-garage
     files:
       - garage.json=./dashboards/garage.json
