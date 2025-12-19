@@ -1,0 +1,66 @@
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  log_level: info
+
+common:
+  path_prefix: /var/loki
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+  storage:
+    s3:
+      endpoint: ${S3_ENDPOINT}
+      region: ${S3_REGION}
+      bucketnames: ${S3_BUCKET}
+      access_key_id: ${S3_ACCESS_KEY_ID}
+      secret_access_key: ${S3_SECRET_ACCESS_KEY}
+      s3forcepathstyle: true
+      insecure: ${S3_INSECURE}
+
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: tsdb
+      object_store: s3
+      schema: v13
+      index:
+        prefix: loki_index_
+        period: 24h
+
+storage_config:
+  tsdb_shipper:
+    active_index_directory: /var/loki/index
+    cache_location: /var/loki/cache
+
+compactor:
+  working_directory: /var/loki/compactor
+  compaction_interval: 10m
+  retention_enabled: true
+  delete_request_store: s3
+  retention_delete_delay: 48h
+
+limits_config:
+  retention_period: 2160h # 90d
+
+ruler:
+  enable_api: true
+  rule_path: /var/loki/rules
+  alertmanager_url: http://alertmanager-operated.observability.svc.cluster.local:9093
+  ring:
+    kvstore:
+      store: inmemory
+  storage:
+    type: s3
+    s3:
+      endpoint: ${S3_ENDPOINT}
+      region: ${S3_REGION}
+      bucketnames: ${S3_BUCKET}
+      access_key_id: ${S3_ACCESS_KEY_ID}
+      secret_access_key: ${S3_SECRET_ACCESS_KEY}
+      s3forcepathstyle: true
+      insecure: ${S3_INSECURE}
+
+

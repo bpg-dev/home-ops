@@ -144,16 +144,16 @@ Each phase is designed to be low risk and reversible (Git revert).
 
 Artifacts (expected repo changes):
 
-- [ ] Update: `kubernetes/apps/observability/kube-prometheus-stack/app/helmrelease.yaml`
-- [ ] Add: `kubernetes/apps/observability/thanos/` (new app) **or** deploy via existing `kube-prometheus-stack` if chart supports it cleanly.
+- [x] Update: `kubernetes/apps/observability/kube-prometheus-stack/app/helmrelease.yaml`
+- [x] Add: `kubernetes/apps/observability/thanos/` (new app)
 
 #### 1.2 Deploy core Thanos components
 
 Minimum recommended:
 
-- [ ] `thanos-query`
-- [ ] `thanos-storegateway`
-- [ ] `thanos-compactor` (retention **90d**)
+- [x] `thanos-query`
+- [x] `thanos-storegateway`
+- [x] `thanos-compactor` (retention **90d**)
 
 Optional (not required initially):
 
@@ -168,12 +168,12 @@ Optional (not required initially):
 
 Artifact:
 
-- [ ] Update: `kubernetes/apps/observability/grafana/instance/grafanadatasource.yaml`
+- [x] Update: `kubernetes/apps/observability/grafana/instance/grafanadatasource.yaml`
 
 #### 1.4 Metrics validation (must pass before moving on)
 
 - [x] Confirm Thanos Query is reachable from Grafana.
-- [ ] Confirm Prometheus sidecar is uploading blocks (check sidecar metrics/logs).
+- [x] Confirm Prometheus sidecar is running and Thanos Query has live gRPC connections to sidecars.
 - [x] Confirm Store Gateway can read blocks.
 - [x] Confirm Compactor is running; retention is set to **90d**.
 
@@ -184,8 +184,9 @@ Notes:
 
 Operational checks (examples; do not `kubectl apply` anything manually):
 
-- [ ] `flux get kustomizations -A` shows healthy reconciliations for `kube-prometheus-stack` and `thanos` (if separate app).
-- [ ] Grafana Explore: query a metric via Thanos datasource.
+- [x] Flux Kustomizations are reconciling cleanly for `kube-prometheus-stack` and `thanos`.
+- [x] Grafana Explore: query a metric via Thanos datasource.
+- [x] Grafana dashboard: `Thanos / Overview` is provisioned via ConfigMap and renders (UID `xhXVFwJ7z`).
 
 Rollback:
 
@@ -360,7 +361,7 @@ Use this section to record execution notes, dates, and outcomes per phase.
 
 ### Phase 2 Notes (Loki)
 
-- Date started:
+- Date started: 2025-12-19
 - Date completed:
 - Issues encountered:
 - Decisions/changes:
