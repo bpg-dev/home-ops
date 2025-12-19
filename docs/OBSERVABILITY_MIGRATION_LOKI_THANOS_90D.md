@@ -11,7 +11,7 @@ This document tracks the execution of migrating:
 ## Background / Current State (Repo-Observed)
 
 - **Prometheus**: `kube-prometheus-stack` sets `prometheus.prometheusSpec.retention: 14d` and `retentionSize: 50GB` on a Ceph RBD PVC.
-- **Logs**: `victoria-logs-single` is deployed with `retentionPeriod: 14d` on a Ceph RBD PVC.
+- **Logs**: Cut over to Loki; VictoriaLogs has been removed from GitOps (see Phase 5 notes below).
 - **Log collection**: `fluent-bit` tails Kubernetes container logs and also receives Proxmox syslog on UDP/5514 (via NodePort).
 - **Grafana**: managed by `grafana-operator`; datasources are provisioned via `GrafanaDatasource` CRs (currently Prometheus + Alertmanager).
 
@@ -307,7 +307,14 @@ Steps:
 Status (current):
 
 - [x] Cutover complete: Fluent Bit writes **only** to Loki (no VictoriaLogs outputs).
-- [ ] Decommission in progress: remove `victoria-logs` from GitOps so Flux prunes it.
+- [x] Decommission in progress: removed `victoria-logs` from GitOps so Flux prunes it.
+- [ ] Post-decommission cleanup: decide what to do with the old VictoriaLogs PVC.
+
+PVC note (expected):
+
+- StatefulSet PVCs are **not** automatically deleted when the workload is removed.
+- The old PVC is still present: `server-volume-victoria-logs-server-0` (Ceph RBD, 20Gi).
+- Recommendation: keep it for a short rollback/forensics window (e.g., 7–14 days), then delete it deliberately to reclaim storage.
 
 Rollback:
 
