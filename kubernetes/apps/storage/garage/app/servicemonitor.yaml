@@ -6,7 +6,7 @@ metadata:
   name: garage
 spec:
   endpoints:
-    - port: metrics
+    - port: api
       path: /metrics
       bearerTokenSecret:
         name: garage

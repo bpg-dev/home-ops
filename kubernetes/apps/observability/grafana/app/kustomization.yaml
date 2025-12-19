@@ -6,14 +6,18 @@ resources:
   - ./authentik-dashboard.yaml
   - ./externalsecret.yaml
   - ./grafanadashboard.yaml
-  - ./proxmox-dashboard.yaml
+  - ./garage-dashboard.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
+  - ./proxmox-dashboard.yaml
 
 configMapGenerator:
   - name: grafana-dashboard-authentik
     files:
       - authentik.json=./dashboards/authentik-lite.json
+  - name: grafana-dashboard-garage
+    files:
+      - garage.json=./dashboards/garage.json
   - name: grafana-dashboard-proxmox
     files:
       - proxmox-overview.json=./dashboards/proxmox-overview.json
