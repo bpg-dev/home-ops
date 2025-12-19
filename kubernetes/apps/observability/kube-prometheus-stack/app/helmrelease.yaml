@@ -38,6 +38,10 @@ spec:
     kubeProxy:
       enabled: false
     prometheus:
+      thanosService:
+        enabled: true
+      thanosServiceMonitor:
+        enabled: true
       route:
         main:
           enabled: true
@@ -53,6 +57,11 @@ spec:
           registry: docker.io
           repository: prompp/prompp
           tag: 0.7.1
+        thanos:
+          objectStorageConfig:
+            existingSecret:
+              name: thanos-objstore
+              key: objstore.yaml
         securityContext:
           runAsNonRoot: true
           runAsUser: 64535

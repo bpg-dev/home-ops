@@ -1,0 +1,216 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app thanos
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: thanos
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      # The initial install can fail before any successful release exists, making rollback impossible.
+      # Uninstall+reinstall is the most reliable remediation for a first successful deploy.
+      strategy: uninstall
+      retries: 3
+  values:
+    controllers:
+      thanos-query:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: quay.io/thanos/thanos
+              tag: v0.40.1
+            args:
+              - query
+              - --http-address=0.0.0.0:9090
+              - --grpc-address=0.0.0.0:10901
+              - --query.replica-label=prometheus_replica
+              # Discover Prometheus sidecar(s) via SRV records from kube-prometheus-stack's thanos discovery service
+              - --endpoint=dnssrv+_grpc._tcp.kube-prometheus-stack-thanos-discovery.observability.svc.cluster.local
+              - --endpoint=thanos-thanos-storegateway.observability.svc.cluster.local:10901
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /-/healthy
+                    port: 9090
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: [ALL] }
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 512Mi
+
+      thanos-storegateway:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: quay.io/thanos/thanos
+              tag: v0.40.1
+            args:
+              - store
+              - --http-address=0.0.0.0:10902
+              - --grpc-address=0.0.0.0:10901
+              - --data-dir=/data
+              - --objstore.config-file=/etc/thanos/objstore.yaml
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /-/healthy
+                    port: 10902
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: [ALL] }
+            resources:
+              requests:
+                cpu: 50m
+                memory: 512Mi
+              limits:
+                memory: 1Gi
+
+      thanos-compactor:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: quay.io/thanos/thanos
+              tag: v0.40.1
+            args:
+              - compact
+              - --http-address=0.0.0.0:10902
+              - --data-dir=/data
+              - --objstore.config-file=/etc/thanos/objstore.yaml
+              - --retention.resolution-raw=90d
+              - --retention.resolution-5m=90d
+              - --retention.resolution-1h=90d
+              # Give time for blocks marked for deletion to age out safely
+              - --delete-delay=48h
+              # Keep compactor running continuously (default is to exit after a single pass)
+              - --wait
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /-/healthy
+                    port: 10902
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: [ALL] }
+            resources:
+              requests:
+                cpu: 50m
+                memory: 512Mi
+              limits:
+                memory: 1Gi
+
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: { type: RuntimeDefault }
+
+    service:
+      thanos-query:
+        controller: thanos-query
+        ports:
+          http:
+            port: 9090
+      thanos-storegateway:
+        controller: thanos-storegateway
+        ports:
+          grpc:
+            port: 10901
+          http:
+            port: 10902
+      thanos-compactor:
+        controller: thanos-compactor
+        ports:
+          http:
+            port: 10902
+
+    serviceMonitor:
+      thanos-query:
+        service:
+          identifier: thanos-query
+        endpoints:
+          - port: http
+      thanos-storegateway:
+        service:
+          identifier: thanos-storegateway
+        endpoints:
+          - port: http
+      thanos-compactor:
+        service:
+          identifier: thanos-compactor
+        endpoints:
+          - port: http
+
+    persistence:
+      tmp:
+        enabled: true
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+      objstore:
+        enabled: true
+        type: secret
+        name: thanos-objstore
+        globalMounts:
+          - path: /etc/thanos/objstore.yaml
+            subPath: objstore.yaml
+            readOnly: true
+      storegateway-data:
+        enabled: true
+        type: persistentVolumeClaim
+        storageClass: ceph-rbd
+        accessMode: ReadWriteOnce
+        size: 20Gi
+        advancedMounts:
+          thanos-storegateway:
+            app:
+              - path: /data
+      compactor-data:
+        enabled: true
+        type: persistentVolumeClaim
+        storageClass: ceph-rbd
+        accessMode: ReadWriteOnce
+        size: 20Gi
+        advancedMounts:
+          thanos-compactor:
+            app:
+              - path: /data
+
+

@@ -18,6 +18,7 @@ resources:
   # - ./kromgo/ks.yaml
   - ./kube-prometheus-stack/ks.yaml
   - ./prometheus-pve-exporter/ks.yaml
+  - ./thanos/ks.yaml
   # - ./silence-operator/ks.yaml
   # - ./smartctl-exporter/ks.yaml
   # - ./snmp-exporter/ks.yaml
