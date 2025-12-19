@@ -64,6 +64,12 @@ spec:
             port: &port 3909
     route:
       app:
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: "Garage WebUI"
+          gethomepage.dev/description: "Garage admin UI"
+          gethomepage.dev/group: "Infrastructure"
+          gethomepage.dev/icon: "mdi-folder-network"
         hostnames: ["garage.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-internal

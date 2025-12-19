@@ -89,6 +89,11 @@ spec:
       app:
         annotations:
           gatus.home-operations.com/enabled: "true"
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: "Gatus"
+          gethomepage.dev/description: "Uptime monitoring"
+          gethomepage.dev/group: "Infrastructure"
+          gethomepage.dev/icon: "gatus.png"
         hostnames:
           - "{{ .Release.Name }}.${SECRET_DOMAIN}"
           - status.${SECRET_DOMAIN}
