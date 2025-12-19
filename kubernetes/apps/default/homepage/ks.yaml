@@ -6,14 +6,14 @@ metadata:
   name: &app homepage
   namespace: flux-system
 spec:
-  targetNamespace: services
+  targetNamespace: default
   interval: 30m
   retryInterval: 1m
   timeout: 5m
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
-  path: ./kubernetes/apps/services/homepage/app
+  path: ./kubernetes/apps/default/homepage/app
   postBuild:
     substitute:
       APP: *app

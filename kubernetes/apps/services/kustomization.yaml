@@ -10,4 +10,3 @@ components:
 
 resources:
   - ./namespace.yaml
-  - ./homepage/ks.yaml
