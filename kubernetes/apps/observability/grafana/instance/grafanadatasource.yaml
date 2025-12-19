@@ -45,6 +45,10 @@ spec:
     type: prometheus
     name: thanos
     access: proxy
+    # Avoid duplicate "Watchdog" (and other Prometheus-rule) alerts in Grafana.
+    # Prometheus is the single source of truth for alert rule evaluation; Thanos is for long-range queries.
+    jsonData:
+      manageAlerts: false
     url: http://thanos-thanos-query.observability.svc.cluster.local:9090
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadatasource_v1beta1.json

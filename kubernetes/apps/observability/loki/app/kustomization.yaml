@@ -4,6 +4,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ./externalsecret.yaml
+  - ./grafanadashboard.yaml
+  - ./grafanadashboard-stack-monitoring.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
 
@@ -11,6 +13,10 @@ configMapGenerator:
   - name: loki-configmap
     files:
       - loki.yaml=./config/loki.yaml
+  - name: loki-dashboard
+    files:
+      - loki-kubernetes-logs.json=./dashboards/loki-dashboard-grafana-13186-r1.patched.json
+      - loki-stack-monitoring.json=./dashboards/loki-stack-monitoring-grafana-14055-r1.patched.json
 
 generatorOptions:
   disableNameSuffixHash: true

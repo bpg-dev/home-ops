@@ -105,6 +105,14 @@ spec:
           labels job=proxmox,host=$host,ident=$ident
     dashboards:
       enabled: true
+    # Fluent Bit runs on every node; set requests/limits so resource dashboards can render and to avoid noisy eviction risk.
+    # Keep CPU limits unset (house rule), but set a memory limit.
+    resources:
+      requests:
+        cpu: 50m
+        memory: 100Mi
+      limits:
+        memory: 200Mi
     serviceMonitor:
       enabled: true
     logLevel: warn

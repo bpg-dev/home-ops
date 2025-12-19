@@ -6,8 +6,6 @@ metadata:
   name: loki
 spec:
   dependsOn:
-    - name: rook-ceph-cluster
-      namespace: rook-ceph-external
     - name: external-secrets
       namespace: external-secrets
     - name: garage

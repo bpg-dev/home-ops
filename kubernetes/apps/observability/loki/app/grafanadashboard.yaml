@@ -1,0 +1,24 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadashboard_v1beta1.json
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: loki-kubernetes-logs
+spec:
+  allowCrossNamespaceImport: true
+  # We vendor dashboard JSON via ConfigMap and may iterate quickly; a short resync makes updates visible fast.
+  resyncPeriod: 1m0s
+  instanceSelector:
+    matchLabels:
+      grafana.internal/instance: grafana
+  datasources:
+    # Dashboard 13186 uses Grafana.com inputs DS_LOKI/DS_PROMETHEUS; we bind to our provisioned datasources.
+    - datasourceName: loki
+      inputName: DS_LOKI
+    - datasourceName: prometheus
+      inputName: DS_PROMETHEUS
+  configMapRef:
+    name: loki-dashboard
+    key: loki-kubernetes-logs.json
+
+
