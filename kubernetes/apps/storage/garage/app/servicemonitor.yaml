@@ -1,0 +1,17 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/servicemonitor_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: garage
+spec:
+  endpoints:
+    - port: metrics
+      path: /metrics
+      bearerTokenSecret:
+        name: garage
+        key: GARAGE_METRICS_TOKEN
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: garage
+

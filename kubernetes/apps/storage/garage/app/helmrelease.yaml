@@ -58,6 +58,8 @@ spec:
             port: &port 3900
           api:
             port: 3903
+          metrics:
+            port: 3903
     route:
       app:
         annotations:
