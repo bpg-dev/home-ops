@@ -79,6 +79,13 @@ spec:
         globalMounts:
           - path: /etc/loki/config.yaml
             subPath: loki.yaml
+      rules:
+        type: configMap
+        name: loki-rules
+        globalMounts:
+          # Loki multi-tenancy: when auth_enabled=false, the default tenant is "fake".
+          # Loki reads rules from <directory>/<tenant>, so we mount into /etc/loki/rules/fake.
+          - path: /etc/loki/rules/fake
       data:
         enabled: true
         type: persistentVolumeClaim

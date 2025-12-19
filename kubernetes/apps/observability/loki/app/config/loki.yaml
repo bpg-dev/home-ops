@@ -18,7 +18,7 @@ common:
       access_key_id: ${S3_ACCESS_KEY_ID}
       secret_access_key: ${S3_SECRET_ACCESS_KEY}
       s3forcepathstyle: true
-      insecure: ${S3_INSECURE}
+      insecure: true
 
 schema_config:
   configs:
@@ -53,14 +53,8 @@ ruler:
     kvstore:
       store: inmemory
   storage:
-    type: s3
-    s3:
-      endpoint: ${S3_ENDPOINT}
-      region: ${S3_REGION}
-      bucketnames: ${S3_BUCKET}
-      access_key_id: ${S3_ACCESS_KEY_ID}
-      secret_access_key: ${S3_SECRET_ACCESS_KEY}
-      s3forcepathstyle: true
-      insecure: ${S3_INSECURE}
+    type: local
+    local:
+      directory: /etc/loki/rules
 
 

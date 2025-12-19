@@ -13,6 +13,9 @@ configMapGenerator:
   - name: loki-configmap
     files:
       - loki.yaml=./config/loki.yaml
+  - name: loki-rules
+    files:
+      - loki-rules.yaml=./rules/loki-rules.yaml
   - name: loki-dashboard
     files:
       - loki-kubernetes-logs.json=./dashboards/loki-dashboard-grafana-13186-r1.patched.json

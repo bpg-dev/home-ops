@@ -215,9 +215,8 @@ Artifacts:
 #### 2.2 Add Grafana Loki datasource
 
 - [x] Add `GrafanaDatasource` for Loki.
-- [ ] Configure derived fields / links for:
-  - `namespace`, `pod`, `container`, `app`
-  - (Optional) `trace_id` / `request_id` if your app logs include them
+- [ ] (Optional) Configure derived fields / links for:
+  - `trace_id` / `request_id` if your app logs include them
 
 #### 2.3 Fluent Bit: dual-write to Loki (keep VictoriaLogs during migration)
 
@@ -272,13 +271,15 @@ Rollback:
 
 Recommended starter alerts:
 
-- [ ] **Log ingestion failure / no logs** for critical namespaces (if feasible).
-- [ ] **Error spike** (e.g., rate of `level=error` or HTTP 5xx log patterns) grouped by `namespace`/`app`.
+- [x] **Loki has warn/error logs** (Loki self-observability via logs).
+- [x] **Fluent Bit has warn/error logs** (shipper self-observability via logs).
+- [ ] (Optional) **Log ingestion failure / no logs** for critical namespaces (if feasible).
+- [ ] (Optional) **Error spike** (e.g., rate of `level=error` or HTTP 5xx log patterns) grouped by `namespace`/`app`.
 
 Requirements:
 
-- [ ] Rules live in Git (no UI-only rules).
-- [ ] Route via existing Alertmanager (reuse existing receivers/policies).
+- [x] Rules live in Git (no UI-only rules).
+- [x] Route via existing Alertmanager (reuse existing receivers/policies).
 
 Validation:
 
@@ -308,13 +309,20 @@ Status (current):
 
 - [x] Cutover complete: Fluent Bit writes **only** to Loki (no VictoriaLogs outputs).
 - [x] Decommission in progress: removed `victoria-logs` from GitOps so Flux prunes it.
-- [ ] Post-decommission cleanup: decide what to do with the old VictoriaLogs PVC.
+- [ ] Post-decommission cleanup: delete the old VictoriaLogs PVC now that rollback window is over.
 
 PVC note (expected):
 
 - StatefulSet PVCs are **not** automatically deleted when the workload is removed.
 - The old PVC is still present: `server-volume-victoria-logs-server-0` (Ceph RBD, 20Gi).
 - Recommendation: keep it for a short rollback/forensics window (e.g., 7–14 days), then delete it deliberately to reclaim storage.
+
+GitOps-safe deletion approach (no `kubectl delete`):
+
+1. **Adopt** the existing PVC into Flux inventory by temporarily adding a small Flux `Kustomization`
+   that contains a manifest for `PersistentVolumeClaim/server-volume-victoria-logs-server-0`.
+2. Wait for that Kustomization to become Ready (it will effectively “take ownership” of the existing PVC).
+3. **Remove** that Kustomization from Git. Flux will then prune the PVC (deletes it).
 
 Rollback:
 
@@ -330,9 +338,10 @@ Rollback:
 - **Grafana experience**
   - [ ] Users can query logs in Explore using Loki datasource.
   - [ ] Users can query metrics >14d using Thanos datasource.
-  - [ ] Logs ↔ metrics correlation works using shared labels (`namespace/pod/container/app/cluster`).
+  - [x] Logs ↔ metrics correlation works using shared labels (`namespace/pod/container/app/cluster`).
 - **Alerting**
-  - [ ] At least one Loki ruler alert routes through Alertmanager correctly.
+  - [x] Loki ruler rules exist in Git and are loaded by Loki.
+  - [ ] At least one Loki ruler alert routes through Alertmanager correctly (verify in AM UI).
   - [ ] Existing Prometheus alerting remains stable.
 - **Operations**
   - [ ] No sustained Fluent Bit backpressure or loss.

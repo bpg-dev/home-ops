@@ -1,0 +1,30 @@
+groups:
+  - name: loki.rules
+    rules:
+      - alert: LokiHasWarnOrErrorLogs
+        expr: |
+          sum by (pod) (
+            count_over_time({job="fluent-bit", namespace="observability", pod=~"loki.*"} |~ "(?i)\\blevel=(warn|error)\\b"[5m])
+          ) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Loki has warning/error logs (pod={{ $labels.pod }})
+          description: |
+            Loki pod {{ $labels.pod }} has emitted warning/error logs in the last 5 minutes.
+
+      - alert: FluentBitHasWarnOrErrorLogs
+        expr: |
+          sum by (pod) (
+            count_over_time({job="fluent-bit", namespace="observability", pod=~"fluent-bit.*"} |~ "(?i)\\blevel=(warn|error)\\b"[5m])
+          ) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Fluent Bit has warning/error logs (pod={{ $labels.pod }})
+          description: |
+            Fluent Bit pod {{ $labels.pod }} has emitted warning/error logs in the last 5 minutes.
+
+
