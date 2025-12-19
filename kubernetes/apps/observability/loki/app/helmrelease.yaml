@@ -22,7 +22,7 @@ spec:
           app:
             image:
               repository: docker.io/grafana/loki
-              tag: 3.4.0
+              tag: 3.6.3
             args:
               - -target=all
               - -config.file=/etc/loki/config.yaml
