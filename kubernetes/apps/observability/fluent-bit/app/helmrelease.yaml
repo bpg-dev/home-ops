@@ -22,6 +22,12 @@ spec:
           http_listen 0.0.0.0
           http_port {{ .Values.metricsPort }}
           health_check on
+          # Buffer on-disk so brief Loki outages (e.g., during storage / node churn) don't drop logs.
+          storage.path /var/log/fluent-bit/storage
+          storage.sync normal
+          storage.checksum off
+          storage.max_chunks_up 128
+          storage.backlog.mem_limit 25M
 
       inputs: |-
         [INPUT]
@@ -32,6 +38,10 @@ spec:
           tag kubernetes.*
           skip_empty_lines on
           skip_long_lines on
+          # Persist tail offsets and allow filesystem buffering.
+          storage.type filesystem
+          db /var/log/fluent-bit/tail-containers.db
+          db.locking true
 
         [INPUT]
           name syslog
@@ -92,6 +102,8 @@ spec:
           host loki.observability
           port 3100
           line_format json
+          # Retry long enough to ride out short Loki/PVC/CSI hiccups, but don't retry forever.
+          Retry_Limit 60
           # Keep labels low-cardinality to support metrics↔logs correlation in Grafana.
           labels job=fluent-bit,namespace=$k_namespace_name,pod=$k_pod_name,container=$k_container_name,app=$app,stream=$stream
 
@@ -101,6 +113,8 @@ spec:
           host loki.observability
           port 3100
           line_format json
+          # Retry long enough to ride out short Loki/PVC/CSI hiccups, but don't retry forever.
+          Retry_Limit 60
           # syslog-rfc5424 parser emits `host` and `ident` fields.
           labels job=proxmox,host=$host,ident=$ident
     dashboards:
