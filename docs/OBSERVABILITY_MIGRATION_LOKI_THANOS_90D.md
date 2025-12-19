@@ -200,11 +200,11 @@ Rollback:
 
 Configuration requirements:
 
-- [ ] Storage: Garage S3 bucket `loki`
-- [ ] Retention: **90d** via Loki compactor retention deletes
-- [ ] Monitoring: ServiceMonitor enabled
-- [ ] Security: rootless, drop ALL capabilities, read-only filesystem where feasible
-- [ ] Ruler enabled; ruler sends to existing Alertmanager:
+- [x] Storage: Garage S3 bucket `loki`
+- [x] Retention: **90d** via Loki compactor retention deletes
+- [x] Monitoring: ServiceMonitor enabled
+- [x] Security: rootless, drop ALL capabilities, read-only filesystem where feasible
+- [x] Ruler enabled; ruler sends to existing Alertmanager:
   - `http://alertmanager-operated.observability.svc.cluster.local:9093`
 
 Artifacts:
@@ -221,28 +221,24 @@ Artifacts:
 
 #### 2.3 Fluent Bit: dual-write to Loki (keep VictoriaLogs during migration)
 
-- [ ] Add Fluent Bit Loki outputs for:
-  - [ ] Kubernetes logs (`kubernetes.*`)
-  - [ ] Proxmox syslog (`proxmox.*`)
-- [ ] Keep VictoriaLogs outputs enabled during validation window (easy rollback).
+- [x] Add Fluent Bit Loki outputs for:
+  - [x] Kubernetes logs (`kubernetes.*`)
+  - [x] Proxmox syslog (`proxmox.*`)
+- [x] Keep VictoriaLogs outputs enabled during validation window (easy rollback).
 
 Validation (must pass before cutting over):
 
-- [ ] Loki pod is Ready and `GET /ready` returns `ready`.
-- [ ] Grafana Explore → datasource `loki`:
-  - [ ] Query shows *new* Kubernetes logs arriving (last 5–15 minutes).
-  - [ ] Labels exist and look sane (no label explosion).
-- [ ] Proxmox logs arrive in Loki.
+- [x] Loki pod is Ready and `GET /ready` returns `ready`.
+- [x] Grafana Explore → datasource `loki`:
+  - [x] Query shows *new* Kubernetes logs arriving (last 5–15 minutes).
+  - [x] Labels exist and look sane (no label explosion).
+- [x] Proxmox logs arrive in Loki (labels include `host` and `ident`).
 
-Artifact:
+#### 2.4 Loki validation (must pass before cutover)
 
-- [ ] Update: `kubernetes/apps/observability/grafana/instance/grafanadatasource.yaml`
-
-#### 2.3 Loki validation (must pass before dual-write)
-
-- [ ] Loki ingestion endpoints are reachable internally.
-- [ ] Loki can execute basic LogQL queries.
-- [ ] Compactor is running; retention is configured to **90d**.
+- [x] Loki ingestion endpoints are reachable internally.
+- [x] Loki can execute basic LogQL queries.
+- [x] Compactor is running; retention is configured to **90d**.
 
 Rollback:
 
@@ -250,32 +246,23 @@ Rollback:
 
 ---
 
-### Phase 3 — Dual-Write Logs (VictoriaLogs + Loki)
+### Phase 3 — Cutover: Stop Writing to VictoriaLogs (Loki Only)
 
-Goal: safely compare and validate Loki without losing the existing logging stack.
+Goal: make Loki the source of truth for new logs while keeping VictoriaLogs running temporarily for rollback/forensics.
 
-#### 3.1 Update Fluent Bit outputs
+Steps:
 
-- [ ] Keep current VictoriaLogs HTTP output unchanged.
-- [ ] Add second output to Loki.
-- [ ] Ensure Kubernetes log labels are mapped consistently:
-  - `cluster`, `namespace`, `pod`, `container`, `app`
-- [ ] Ensure Proxmox syslog logs are labeled consistently:
-  - `cluster`, `host`, `facility`, `severity`, `app=proxmox`
-
-Artifact:
-
-- [ ] Update: `kubernetes/apps/observability/fluent-bit/app/helmrelease.yaml`
-
-#### 3.2 Dual-write validation
-
-- [ ] In Grafana Explore: verify the same workload logs exist in Loki for multiple namespaces/apps.
-- [ ] Check Fluent Bit metrics: no sustained retries/backpressure.
-- [ ] Verify query performance is acceptable for common queries (last 15m/1h by namespace/app).
+- [ ] Update Fluent Bit outputs:
+  - [ ] Remove VictoriaLogs outputs (Kubernetes + Proxmox).
+  - [ ] Keep Loki outputs enabled.
+- [ ] Validate:
+  - [ ] Loki continues receiving new logs from Kubernetes and Proxmox.
+  - [ ] No Fluent Bit error spikes / backpressure.
+  - [ ] Grafana Explore works for common queries (namespace/app/pod).
 
 Rollback:
 
-- [ ] Remove Loki output from Fluent Bit; continue with VictoriaLogs only.
+- [ ] Re-add VictoriaLogs outputs to Fluent Bit.
 
 ---
 
