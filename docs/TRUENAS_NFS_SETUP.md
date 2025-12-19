@@ -143,6 +143,52 @@ Ensure your Kubernetes cluster nodes can reach `nas.internal`:
 - **DNS**: Ensure `nas.internal` resolves correctly from cluster nodes
 - **Network**: Kubernetes nodes should be in the authorized networks list
 
+---
+
+## Garage (S3) dataset tuning (recommended for Loki + Thanos workloads)
+
+If you use TrueNAS + Garage as the object store backend for **Loki (logs)** and **Thanos (metrics)**, tune the ZFS datasets
+backing Garage’s NFS paths so metadata-heavy operations stay fast and ARC pressure stays reasonable.
+
+This repo’s Garage configuration uses:
+
+- `tank/nfs/garage/data` → Garage `data_dir` (`/mnt/tank/nfs/garage/data`)
+- `tank/nfs/garage/meta` → Garage `metadata_dir` (`/mnt/tank/nfs/garage/meta`)
+
+### Why tune?
+
+- **Thanos** uploads and compacts TSDB blocks: mostly large objects plus metadata reads/listing.
+- **Loki** stores chunks + index objects and runs a compactor: more small IO and metadata pressure than Thanos.
+- **Garage** benefits significantly from fast metadata; a ZFS **special vdev** is a big win if present.
+
+### Recommended ZFS properties
+
+- **`tank/nfs/garage/data`** (bulk object data):
+  - `recordsize=1M`: better for large objects / sequential-ish write patterns.
+  - `primarycache=metadata`: reduces ARC pressure from caching bulk object blocks on low-memory systems.
+- **`tank/nfs/garage/meta`** (metadata + small random IO):
+  - `recordsize=32K`: aligns with TrueNAS guidance for this pool topology while still being friendly to small-object workloads.
+  - `special_small_blocks=32K`: pushes small blocks to the **special vdev** (if present), improving latency.
+
+### Commands
+
+Run on the TrueNAS host (adjust pool/dataset names as needed):
+
+```bash
+zfs set recordsize=1M tank/nfs/garage/data
+zfs set primarycache=metadata tank/nfs/garage/data
+
+zfs set recordsize=32K tank/nfs/garage/meta
+zfs set special_small_blocks=32K tank/nfs/garage/meta
+
+zfs get -H -o name,property,value,source recordsize,primarycache,special_small_blocks tank/nfs/garage/data tank/nfs/garage/meta
+```
+
+Notes:
+
+- Changing `recordsize` and `special_small_blocks` primarily affects **new writes**.
+- If you don’t have a special vdev, `special_small_blocks` won’t provide benefits; keep it unset in that case.
+
 ## References
 
 - [TrueNAS SCALE NFS Documentation](https://www.truenas.com/docs/scale/scaletutorials/shares/nfs/nfsscale/)
