@@ -1,0 +1,15 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/servicemonitor_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: authentik
+spec:
+  endpoints:
+    - port: http-metrics
+      path: /metrics
+  selector:
+    matchLabels:
+      goauthentik.io/outpost-name: authentik-embedded-outpost
+      goauthentik.io/outpost-type: proxy
+

@@ -77,6 +77,7 @@ These rules prevent immediate cluster failures, data corruption, or GitOps drift
 - **NEVER use raw Secret resources in Git** - All secrets via External Secrets Operator or encrypted with SOPS
 - **NEVER use raw ConfigMap resources** - ALWAYS use `configMapGenerator` in kustomization.yaml
 - **NEVER log or print secret values** - Security violation, use masked outputs
+- **When debugging Authentik settings, never dump full `ak diffsettings` outputs that may include secrets** - Only extract specific non-secret keys (e.g., `CONN_MAX_AGE`) and redact anything sensitive.
 - **NEVER use postBuild.substituteFrom for application secrets** - Timing race condition with ExternalSecret creation
 
 ### Security
