@@ -111,8 +111,8 @@ Create buckets:
 
 Create distinct credentials (least privilege) and store in 1Password:
 
-- `thanos-s3`
-- `loki-s3`
+- `thanos`
+- `loki`
 
 Notes:
 
@@ -124,8 +124,8 @@ Notes:
 
 - Use **External Secrets Operator** only (no raw Secrets in Git).
 - Create `ExternalSecret` resources to materialize:
-  - `thanos-s3` secret in `observability`
-  - `loki-s3` secret in `observability`
+  - `thanos-objstore` (contains `objstore.yaml`) in `observability`
+  - `loki-secret` (contains `S3_*` env vars) in `observability`
 
 ---
 
@@ -209,15 +209,30 @@ Configuration requirements:
 
 Artifacts:
 
-- [ ] Add: `kubernetes/apps/observability/loki/ks.yaml`
-- [ ] Add: `kubernetes/apps/observability/loki/app/{kustomization.yaml, ocirepository.yaml, helmrelease.yaml, externalsecret.yaml}`
+- [x] Add: `kubernetes/apps/observability/loki/ks.yaml`
+- [x] Add: `kubernetes/apps/observability/loki/app/{kustomization.yaml, ocirepository.yaml, helmrelease.yaml, externalsecret.yaml, config/loki.yaml}`
 
 #### 2.2 Add Grafana Loki datasource
 
-- [ ] Add `GrafanaDatasource` for Loki.
+- [x] Add `GrafanaDatasource` for Loki.
 - [ ] Configure derived fields / links for:
   - `namespace`, `pod`, `container`, `app`
   - (Optional) `trace_id` / `request_id` if your app logs include them
+
+#### 2.3 Fluent Bit: dual-write to Loki (keep VictoriaLogs during migration)
+
+- [ ] Add Fluent Bit Loki outputs for:
+  - [ ] Kubernetes logs (`kubernetes.*`)
+  - [ ] Proxmox syslog (`proxmox.*`)
+- [ ] Keep VictoriaLogs outputs enabled during validation window (easy rollback).
+
+Validation (must pass before cutting over):
+
+- [ ] Loki pod is Ready and `GET /ready` returns `ready`.
+- [ ] Grafana Explore → datasource `loki`:
+  - [ ] Query shows *new* Kubernetes logs arriving (last 5–15 minutes).
+  - [ ] Labels exist and look sane (no label explosion).
+- [ ] Proxmox logs arrive in Loki.
 
 Artifact:
 
