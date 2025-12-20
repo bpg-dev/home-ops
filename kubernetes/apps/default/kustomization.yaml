@@ -11,6 +11,7 @@ resources:
   - ./namespace.yaml
   - ./actual-budget/ks.yaml
   - ./cv-site/ks.yaml
+  - ./docs/ks.yaml
   - ./echo/ks.yaml
   - ./homepage/ks.yaml
   - ./paperless-ngx/ks.yaml

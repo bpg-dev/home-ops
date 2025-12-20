@@ -1,0 +1,101 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/job.json
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: docs-db-migration-fix
+  labels:
+    app.kubernetes.io/name: docs-db-migration-fix
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: docs-db-migration-fix
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: fix
+          image: docker.io/library/postgres:18
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+            runAsGroup: 999
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: PGHOST
+              value: postgres-rw.postgresql-system.svc.cluster.local
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: docs-postgres-superuser
+                  key: username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: docs-postgres-superuser
+                  key: password
+            - name: APP_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: docs-config
+                  key: DB_NAME
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -euo pipefail
+
+              # Wait for DB connectivity.
+              until psql -v ON_ERROR_STOP=1 "postgresql://$PGUSER:$PGPASSWORD@$PGHOST:$PGPORT/postgres" -c "SELECT 1" >/dev/null 2>&1; do
+                echo "Waiting for Postgres..."
+                sleep 2
+              done
+
+              # Wait for Django tables to exist (migrate job applies migrations up to core.0026, then fails at core.0027).
+              until [ "$(psql -v ON_ERROR_STOP=1 "postgresql://$PGUSER:$PGPASSWORD@$PGHOST:$PGPORT/$APP_DB_NAME" -tAc "SELECT to_regclass('public.impress_user') IS NOT NULL")" = "t" ]; do
+                echo "Waiting for impress_user table..."
+                sleep 2
+              done
+
+              # core.0027_auto_20251120_0956 requires superuser (LANGUAGE c).
+              # We apply the SQL as superuser and then mark the migration as applied so the chart's migrate job can succeed.
+              psql -v ON_ERROR_STOP=1 "postgresql://$PGUSER:$PGPASSWORD@$PGHOST:$PGPORT/$APP_DB_NAME" <<'SQL'
+              CREATE EXTENSION IF NOT EXISTS unaccent;
+              CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+              CREATE OR REPLACE FUNCTION public.immutable_unaccent(regdictionary, text)
+              RETURNS text
+              LANGUAGE c IMMUTABLE PARALLEL SAFE STRICT AS
+              '$libdir/unaccent', 'unaccent_dict';
+
+              CREATE OR REPLACE FUNCTION public.f_unaccent(text)
+              RETURNS text
+              LANGUAGE sql IMMUTABLE PARALLEL SAFE STRICT
+              RETURN public.immutable_unaccent(regdictionary 'public.unaccent', $1);
+
+              CREATE INDEX IF NOT EXISTS user_email_unaccent_trgm_idx
+              ON impress_user
+              USING gin (f_unaccent(email) gin_trgm_ops);
+
+              CREATE INDEX IF NOT EXISTS user_full_name_unaccent_trgm_idx
+              ON impress_user
+              USING gin (f_unaccent(full_name) gin_trgm_ops);
+
+              INSERT INTO django_migrations (app, name, applied)
+              SELECT 'core', '0027_auto_20251120_0956', NOW()
+              WHERE NOT EXISTS (
+                SELECT 1 FROM django_migrations
+                WHERE app = 'core' AND name = '0027_auto_20251120_0956'
+              );
+              SQL
+
+

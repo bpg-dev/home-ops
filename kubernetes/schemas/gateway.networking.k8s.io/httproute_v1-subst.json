@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HTTPRoute (substitution-friendly)",
+  "description": "Loose schema for Gateway API HTTPRoute that allows Flux/Kustomize ${VAR} placeholders in hostnames.",
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "additionalProperties": true,
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "gateway.networking.k8s.io/v1"
+    },
+    "kind": {
+      "type": "string",
+      "const": "HTTPRoute"
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": true,
+      "properties": {
+        "name": { "type": "string" },
+        "labels": { "type": "object" },
+        "annotations": { "type": "object" }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "required": ["parentRefs", "rules"],
+      "additionalProperties": true,
+      "properties": {
+        "hostnames": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "parentRefs": {
+          "type": "array",
+          "items": { "type": "object" }
+        },
+        "rules": {
+          "type": "array",
+          "items": { "type": "object" }
+        }
+      }
+    }
+  }
+}

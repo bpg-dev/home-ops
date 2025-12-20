@@ -202,6 +202,11 @@ readiness: *probes
   - PrometheusRule: `kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json`
   - GrafanaDashboard: `kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadashboard_v1beta1.json`
 
+### Domain / Hostname Hygiene
+
+- **Do not hardcode domains/hostnames in Git**: For app URLs and routes, prefer `docs.${SECRET_DOMAIN}` / `${SECRET_DOMAIN}` style placeholders (Flux `postBuild.substituteFrom`) instead of committing the real domain.
+- **If a CRD schema rejects placeholders (e.g., HTTPRoute hostnames regex)**: Keep the placeholder in the manifest (so Flux renders a valid hostname at apply time) and use a local `yaml-language-server` schema that is substitution-friendly.
+
 ### Markdown Documentation
 
 - Follow proper heading hierarchy (H1 → H2 → H3, no skipping levels)

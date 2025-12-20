@@ -1,0 +1,261 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: docs
+spec:
+  chart:
+    spec:
+      chart: docs
+      sourceRef:
+        kind: HelmRepository
+        name: docs
+      version: "*"
+  interval: 1h
+  timeout: 15m
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    # The chart includes Jobs (migrate/createsuperuser) which have an immutable Pod template.
+    # Helm needs --force semantics to replace these Jobs on upgrades.
+    force: true
+    remediation:
+      # This release has never reached a successful state, so "rollback" has no target and
+      # helm-controller will error with: "missing target release for rollback".
+      # Use uninstall to allow recovery from a failed initial install/upgrade.
+      strategy: uninstall
+      retries: 3
+  values:
+    global:
+      podAnnotations:
+        secret.reloader.stakater.com/reload: docs-config
+      envFrom:
+        - secretRef:
+            name: docs-config
+    # Backend configuration
+    backend:
+      image:
+        repository: lasuite/impress-backend
+        tag: latest
+      envVars:
+        # django-configurations: pin settings module + configuration explicitly.
+        # This prevents unintended dev-only apps (e.g., django_extensions) from being enabled by default.
+        DJANGO_SETTINGS_MODULE: impress.settings
+        DJANGO_CONFIGURATION: Base
+
+        # Django secret key (support both names; upstream docs use DJANGO_SECRET_KEY)
+        DJANGO_SECRET_KEY:
+          secretKeyRef:
+            name: docs-config
+            key: DJANGO_SECRET_KEY
+        SECRET_KEY:
+          secretKeyRef:
+            name: docs-config
+            key: SECRET_KEY
+
+        # Superuser bootstrap (chart Job)
+        DJANGO_SUPERUSER_EMAIL:
+          secretKeyRef:
+            name: docs-config
+            key: DJANGO_SUPERUSER_EMAIL
+        DJANGO_SUPERUSER_PASSWORD:
+          secretKeyRef:
+            name: docs-config
+            key: DJANGO_SUPERUSER_PASSWORD
+
+        # Host validation (comma-separated)
+        ALLOWED_HOSTS:
+          secretKeyRef:
+            name: docs-config
+            key: ALLOWED_HOSTS
+
+        DB_HOST:
+          secretKeyRef:
+            name: docs-config
+            key: DB_HOST
+        DB_PORT:
+          secretKeyRef:
+            name: docs-config
+            key: DB_PORT
+        DB_NAME:
+          secretKeyRef:
+            name: docs-config
+            key: DB_NAME
+        DB_USER:
+          secretKeyRef:
+            name: docs-config
+            key: DB_USER
+        DB_PASSWORD:
+          secretKeyRef:
+            name: docs-config
+            key: DB_PASSWORD
+        REDIS_URL:
+          secretKeyRef:
+            name: docs-config
+            key: REDIS_URL
+        DJANGO_CELERY_BROKER_URL:
+          secretKeyRef:
+            name: docs-config
+            key: DJANGO_CELERY_BROKER_URL
+        OIDC_OP_JWKS_ENDPOINT:
+          secretKeyRef:
+            name: docs-config
+            key: OIDC_OP_JWKS_ENDPOINT
+        OIDC_OP_AUTHORIZATION_ENDPOINT:
+          secretKeyRef:
+            name: docs-config
+            key: OIDC_OP_AUTHORIZATION_ENDPOINT
+        OIDC_OP_TOKEN_ENDPOINT:
+          secretKeyRef:
+            name: docs-config
+            key: OIDC_OP_TOKEN_ENDPOINT
+        OIDC_OP_USER_ENDPOINT:
+          secretKeyRef:
+            name: docs-config
+            key: OIDC_OP_USER_ENDPOINT
+        OIDC_OP_LOGOUT_ENDPOINT:
+          secretKeyRef:
+            name: docs-config
+            key: OIDC_OP_LOGOUT_ENDPOINT
+        OIDC_RP_CLIENT_ID:
+          secretKeyRef:
+            name: docs-config
+            key: OIDC_RP_CLIENT_ID
+        OIDC_RP_CLIENT_SECRET:
+          secretKeyRef:
+            name: docs-config
+            key: OIDC_RP_CLIENT_SECRET
+        OIDC_RP_SIGN_ALGO:
+          secretKeyRef:
+            name: docs-config
+            key: OIDC_RP_SIGN_ALGO
+        OIDC_RP_SCOPES:
+          secretKeyRef:
+            name: docs-config
+            key: OIDC_RP_SCOPES
+        # S3 credentials: expose both naming conventions
+        AWS_ACCESS_KEY_ID:
+          secretKeyRef:
+            name: docs-config
+            key: AWS_ACCESS_KEY_ID
+        AWS_SECRET_ACCESS_KEY:
+          secretKeyRef:
+            name: docs-config
+            key: AWS_SECRET_ACCESS_KEY
+        AWS_S3_ACCESS_KEY_ID:
+          secretKeyRef:
+            name: docs-config
+            key: AWS_S3_ACCESS_KEY_ID
+        AWS_S3_SECRET_ACCESS_KEY:
+          secretKeyRef:
+            name: docs-config
+            key: AWS_S3_SECRET_ACCESS_KEY
+        AWS_STORAGE_BUCKET_NAME:
+          secretKeyRef:
+            name: docs-config
+            key: AWS_STORAGE_BUCKET_NAME
+        AWS_S3_ENDPOINT_URL:
+          secretKeyRef:
+            name: docs-config
+            key: AWS_S3_ENDPOINT_URL
+        AWS_S3_REGION_NAME:
+          secretKeyRef:
+            name: docs-config
+            key: AWS_S3_REGION_NAME
+      resources:
+        requests:
+          cpu: 200m
+          memory: 512Mi
+        limits:
+          memory: 1Gi
+      probes:
+        # Django's ALLOWED_HOSTS is strict; kubelet probes hit the Pod IP and trigger DisallowedHost (HTTP 400).
+        # The chart doesn't support httpHeaders on probes, so use tcpSocket probes instead.
+        liveness: &probes
+          tcpSocket:
+            port: 8000
+          initialDelaySeconds: 10
+        readiness: *probes
+    # Frontend configuration
+    frontend:
+      image:
+        repository: lasuite/impress-frontend
+        tag: latest
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          memory: 256Mi
+      probes:
+        liveness:
+          path: /
+          initialDelaySeconds: 10
+        readiness:
+          path: /
+          initialDelaySeconds: 10
+    # Celery worker configuration
+    celery:
+      image:
+        repository: lasuite/impress-backend
+        tag: latest
+      envVars:
+        DJANGO_SETTINGS_MODULE: impress.settings
+        DJANGO_CONFIGURATION: Base
+
+        DJANGO_SECRET_KEY:
+          secretKeyRef:
+            name: docs-config
+            key: DJANGO_SECRET_KEY
+        SECRET_KEY:
+          secretKeyRef:
+            name: docs-config
+            key: SECRET_KEY
+
+        DJANGO_CELERY_BROKER_URL:
+          secretKeyRef:
+            name: docs-config
+            key: DJANGO_CELERY_BROKER_URL
+        DB_HOST:
+          secretKeyRef:
+            name: docs-config
+            key: DB_HOST
+        DB_PORT:
+          secretKeyRef:
+            name: docs-config
+            key: DB_PORT
+        DB_NAME:
+          secretKeyRef:
+            name: docs-config
+            key: DB_NAME
+        DB_USER:
+          secretKeyRef:
+            name: docs-config
+            key: DB_USER
+        DB_PASSWORD:
+          secretKeyRef:
+            name: docs-config
+            key: DB_PASSWORD
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+    # Security context
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+
