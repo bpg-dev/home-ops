@@ -30,13 +30,13 @@ spec:
       retries: 3
   values:
     global:
-      podAnnotations:
-        secret.reloader.stakater.com/reload: docs-config
       envFrom:
         - secretRef:
             name: docs-config
     # Backend configuration
     backend:
+      podAnnotations:
+        secret.reloader.stakater.com/reload: docs-config
       image:
         repository: lasuite/impress-backend
         tag: latest
@@ -44,7 +44,7 @@ spec:
         # django-configurations: pin settings module + configuration explicitly.
         # This prevents unintended dev-only apps (e.g., django_extensions) from being enabled by default.
         DJANGO_SETTINGS_MODULE: impress.settings
-        DJANGO_CONFIGURATION: Base
+        DJANGO_CONFIGURATION: Production
 
         # Django secret key (support both names; upstream docs use DJANGO_SECRET_KEY)
         DJANGO_SECRET_KEY:
@@ -71,6 +71,20 @@ spec:
           secretKeyRef:
             name: docs-config
             key: ALLOWED_HOSTS
+        DJANGO_ALLOWED_HOSTS:
+          secretKeyRef:
+            name: docs-config
+            key: DJANGO_ALLOWED_HOSTS
+
+        # Post-login redirect (mozilla-django-oidc)
+        LOGIN_REDIRECT_URL:
+          secretKeyRef:
+            name: docs-config
+            key: LOGIN_REDIRECT_URL
+        DJANGO_LOGIN_REDIRECT_URL:
+          secretKeyRef:
+            name: docs-config
+            key: DJANGO_LOGIN_REDIRECT_URL
 
         DB_HOST:
           secretKeyRef:
@@ -181,6 +195,8 @@ spec:
         readiness: *probes
     # Frontend configuration
     frontend:
+      podAnnotations:
+        secret.reloader.stakater.com/reload: docs-config
       image:
         repository: lasuite/impress-frontend
         tag: latest
@@ -204,7 +220,7 @@ spec:
         tag: latest
       envVars:
         DJANGO_SETTINGS_MODULE: impress.settings
-        DJANGO_CONFIGURATION: Base
+        DJANGO_CONFIGURATION: Production
 
         DJANGO_SECRET_KEY:
           secretKeyRef:
@@ -214,6 +230,11 @@ spec:
           secretKeyRef:
             name: docs-config
             key: SECRET_KEY
+
+        DJANGO_ALLOWED_HOSTS:
+          secretKeyRef:
+            name: docs-config
+            key: DJANGO_ALLOWED_HOSTS
 
         DJANGO_CELERY_BROKER_URL:
           secretKeyRef:
@@ -258,4 +279,9 @@ spec:
       runAsGroup: 1000
       fsGroup: 1000
       fsGroupChangePolicy: OnRootMismatch
+
+    # y-provider configuration
+    yProvider:
+      podAnnotations:
+        secret.reloader.stakater.com/reload: docs-config
 

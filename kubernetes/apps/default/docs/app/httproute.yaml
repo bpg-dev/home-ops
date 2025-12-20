@@ -13,6 +13,44 @@ spec:
       namespace: network
       sectionName: https
   rules:
+    # Backend paths (Django) — these must not go to the Next.js frontend.
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+        - path:
+            type: PathPrefix
+            value: /admin
+        # Django admin assets
+        - path:
+            type: PathPrefix
+            value: /static
+      backendRefs:
+        - name: docs-backend
+          namespace: default
+          port: 80
+
+    # Collaboration websocket endpoint (y-provider).
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /collaboration
+      backendRefs:
+        - name: docs-y-provider
+          namespace: default
+          port: 443
+
+    # Next.js static assets.
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /_next
+      backendRefs:
+        - name: docs-frontend
+          namespace: default
+          port: 80
+
+    # Default: frontend SPA.
     - matches:
         - path:
             type: PathPrefix
