@@ -83,7 +83,9 @@ spec:
     worker:
       autoscaling:
         enabled: true
-        minReplicas: 1
+        # Keep >=2 workers so background tasks continue even if one worker loses its heartbeat.
+        # This avoids relying on liveness-probe-based restarts for an internal (thread/fork) failure mode.
+        minReplicas: 2
       resources:
         requests:
           cpu: 200m
