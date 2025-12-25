@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: prometheus-pve-exporter
-          image: ghcr.io/prometheus-pve/prometheus-pve-exporter:3.7.0
+          image: ghcr.io/prometheus-pve/prometheus-pve-exporter:3.8.0
           imagePullPolicy: IfNotPresent
           args:
             - --config.file=/config/config.yml
