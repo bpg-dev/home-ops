@@ -11,6 +11,15 @@ spec:
   interval: 1h
   values:
     cleanPrometheusOperatorObjectNames: true
+    # The upstream kube-apiserver SLO recording/alerting rules are expensive (long-range, histogram-heavy)
+    # and can easily overload smaller clusters, resulting in rule evaluation timeouts and alert spam
+    # (e.g. PrometheusRuleFailures / PrometheusMissingRuleEvaluations).
+    defaultRules:
+      rules:
+        kubeApiserverAvailability: false
+        kubeApiserverBurnrate: false
+        kubeApiserverHistogram: false
+        kubeApiserverSlos: false
     alertmanager:
       route:
         main:
