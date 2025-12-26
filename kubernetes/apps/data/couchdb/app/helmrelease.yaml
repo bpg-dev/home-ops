@@ -46,6 +46,36 @@ spec:
                 memory: 256Mi
               limits:
                 memory: 1Gi
+          metrics:
+            image:
+              repository: docker.io/gesellix/couchdb-prometheus-exporter
+              tag: v30.4.2
+            # Map CouchDB credentials to exporter-expected env vars.
+            # Exporter supports COUCHDB_USERNAME/COUCHDB_PASSWORD (see upstream couchdb-exporter.go).
+            env:
+              COUCHDB_URI: http://localhost:5984
+              COUCHDB_USERNAME:
+                valueFrom:
+                  secretKeyRef:
+                    name: couchdb-secret
+                    key: COUCHDB_USER
+              COUCHDB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: couchdb-secret
+                    key: COUCHDB_PASSWORD
+              TELEMETRY_ADDRESS: 0.0.0.0:9984
+              TELEMETRY_ENDPOINT: /metrics
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 128Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -59,6 +89,17 @@ spec:
         ports:
           http:
             port: *port
+      metrics:
+        controller: *app
+        ports:
+          metrics:
+            port: 9984
+    serviceMonitor:
+      metrics:
+        serviceName: couchdb-metrics
+        endpoints:
+          - port: metrics
+            path: /metrics
     route:
       app:
         annotations:

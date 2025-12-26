@@ -4,6 +4,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ./authentik-dashboard.yaml
+  - ./couchdb-dashboard.yaml
   - ./externalsecret.yaml
   - ./grafanadashboard.yaml
   - ./garage-app-metrics-dashboard.yaml
@@ -16,6 +17,9 @@ configMapGenerator:
   - name: grafana-dashboard-authentik
     files:
       - authentik.json=./dashboards/authentik-lite.json
+  - name: grafana-dashboard-couchdb
+    files:
+      - couchdb-10049-rev1.json=./dashboards/couchdb-10049-rev1.json
   - name: grafana-dashboard-garage-app-metrics
     files:
       - garage-app-metrics.json=./dashboards/garage-app-metrics.json

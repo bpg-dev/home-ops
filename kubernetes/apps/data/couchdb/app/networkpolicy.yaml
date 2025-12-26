@@ -21,8 +21,20 @@ spec:
             matchLabels:
               app.kubernetes.io/name: envoy
               app.kubernetes.io/managed-by: envoy-gateway
+              gateway.networking.k8s.io/gateway-name: envoy-internal
       ports:
         - port: 5984
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: kube-prometheus-stack
+              app.kubernetes.io/name: prometheus
+      ports:
+        - port: 9984
           protocol: TCP
 
 
