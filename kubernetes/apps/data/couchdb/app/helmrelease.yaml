@@ -69,7 +69,7 @@ spec:
           gethomepage.dev/icon: "couchdb.png"
         hostnames: ["couchdb.${SECRET_DOMAIN}"]
         parentRefs:
-          - name: envoy-external
+          - name: envoy-internal
             namespace: network
             sectionName: https
         rules:
