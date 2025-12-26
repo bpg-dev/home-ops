@@ -1,0 +1,24 @@
+---
+# Only allow inbound CouchDB traffic via Envoy Gateway (network namespace).
+# This reduces blast radius if the cluster has other workloads.
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/networkpolicy-networking-v1.json
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: couchdb-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: couchdb
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: network
+      ports:
+        - port: 5984
+          protocol: TCP
+
+
