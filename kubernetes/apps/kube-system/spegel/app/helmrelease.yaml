@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -12,6 +13,13 @@ spec:
     spegel:
       containerdSock: /run/containerd/containerd.sock
       containerdRegistryConfigPath: /etc/cri/conf.d/hosts
+    # Chart defaults are 128Mi/128Mi which is too low during image pull spikes and causes OOMKilled.
+    # Keep the request modest but give the registry process enough headroom.
+    resources:
+      requests:
+        memory: 128Mi
+      limits:
+        memory: 512Mi
     service:
       registry:
         hostPort: 29999
