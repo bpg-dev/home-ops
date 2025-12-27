@@ -1,5 +1,5 @@
 ---
-# CouchDB dashboard (Grafana.com dashboard 10049, rev 1)
+# CouchDB dashboard (custom, based on gesellix/couchdb-prometheus-exporter metrics)
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadashboard_v1beta1.json
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard

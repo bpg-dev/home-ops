@@ -9,32 +9,6 @@
       "type": "datasource"
     }
   ],
-  "__requires": [
-    {
-      "id": "grafana",
-      "name": "Grafana",
-      "type": "grafana",
-      "version": "5.1.3"
-    },
-    {
-      "id": "graph",
-      "name": "Graph",
-      "type": "panel",
-      "version": "5.0.0"
-    },
-    {
-      "id": "prometheus",
-      "name": "Prometheus",
-      "type": "datasource",
-      "version": "5.0.0"
-    },
-    {
-      "id": "singlestat",
-      "name": "Singlestat",
-      "type": "panel",
-      "version": "5.0.0"
-    }
-  ],
   "annotations": {
     "list": [
       {
@@ -48,597 +22,1307 @@
       }
     ]
   },
-  "description": "CouchDB Dashboard ",
+  "description": "Service dashboard for CouchDB using gesellix/couchdb-prometheus-exporter metrics (HTTP, latency, DB ops, replication, Erlang internals).",
   "editable": true,
-  "gnetId": 10049,
-  "graphTooltip": 0,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
   "id": null,
-  "iteration": 1555404829543,
   "links": [],
+  "liveNow": false,
   "panels": [
     {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
-      "datasource": "${DS_PROMETHEUS}",
-      "description": "Number of CouchDB Nodes Available",
-      "format": "none",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
+      "collapsed": false,
       "gridPos": {
-        "h": 8,
-        "w": 4,
+        "h": 1,
+        "w": 24,
         "x": 0,
         "y": 0
       },
-      "id": 10,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
+      "id": 1,
+      "panels": [],
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "description": "Was the last query of CouchDB stats successful.",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 1,
+                  "text": "Up"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
+        "overrides": []
       },
-      "tableColumn": "",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "avg_over_time(couchdb_httpd_node_up{node_name=\"$node_name\"}[5m])",
-          "format": "time_series",
-          "intervalFactor": 1,
+          "expr": "max(couchdb_httpd_up{job=~\"$job\", instance=~\"$instance\"})",
+          "legendFormat": "CouchDB",
           "refId": "A"
         }
       ],
-      "thresholds": "",
-      "title": "Number of CouchDB Nodes Available",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "avg"
+      "title": "CouchDB Up",
+      "type": "stat"
     },
     {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
       "datasource": "${DS_PROMETHEUS}",
-      "description": "Total number of databases in the cluster",
-      "format": "none",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 4,
         "w": 4,
         "x": 4,
-        "y": 0
+        "y": 1
       },
-      "id": 16,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
         },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
+        "textMode": "value_and_name"
       },
-      "tableColumn": "",
+      "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "avg_over_time(couchdb_httpd_databases_total[5m])",
-          "format": "time_series",
-          "intervalFactor": 1,
+          "expr": "sum(couchdb_httpd_node_up{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"})",
+          "legendFormat": "nodes",
           "refId": "A"
         }
       ],
-      "thresholds": "",
-      "title": "Total number of databases in the cluster",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "avg"
+      "title": "Nodes Up",
+      "type": "stat"
     },
     {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
-      "fill": 1,
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "none"
+        },
+        "overrides": []
+      },
       "gridPos": {
-        "h": 8,
-        "w": 6,
+        "h": 4,
+        "w": 4,
         "x": 8,
-        "y": 0
+        "y": 1
       },
       "id": 4,
-      "legend": {
-        "alignAsTable": true,
-        "avg": true,
-        "current": true,
-        "max": true,
-        "min": true,
-        "show": true,
-        "total": false,
-        "values": true
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
       },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "avg(rate(couchdb_httpd_requests{node_name=\"$node_name\"}[5m]))",
-          "format": "time_series",
-          "intervalFactor": 1,
+          "expr": "max(couchdb_httpd_databases_total{job=~\"$job\", instance=~\"$instance\"})",
+          "legendFormat": "dbs",
           "refId": "A"
         }
       ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "CouchDB HTTPD Requests",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "title": "Databases",
+      "type": "stat"
     },
     {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
-      "fill": 1,
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "none"
+        },
+        "overrides": []
+      },
       "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 14,
-        "y": 0
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 1
       },
-      "id": 8,
-      "legend": {
-        "alignAsTable": true,
-        "avg": true,
-        "current": true,
-        "max": true,
-        "min": true,
-        "show": true,
-        "total": false,
-        "values": true
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
       },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "avg(rate(couchdb_httpd_request_methods{method=\"$method\",node_name=\"$node_name\"}[5m]))",
-          "format": "time_series",
-          "intervalFactor": 1,
+          "expr": "sum(couchdb_httpd_open_databases{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"})",
+          "legendFormat": "open",
           "refId": "A"
         }
       ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "CouchDB HTTP Request per Method",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "title": "Open DBs",
+      "type": "stat"
     },
     {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
-      "description": "number of file descriptors CouchDB has open",
-      "fill": 1,
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "none"
+        },
+        "overrides": []
+      },
       "gridPos": {
-        "h": 8,
-        "w": 9,
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(couchdb_httpd_open_os_files{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"})",
+          "legendFormat": "fds",
+          "refId": "A"
+        }
+      ],
+      "title": "Open OS files",
+      "type": "stat"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(couchdb_httpd_clients_requesting_changes{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"})",
+          "legendFormat": "clients",
+          "refId": "A"
+        }
+      ],
+      "title": "Changes clients",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
         "x": 0,
-        "y": 8
+        "y": 5
       },
-      "id": 12,
-      "legend": {
-        "alignAsTable": true,
-        "avg": true,
-        "current": true,
-        "max": true,
-        "min": true,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "avg(rate(couchdb_httpd_open_os_files{node_name=\"$node_name\"}[5m]))",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "CouchDB Open OS Files",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "id": 10,
+      "panels": [],
+      "title": "HTTP (RED)",
+      "type": "row"
     },
     {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
       "datasource": "${DS_PROMETHEUS}",
-      "decimals": null,
-      "description": "number of clients for continuous _changes",
-      "fill": 1,
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 9,
-        "y": 8
+        "x": 0,
+        "y": 6
       },
-      "id": 14,
-      "legend": {
-        "alignAsTable": true,
-        "avg": true,
-        "current": true,
-        "hideEmpty": false,
-        "max": true,
-        "min": true,
-        "rightSide": false,
-        "show": true,
-        "total": true,
-        "values": true
+      "id": 11,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
       },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
+      "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "avg(rate(couchdb_httpd_clients_requesting_changes{node_name=\"$node_name\"}[5m]))",
-          "format": "time_series",
-          "intervalFactor": 1,
+          "expr": "sum(rate(couchdb_httpd_requests{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"}[5m]))",
+          "legendFormat": "requests",
           "refId": "A"
         }
       ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "CouchDB number of clients for continuous changes",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "locale",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
+      "title": "Requests / s",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
         },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
         {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
+          "expr": "sum by (method) (rate(couchdb_httpd_request_methods{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\", method=~\"$method\"}[5m]))",
+          "legendFormat": "{{method}}",
+          "refId": "A"
         }
       ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "title": "Requests / s by method",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 16,
+        "x": 0,
+        "y": 14
+      },
+      "id": 13,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum by (code) (rate(couchdb_httpd_status_codes{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"}[5m]))",
+          "legendFormat": "{{code}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Responses / s by status code",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.1
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 14
+      },
+      "id": 14,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(rate(couchdb_httpd_status_codes{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\", code=~\"5..\"}[5m]))",
+          "legendFormat": "5xx",
+          "refId": "A"
+        }
+      ],
+      "title": "5xx / s",
+      "type": "stat"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 18
+      },
+      "id": 15,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(rate(couchdb_httpd_status_codes{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\", code=~\"4..\"}[5m]))",
+          "legendFormat": "4xx",
+          "refId": "A"
+        }
+      ],
+      "title": "4xx / s",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "id": 20,
+      "panels": [],
+      "title": "Latency",
+      "type": "row"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 21,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "max by (metric) (couchdb_httpd_request_time{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\", metric=~\"50|95|99\"})",
+          "legendFormat": "p{{metric}}",
+          "refId": "A"
+        }
+      ],
+      "title": "HTTP request time (ms)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 22,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "max by (metric) (couchdb_mango_query_time{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\", metric=~\"50|95|99\"})",
+          "legendFormat": "p{{metric}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Mango query time (ms)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 32
+      },
+      "id": 30,
+      "panels": [],
+      "title": "Database operations",
+      "type": "row"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 33
+      },
+      "id": 31,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(rate(couchdb_httpd_database_reads{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"}[5m]))",
+          "legendFormat": "reads",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(couchdb_httpd_database_writes{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"}[5m]))",
+          "legendFormat": "writes",
+          "refId": "B"
+        }
+      ],
+      "title": "DB reads / writes per second",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 33
+      },
+      "id": 32,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(rate(couchdb_httpd_view_reads{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"}[5m]))",
+          "legendFormat": "view_reads",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(couchdb_httpd_temporary_view_reads{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"}[5m]))",
+          "legendFormat": "temporary_view_reads",
+          "refId": "B"
+        }
+      ],
+      "title": "View reads per second",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 3,
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 41
+      },
+      "id": 33,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(rate(couchdb_httpd_auth_cache_hits{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"}[5m])) / (sum(rate(couchdb_httpd_auth_cache_hits{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"}[5m])) + sum(rate(couchdb_httpd_auth_cache_misses{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"}[5m])))",
+          "legendFormat": "hit_ratio",
+          "refId": "A"
+        }
+      ],
+      "title": "Auth cache hit ratio",
+      "type": "stat"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 41
+      },
+      "id": 34,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(rate(couchdb_httpd_bulk_requests{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"}[5m]))",
+          "legendFormat": "bulk_requests",
+          "refId": "A"
+        }
+      ],
+      "title": "Bulk requests / s",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 46
+      },
+      "id": 40,
+      "panels": [],
+      "title": "Replication",
+      "type": "row"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 47
+      },
+      "id": 41,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum by (metric) (couchdb_replicator_jobs{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\", metric=~\"running|pending\"})",
+          "legendFormat": "{{metric}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Replicator jobs",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 8,
+        "y": 47
+      },
+      "id": 42,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "max(couchdb_replicator_cluster_is_stable{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"})",
+          "legendFormat": "stable",
+          "refId": "A"
+        }
+      ],
+      "title": "Replication cluster stable",
+      "type": "stat"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 47
+      },
+      "id": 43,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(rate(couchdb_replicator_requests{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"}[5m]))",
+          "legendFormat": "replicator_requests",
+          "refId": "A"
+        }
+      ],
+      "title": "Replicator requests / s",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 53
+      },
+      "id": 44,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum by (metric) (rate(couchdb_replicator_checkpoints{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"}[5m]))",
+          "legendFormat": "checkpoints_{{metric}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(couchdb_replicator_failed_starts{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"}[5m]))",
+          "legendFormat": "failed_starts",
+          "refId": "B"
+        }
+      ],
+      "title": "Replication errors / checkpoints",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 60
+      },
+      "id": 50,
+      "panels": [],
+      "title": "Erlang internals",
+      "type": "row"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 61
+      },
+      "id": 51,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(couchdb_erlang_memory_atom{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"})",
+          "legendFormat": "atom",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(couchdb_erlang_memory_atom_used{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"})",
+          "legendFormat": "atom_used",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(couchdb_erlang_memory_binary{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"})",
+          "legendFormat": "binary",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(couchdb_erlang_memory_code{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"})",
+          "legendFormat": "code",
+          "refId": "D"
+        },
+        {
+          "expr": "sum(couchdb_erlang_memory_ets{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"})",
+          "legendFormat": "ets",
+          "refId": "E"
+        },
+        {
+          "expr": "sum(couchdb_erlang_memory_other{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"})",
+          "legendFormat": "other",
+          "refId": "F"
+        },
+        {
+          "expr": "sum(couchdb_erlang_memory_processes{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"})",
+          "legendFormat": "processes",
+          "refId": "G"
+        },
+        {
+          "expr": "sum(couchdb_erlang_memory_processes_used{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"})",
+          "legendFormat": "processes_used",
+          "refId": "H"
+        }
+      ],
+      "title": "Erlang memory by area",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 70
+      },
+      "id": 60,
+      "panels": [],
+      "title": "Exporter (gesellix) health",
+      "type": "row"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 71
+      },
+      "id": 61,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "max(process_resident_memory_bytes{job=~\"$job\", instance=~\"$instance\"})",
+          "legendFormat": "rss",
+          "refId": "A"
+        }
+      ],
+      "title": "Exporter RSS",
+      "type": "stat"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cores"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 8,
+        "y": 71
+      },
+      "id": 62,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "rate(process_cpu_seconds_total{job=~\"$job\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "cpu",
+          "refId": "A"
+        }
+      ],
+      "title": "Exporter CPU (cores)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 71
+      },
+      "id": 63,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum by (code) (rate(promhttp_metric_handler_requests_total{job=~\"$job\", instance=~\"$instance\"}[5m]))",
+          "legendFormat": "{{code}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Exporter scrapes served",
+      "type": "timeseries"
     }
   ],
-  "refresh": "5s",
-  "schemaVersion": 16,
-  "style": "dark",
-  "tags": [],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": [
+    "couchdb",
+    "database",
+    "service"
+  ],
   "templating": {
     "list": [
       {
-        "allValue": null,
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "couchdb",
+          "value": "couchdb"
+        },
         "datasource": "${DS_PROMETHEUS}",
+        "definition": "label_values(couchdb_httpd_up, job)",
         "hide": 0,
         "includeAll": false,
-        "label": null,
         "multi": false,
-        "name": "node_name",
+        "name": "job",
         "options": [],
-        "query": "couchdb_httpd_node_up",
+        "query": {
+          "query": "label_values(couchdb_httpd_up, job)",
+          "refId": "StandardVariableQuery"
+        },
         "refresh": 1,
-        "regex": "/.*node_name=\"([^\"]*).*/",
-        "sort": 0,
-        "tagValuesQuery": "",
-        "tags": [],
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
+        "regex": "",
+        "sort": 1,
+        "type": "query"
       },
       {
-        "allValue": null,
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": "${DS_PROMETHEUS}",
+        "definition": "label_values(couchdb_httpd_up{job=~\"$job\"}, instance)",
         "hide": 0,
-        "includeAll": false,
-        "label": null,
-        "multi": false,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "name": "instance",
+        "options": [],
+        "query": {
+          "query": "label_values(couchdb_httpd_up{job=~\"$job\"}, instance)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "${DS_PROMETHEUS}",
+        "definition": "label_values(couchdb_httpd_node_up{job=~\"$job\", instance=~\"$instance\"}, node_name)",
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "name": "node_name",
+        "options": [],
+        "query": {
+          "query": "label_values(couchdb_httpd_node_up{job=~\"$job\", instance=~\"$instance\"}, node_name)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "${DS_PROMETHEUS}",
+        "definition": "label_values(couchdb_httpd_request_methods{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"}, method)",
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
         "name": "method",
         "options": [],
-        "query": "couchdb_httpd_request_methods",
+        "query": {
+          "query": "label_values(couchdb_httpd_request_methods{job=~\"$job\", instance=~\"$instance\", node_name=~\"$node_name\"}, method)",
+          "refId": "StandardVariableQuery"
+        },
         "refresh": 1,
-        "regex": "/.*method=\"([^\"]*).*/",
-        "sort": 0,
-        "tagValuesQuery": "",
-        "tags": [],
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
+        "regex": "",
+        "sort": 1,
+        "type": "query"
       }
     ]
   },
   "time": {
-    "from": "now/d",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {
     "refresh_intervals": [
-      "5s",
       "10s",
       "30s",
       "1m",
       "5m",
       "15m",
       "30m",
-      "1h",
-      "2h",
-      "1d"
-    ],
-    "time_options": [
-      "5m",
-      "15m",
-      "1h",
-      "6h",
-      "12h",
-      "24h",
-      "2d",
-      "7d",
-      "30d"
+      "1h"
     ]
   },
-  "timezone": "",
-  "title": "CouchDB Dashboard",
+  "timezone": "browser",
+  "title": "CouchDB",
   "uid": "S8rTdLRZz",
-  "version": 14
+  "version": 1
 }
