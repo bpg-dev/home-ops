@@ -20,7 +20,7 @@ spec:
           app:
             image:
               repository: docker.io/couchdb
-              tag: 3.4.2
+              tag: 3.5.1
             env:
               COUCHDB_SINGLE_NODE: "true"
               COUCHDB_BIND_ADDRESS: 0.0.0.0
