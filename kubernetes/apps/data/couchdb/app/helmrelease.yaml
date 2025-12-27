@@ -106,7 +106,7 @@ spec:
 
     sidecars:
       - name: metrics
-        image: docker.io/gesellix/couchdb-prometheus-exporter:v30.4.2
+        image: docker.io/gesellix/couchdb-prometheus-exporter:v30.15.0
         imagePullPolicy: IfNotPresent
         env:
           - name: COUCHDB_URI
