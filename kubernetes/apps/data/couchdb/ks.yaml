@@ -9,8 +9,6 @@ spec:
   dependsOn:
     - name: rook-ceph-cluster
       namespace: rook-ceph-external
-  components:
-    - ../../../../components/volsync
   interval: 1h
   commonMetadata:
     labels:
@@ -19,9 +17,6 @@ spec:
   postBuild:
     substitute:
       APP: *app
-      VOLSYNC_CLAIM: *app
-      # VOLSYNC_CAPACITY must match the source PVC size (couchdb PVC is 10Gi)
-      VOLSYNC_CAPACITY: 10Gi
     substituteFrom:
       - name: cluster-secrets
         kind: Secret

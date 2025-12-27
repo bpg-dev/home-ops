@@ -1,0 +1,94 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/volsync.backube/replicationsource_v1alpha1.json
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: couchdb-0
+spec:
+  sourcePVC: database-storage-couchdb-couchdb-0
+  trigger:
+    schedule: "0 */6 * * *"
+  kopia:
+    accessModes: [ReadWriteOnce]
+    cacheAccessModes: [ReadWriteOnce]
+    cacheCapacity: 10Gi
+    cacheStorageClassName: openebs-hostpath
+    compression: zstd-fastest
+    copyMethod: Snapshot
+    moverSecurityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    parallelism: 2
+    repository: couchdb-volsync-secret
+    retain:
+      hourly: 24
+      daily: 7
+      weekly: 4
+      monthly: 12
+    storageClassName: ceph-rbd
+    volumeSnapshotClassName: csi-ceph-rbd
+
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/volsync.backube/replicationsource_v1alpha1.json
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: couchdb-1
+spec:
+  sourcePVC: database-storage-couchdb-couchdb-1
+  trigger:
+    schedule: "0 */6 * * *"
+  kopia:
+    accessModes: [ReadWriteOnce]
+    cacheAccessModes: [ReadWriteOnce]
+    cacheCapacity: 10Gi
+    cacheStorageClassName: openebs-hostpath
+    compression: zstd-fastest
+    copyMethod: Snapshot
+    moverSecurityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    parallelism: 2
+    repository: couchdb-volsync-secret
+    retain:
+      hourly: 24
+      daily: 7
+      weekly: 4
+      monthly: 12
+    storageClassName: ceph-rbd
+    volumeSnapshotClassName: csi-ceph-rbd
+
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/volsync.backube/replicationsource_v1alpha1.json
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: couchdb-2
+spec:
+  sourcePVC: database-storage-couchdb-couchdb-2
+  trigger:
+    schedule: "0 */6 * * *"
+  kopia:
+    accessModes: [ReadWriteOnce]
+    cacheAccessModes: [ReadWriteOnce]
+    cacheCapacity: 10Gi
+    cacheStorageClassName: openebs-hostpath
+    compression: zstd-fastest
+    copyMethod: Snapshot
+    moverSecurityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    parallelism: 2
+    repository: couchdb-volsync-secret
+    retain:
+      hourly: 24
+      daily: 7
+      weekly: 4
+      monthly: 12
+    storageClassName: ceph-rbd
+    volumeSnapshotClassName: csi-ceph-rbd
+
+

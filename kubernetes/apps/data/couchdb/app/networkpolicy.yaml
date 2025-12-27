@@ -1,6 +1,6 @@
 ---
-# Only allow inbound CouchDB traffic via Envoy Gateway (network namespace).
-# This reduces blast radius if the cluster has other workloads.
+# Only allow inbound CouchDB traffic via Envoy Gateway (network namespace),
+# Prometheus metrics scraping, and intra-cluster node communication.
 # yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/networkpolicy-networking-v1.json
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -9,7 +9,8 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/instance: couchdb
+      app: couchdb
+      release: couchdb
   policyTypes:
     - Ingress
   ingress:
@@ -26,6 +27,20 @@ spec:
         - port: 5984
           protocol: TCP
     - from:
+        # Allow CouchDB nodes to communicate for clustering (Erlang distribution + HTTP).
+        - podSelector:
+            matchLabels:
+              app: couchdb
+              release: couchdb
+      ports:
+        - port: 5984
+          protocol: TCP
+        - port: 4369
+          protocol: TCP
+        - port: 9100
+          protocol: TCP
+    - from:
+        # Allow Prometheus to scrape exporter metrics.
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: observability

@@ -3,131 +3,131 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app couchdb
+  name: couchdb
 spec:
-  chartRef:
-    kind: OCIRepository
-    name: couchdb
+  chart:
+    spec:
+      chart: couchdb
+      sourceRef:
+        kind: HelmRepository
+        name: couchdb
+      version: "4.6.2"
   interval: 1h
   values:
-    controllers:
-      *app :
-        annotations:
-          reloader.stakater.com/auto: "true"
-        replicas: 1
-        strategy: Recreate
-        containers:
-          app:
-            image:
-              repository: docker.io/couchdb
-              tag: 3.4.2
-            env:
-              COUCHDB_SINGLE_NODE: "true"
-              COUCHDB_BIND_ADDRESS: 0.0.0.0
-            envFrom:
-              - secretRef:
-                  name: couchdb-secret
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
-              capabilities: {drop: ["ALL"]}
-            probes:
-              liveness: &probes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /_up
-                    port: &port 5984
-              readiness: *probes
-            resources:
-              requests:
-                cpu: 50m
-                memory: 256Mi
-              limits:
-                memory: 1Gi
-          metrics:
-            image:
-              repository: docker.io/gesellix/couchdb-prometheus-exporter
-              tag: v30.4.2
-            # Map CouchDB credentials to exporter-expected env vars.
-            # Exporter supports COUCHDB_USERNAME/COUCHDB_PASSWORD (see upstream couchdb-exporter.go).
-            env:
-              COUCHDB_URI: http://localhost:5984
-              COUCHDB_USERNAME:
-                valueFrom:
-                  secretKeyRef:
-                    name: couchdb-secret
-                    key: COUCHDB_USER
-              COUCHDB_PASSWORD:
-                valueFrom:
-                  secretKeyRef:
-                    name: couchdb-secret
-                    key: COUCHDB_PASSWORD
-              TELEMETRY_ADDRESS: 0.0.0.0:9984
-              TELEMETRY_ENDPOINT: /metrics
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities: {drop: ["ALL"]}
-            resources:
-              requests:
-                cpu: 10m
-                memory: 64Mi
-              limits:
-                memory: 128Mi
-    defaultPodOptions:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
-        fsGroupChangePolicy: OnRootMismatch
+    # Create a 3-node CouchDB cluster. CouchDB sharding/replication (q/n) is per-database;
+    # configure new DBs with n=3 to keep 2 replicas after a single node failure.
+    clusterSize: 3
+
+    allowAdminParty: false
+    createAdminSecret: false
+    extraSecretName: couchdb-secret
+
+    # Required by couchdb-helm chart: a stable cluster UUID (generate once and keep fixed).
+    couchdbConfig:
+      couchdb:
+        uuid: a077b304-3993-40d6-9861-6a5ef0a588f8
+      chttpd:
+        bind_address: any
+
+    # Persist each CouchDB node's data to its own PVC (StatefulSet volumeClaimTemplate).
+    persistentVolume:
+      enabled: true
+      accessModes: [ReadWriteOnce]
+      storageClass: ceph-rbd
+      size: 10Gi
+
+    # Keep pods on separate Kubernetes nodes so a single node failure doesn't take down the cluster.
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values: [couchdb]
+            topologyKey: kubernetes.io/hostname
+
+    podDisruptionBudget:
+      enabled: true
+      maxUnavailable: 1
+
+    # We'll manage NetworkPolicy explicitly (see networkpolicy.yaml) to keep ingress tight.
+    networkPolicy:
+      enabled: false
+
+    # Finish the cluster automatically after install/upgrade. Pin the curl image tag (no 'latest').
+    autoSetup:
+      enabled: true
+      image:
+        repository: curlimages/curl
+        tag: 8.14.1
+        pullPolicy: IfNotPresent
+      defaultDatabases:
+        - _global_changes
+
+    # Pod/container security context: rootless + drop all capabilities.
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: false
+      capabilities:
+        drop: [ALL]
+
+    # Expose the exporter port via the client Service and run exporter as a sidecar.
     service:
-      app:
-        controller: *app
+      extraPorts:
+        - name: metrics
+          port: 9984
+          protocol: TCP
+          targetPort: 9984
+
+    sidecars:
+      - name: metrics
+        image: docker.io/gesellix/couchdb-prometheus-exporter:v30.4.2
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: COUCHDB_URI
+            value: http://localhost:5984
+          - name: COUCHDB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: couchdb-secret
+                key: COUCHDB_USER
+          - name: COUCHDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: couchdb-secret
+                key: COUCHDB_PASSWORD
+          - name: TELEMETRY_ADDRESS
+            value: 0.0.0.0:9984
+          - name: TELEMETRY_ENDPOINT
+            value: /metrics
         ports:
-          http:
-            port: *port
-      metrics:
-        controller: *app
-        ports:
-          metrics:
-            port: 9984
-    serviceMonitor:
-      metrics:
-        serviceName: couchdb-metrics
-        endpoints:
-          - port: metrics
-            path: /metrics
-    route:
-      app:
-        annotations:
-          gethomepage.dev/enabled: "true"
-          gethomepage.dev/name: "CouchDB"
-          gethomepage.dev/description: "Document database (Apache CouchDB)"
-          gethomepage.dev/group: "Databases"
-          gethomepage.dev/icon: "couchdb.png"
-        hostnames: ["couchdb.${SECRET_DOMAIN}"]
-        parentRefs:
-          - name: envoy-internal
-            namespace: network
-            sectionName: https
-        rules:
-          - backendRefs:
-              - identifier: app
-                port: *port
-    persistence:
-      data:
-        existingClaim: "${VOLSYNC_CLAIM:=${APP}}"
-        advancedMounts:
-          *app :
-            app:
-              - path: /opt/couchdb/data
-      tmp:
-        enabled: true
-        type: emptyDir
-        globalMounts:
-          - path: /tmp
+          - name: metrics
+            containerPort: 9984
+            protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: [ALL]
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            memory: 128Mi
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
 
 
