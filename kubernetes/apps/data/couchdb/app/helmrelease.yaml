@@ -40,6 +40,10 @@ spec:
         uuid: a077b304-3993-40d6-9861-6a5ef0a588f8
       chttpd:
         bind_address: any
+      # Fauxton login uses CouchDB cookie auth. Default session timeout is 600s (10m),
+      # which can feel like "auth is flaky" due to frequent re-logins.
+      couch_httpd_auth:
+        timeout: 28800 # 8h
 
     # Persist each CouchDB node's data to its own PVC (StatefulSet volumeClaimTemplate).
     persistentVolume:
