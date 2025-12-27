@@ -68,9 +68,11 @@ spec:
     # Pod/container security context: rootless + drop all capabilities.
     podSecurityContext:
       runAsNonRoot: true
-      runAsUser: 1000
-      runAsGroup: 1000
-      fsGroup: 1000
+      # CouchDB official image runs as user/group 5984 ("couchdb") and needs write access
+      # under /opt/couchdb (e.g., to write the Erlang cookie).
+      runAsUser: 5984
+      runAsGroup: 5984
+      fsGroup: 5984
       fsGroupChangePolicy: OnRootMismatch
     containerSecurityContext:
       allowPrivilegeEscalation: false
