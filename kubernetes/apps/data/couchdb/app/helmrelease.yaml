@@ -13,6 +13,18 @@ spec:
         name: couchdb
       version: "4.6.2"
   interval: 1h
+  # Give first install/upgrade more time (StatefulSet + PVC provisioning + cluster init).
+  timeout: 10m
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      # The first successful install may not exist yet, making rollback impossible.
+      # Uninstall+reinstall is the most reliable remediation for a first successful deploy.
+      strategy: uninstall
+      retries: 3
   values:
     # Create a 3-node CouchDB cluster. CouchDB sharding/replication (q/n) is per-database;
     # configure new DBs with n=3 to keep 2 replicas after a single node failure.
