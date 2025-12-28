@@ -22,6 +22,23 @@ spec:
       minecraft:
         annotations:
           reloader.stakater.com/auto: "true"
+        initContainers:
+          01-fix-bluemap:
+            image:
+              repository: ghcr.io/home-operations/busybox
+              tag: 1.37.0
+            command:
+              - /bin/sh
+              - -lc
+            args:
+              - |
+                set -euo pipefail
+                mkdir -p /data/plugins/BlueMap
+                if [ ! -f /data/plugins/BlueMap/core.conf ]; then
+                  echo 'accept-download: true' > /data/plugins/BlueMap/core.conf
+                  exit 0
+                fi
+                sed -i 's/^accept-download: false$/accept-download: true/' /data/plugins/BlueMap/core.conf || true
         containers:
           modded:
             image:
@@ -73,7 +90,7 @@ spec:
             port: &web-port 8100
     route:
       modded:
-        hostnames: ["modded.${SECRET_DOMAIN}"]
+        hostnames: ["bluemap-modded.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-internal
             namespace: network

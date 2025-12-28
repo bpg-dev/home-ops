@@ -5,7 +5,7 @@ kind: HTTPRoute
 metadata:
   name: survival-map
 spec:
-  hostnames: ["mc.${SECRET_DOMAIN}"]
+  hostnames: ["bluemap-mc.${SECRET_DOMAIN}"]
   parentRefs:
     - name: envoy-internal
       namespace: network
