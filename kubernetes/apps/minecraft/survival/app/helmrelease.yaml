@@ -51,7 +51,7 @@ spec:
       DISABLE_HEALTHCHECK: "true"
     minecraftServer:
       eula: true
-      version: 1.21.8
+      version: 1.21.11
       onlineMode: true
       type: PAPER
       generateStructures: true
