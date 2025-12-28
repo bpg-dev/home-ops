@@ -111,6 +111,24 @@ At a high level:
 Restore notes:
 
 - Follow the repo restore scripts/runbooks (see `scripts/restore-volsync-populator.sh` and `docs/VOLSYNC_POPULATOR_RESTORE.md`).
+git push
+## Secrets (External Secrets Operator / 1Password)
+
+Minecraft secrets are sourced from 1Password via External Secrets Operator (ESO).
+
+### `survival` RCON secret
+
+The `survival` server expects a Kubernetes Secret named `survival` containing:
+
+- **`rcon-password`**: the RCON password used by the chart (`minecraftServer.rcon.existingSecret: survival`)
+
+This Secret is created by `ExternalSecret/minecraft/survival` by reading the 1Password field:
+
+- **`minecraft/RCON_PASSWORD`** (item/field path; adjust to your vault conventions)
+
+If the 1Password key/field does not exist, ESO will not create `Secret/survival`, and the pod will fail with:
+
+- **`CreateContainerConfigError`** / **`secret "survival" not found`**
 
 ## Operations
 
