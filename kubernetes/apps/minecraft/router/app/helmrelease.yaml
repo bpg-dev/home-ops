@@ -38,7 +38,7 @@ spec:
               repository: ghcr.io/itzg/mc-router
               tag: 1.38.2@sha256:ff865253dfce18c2adfdec9a0e1f49dfc79a6da91ddd0134099e06d5c20a0f72
             env:
-              TZ: America/Los_Angeles
+              TZ: America/Toronto
               DEBUG: true
               IN_KUBE_CLUSTER: "true"
               API_BINDING: ":8080"
