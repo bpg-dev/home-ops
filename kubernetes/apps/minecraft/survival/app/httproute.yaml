@@ -1,0 +1,20 @@
+---
+# yaml-language-server: $schema=../../../../schemas/gateway.networking.k8s.io/httproute_v1-subst.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: survival-map
+spec:
+  hostnames: ["mc.${SECRET_DOMAIN}"]
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+      sectionName: https
+  rules:
+    - backendRefs:
+        - name: survival-minecraft-bluemap
+          port: 8100
+      matches:
+        - path:
+            type: PathPrefix
+            value: /

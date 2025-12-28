@@ -1,0 +1,96 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app survival
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: survival
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    deploymentAnnotations:
+      secret.reloader.stakater.com/reload: *app
+    image:
+      repository: ghcr.io/itzg/minecraft-server
+      tag: 2025.12.0-java21
+    resources:
+      requests:
+        cpu: 2
+        memory: &memory-limit 12G
+    extraEnv:
+      TZ: "America/Los_Angeles"
+      KEEP_INVENTORY: true
+      ENABLE_ROLLING_LOGS: true
+      ALLOW_FLIGHT: true
+      INIT_MEMORY: 1G
+      MAX_MEMORY: *memory-limit
+      SEED: "8485994731059868771"
+      DISABLE_HEALTHCHECK: "true"
+    minecraftServer:
+      eula: true
+      version: 1.21.8
+      onlineMode: true
+      type: PAPER
+      generateStructures: true
+      difficulty: normal
+      spawnAnimals: true
+      spawnMonsters: true
+      spawnNPCs: true
+      ops: "Kashall"
+      pvp: true
+      motd: "\u00a7l \u00a7r                   \u00a79\u00a7lKASHMC \u00a77\u2014 \u00a74[Private]\u00a7r\n\u00a7l \u00a7a  \u2620 This isn't your average Marian experience \u2620"
+      worldSaveName: world
+      viewDistance: 10
+      jvmXXOpts: "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1"
+      overrideServerProperties: true
+      enableCommandBlock: true
+      spigetResources:
+        - 83557 # https://www.spigotmc.org/resources/bluemap.83557/
+        - 81534 # https://www.spigotmc.org/resources/chunky.81534/
+        - 83767 # https://www.spigotmc.org/resources/huskhomes-1-16-1-20-set-homes-warps-spawn-tp-and-tpa-public-homes-works-cross-server.83767/
+        - 64346 # https://www.spigotmc.org/resources/thizzyz-tree-feller.64346/
+        - 57242 # https://www.spigotmc.org/resources/spark.57242/
+        - 128196 # https://www.spigotmc.org/resources/servermotd.128196/
+      pluginUrls:
+        - https://mediafilez.forgecdn.net/files/5502/330/dead-chest-4.21.1.jar
+        - https://github.com/sladkoff/minecraft-prometheus-exporter/releases/download/v3.1.2/minecraft-prometheus-exporter-3.1.2.jar
+        - https://mediafilez.forgecdn.net/files/4301/100/YetAnotherHarvest-1.1.jar
+        - https://mediafilez.forgecdn.net/files/5382/326/spawner-silk-5.7.0.jar
+        # https://dev.bukkit.org/projects/customcrafting-advanced-custom-recipes
+        # https://dev.bukkit.org/projects/dead-chest
+        # https://dev.bukkit.org/projects/spawnersilk
+        # https://dev.bukkit.org/projects/wolfyutilities
+        # https://dev.bukkit.org/projects/yetanotherharvest
+      extraPorts:
+        - name: bluemap
+          containerPort: 8100
+          protocol: TCP
+          service:
+            enabled: true
+            type: ClusterIP
+            port: 8100
+      rcon:
+        enabled: true
+        port: 25577
+        existingSecret: *app
+        serviceType: LoadBalancer
+        externalTrafficPolicy: Cluster
+    rconServiceAnnotations:
+      lbipam.cilium.io/ips: "192.168.1.41"
+      lbipam.cilium.io/sharing-key: rcon
+    serviceAnnotations:
+      mc-router.itzg.me/externalServerName: "mc.${SECRET_DOMAIN}"
+    persistence:
+      dataDir:
+        enabled: true
+        existingClaim: *app

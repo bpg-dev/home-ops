@@ -1,0 +1,96 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app minecraft-router
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: minecraft-router
+  install:
+    remediation:
+      retries: -1
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    serviceAccount:
+      main:
+        enabled: true
+    defaultPodOptions:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    controllers:
+      main:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          minecraft-router:
+            image:
+              repository: ghcr.io/itzg/mc-router
+              tag: 1.38.2@sha256:ff865253dfce18c2adfdec9a0e1f49dfc79a6da91ddd0134099e06d5c20a0f72
+            env:
+              TZ: America/Los_Angeles
+              DEBUG: true
+              IN_KUBE_CLUSTER: "true"
+              API_BINDING: ":8080"
+              PORT: &port 25565
+              AUTO_SCALE_UP: false
+              CONNECTION_RATE_LIMIT: 10
+              METRICS_BACKEND: prometheus
+              SIMPLIFY_SRV: true
+              USE_PROXY_PROTOCOL: true
+              RECORD_LOGINS: true
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 350m
+                memory: 64Mi
+              limits:
+                cpu: 500m
+                memory: 96Mi
+        serviceAccount:
+          identifier: main
+    service:
+      minecraft-router:
+        controller: main
+        type: LoadBalancer
+        annotations:
+          lbipam.cilium.io/ips: "192.168.1.40"
+        ports:
+          java:
+            port: *port
+          api:
+            port: 8080
+    route:
+      api:
+        kind: HTTPRoute
+        hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - name: minecraft-router
+                port: 8080
+    serviceMonitor:
+      minecraft-router:
+        serviceName: minecraft-router
+        endpoints:
+          - port: api
+            scheme: http
+            path: /metrics
+            interval: 1m
+            scrapeTimeout: 30s
