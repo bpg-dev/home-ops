@@ -43,11 +43,17 @@ spec:
               IN_KUBE_CLUSTER: "true"
               API_BINDING: ":8080"
               PORT: &port 25565
+              # Fallback route when a client connects using an unrecognized server address
+              # (e.g., using the public IP instead of mc.${SECRET_DOMAIN}).
+              # Ref: https://github.com/itzg/mc-router
+              DEFAULT: "survival-minecraft:25565"
               AUTO_SCALE_UP: false
               CONNECTION_RATE_LIMIT: 10
               METRICS_BACKEND: prometheus
               SIMPLIFY_SRV: true
-              USE_PROXY_PROTOCOL: true
+              # Only enable if something *in front of mc-router* is speaking PROXY protocol.
+              # With a simple home-router port-forward to 192.168.1.40:25565, clients do NOT send PROXY protocol.
+              USE_PROXY_PROTOCOL: false
               RECORD_LOGINS: true
             securityContext:
               allowPrivilegeEscalation: false
