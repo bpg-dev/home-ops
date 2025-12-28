@@ -1,0 +1,25 @@
+---
+# yaml-language-server: $schema=../../../../schemas/gateway.networking.k8s.io/httproute_v1-subst.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: REPLACE_ME_SERVER-map
+spec:
+  # BlueMap UI hostname
+  hostnames: ["bluemap-REPLACE_ME_SERVER.${SECRET_DOMAIN}"]
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+      sectionName: https
+  rules:
+    - backendRefs:
+        # itzg chart service name pattern for the extraPorts service:
+        # <release>-minecraft-<extraPortName>
+        - name: REPLACE_ME_SERVER-minecraft-bluemap
+          port: 8100
+      matches:
+        - path:
+            type: PathPrefix
+            value: /
+
+

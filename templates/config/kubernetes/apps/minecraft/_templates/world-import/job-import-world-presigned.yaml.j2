@@ -1,0 +1,88 @@
+---
+# this job should not be included in the kustomization.yaml file by default
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/job.json
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: import-world
+spec:
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: import-world
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: import
+          image: ghcr.io/onedr0p/alpine:3.20.3
+          command: ["sh", "-lc"]
+          args:
+            - |
+              set -eu
+              apk add --no-cache curl unzip
+
+              # Idempotent: skip import if world already exists.
+              if [ -d /data/world/region ]; then
+                echo "World already present at /data/world; skipping."
+                exit 0
+              fi
+
+              : "${WORLD_ZIP_URL:?WORLD_ZIP_URL is required}"
+
+              rm -rf /tmp/unzip
+              mkdir -p /tmp/unzip /data/world
+
+              echo "Downloading ZIP..."
+              curl -fsSL "$WORLD_ZIP_URL" -o /tmp/world.zip
+
+              echo "Unzipping to staging..."
+              unzip -q /tmp/world.zip -d /tmp/unzip
+
+              echo "Normalizing ZIP layout into /data/world..."
+              if [ -d /tmp/unzip/world ]; then
+                # ZIP contains a top-level "world/" directory
+                cp -a /tmp/unzip/world/. /data/world/
+              else
+                # ZIP is "flat" (region/, datapacks/, etc. at the root)
+                cp -a /tmp/unzip/. /data/world/
+              fi
+
+              if [ ! -d /data/world/region ]; then
+                echo "ERROR: import completed but /data/world/region is missing."
+                echo "Check your ZIP structure (it must contain a valid Minecraft world)."
+                exit 1
+              fi
+
+              echo "Import complete."
+          envFrom:
+            - secretRef:
+                name: import-world
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        # Mount the NEW server's PVC here.
+        # Replace `REPLACE_ME_PVC_NAME` with the claim name for the server you're importing into.
+        - name: data
+          persistentVolumeClaim:
+            claimName: REPLACE_ME_PVC_NAME
+        - name: tmp
+          emptyDir: {}
+
+

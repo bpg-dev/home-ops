@@ -1,0 +1,23 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  # Optional (enable as needed):
+  # - ./externalsecret.yaml
+  # - ./httproute.yaml
+  - ./helmrelease.yaml
+  - ./ocirepository.yaml
+  - ./service-metrics.yaml
+  - ./servicemonitor.yaml
+
+configMapGenerator:
+  - name: REPLACE_ME_SERVER-prometheus-exporter-config
+    files:
+      - config.yml=./config/prometheus-exporter-config.yml
+
+generatorOptions:
+  # Mounted into the Minecraft server pod by fixed name.
+  disableNameSuffixHash: true
+
+
