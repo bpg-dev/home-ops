@@ -5,3 +5,12 @@ kind: Kustomization
 resources:
   - ./ocirepository.yaml
   - ./helmrelease.yaml
+
+configMapGenerator:
+  - name: modded-prometheus-exporter-config
+    files:
+      - config.yml=./config/prometheus-exporter-config.yml
+
+generatorOptions:
+  # Referenced by HelmRelease (must not get a hash suffix).
+  disableNameSuffixHash: true

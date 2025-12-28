@@ -10,7 +10,9 @@ resources:
   - ./garage-app-metrics-dashboard.yaml
   - ./garage-dashboard.yaml
   - ./helmrelease.yaml
+  - ./minecraft-performance-dashboard.yaml
   - ./minecraft-router-dashboard.yaml
+  - ./minecraft-status-dashboard.yaml
   - ./ocirepository.yaml
   - ./proxmox-dashboard.yaml
 
@@ -33,6 +35,12 @@ configMapGenerator:
   - name: grafana-dashboard-minecraft-router
     files:
       - minecraft-router.json=./dashboards/minecraft-router.json
+  - name: grafana-dashboard-minecraft-status
+    files:
+      - minecraft-status.json=./dashboards/minecraft-status.json
+  - name: grafana-dashboard-minecraft-performance
+    files:
+      - minecraft-performance.json=./dashboards/minecraft-performance.json
 
 generatorOptions:
   # GrafanaDashboard.spec.configMapRef requires a stable ConfigMap name.

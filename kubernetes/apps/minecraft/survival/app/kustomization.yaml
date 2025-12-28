@@ -7,3 +7,14 @@ resources:
   - ./helmrelease.yaml
   - ./httproute.yaml
   - ./ocirepository.yaml
+  - ./service-metrics.yaml
+  - ./servicemonitor.yaml
+
+configMapGenerator:
+  - name: survival-prometheus-exporter-config
+    files:
+      - config.yml=./config/prometheus-exporter-config.yml
+
+generatorOptions:
+  # Mounted into the Minecraft server pod by fixed name.
+  disableNameSuffixHash: true

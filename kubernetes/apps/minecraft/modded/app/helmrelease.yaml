@@ -23,6 +23,18 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
+          00-copy-prometheus-exporter-config:
+            image:
+              repository: ghcr.io/home-operations/busybox
+              tag: 1.37.0
+            command:
+              - /bin/sh
+              - -lc
+            args:
+              - |
+                set -euo pipefail
+                mkdir -p /data/plugins/PrometheusExporter
+                cp /config/prometheus-exporter/config.yml /data/plugins/PrometheusExporter/config.yml
           01-fix-bluemap:
             image:
               repository: ghcr.io/home-operations/busybox
@@ -59,6 +71,7 @@ spec:
               ALLOW_FLIGHT: true
               INIT_MEMORY: 1G
               MAX_MEMORY: &max-memory 12G
+              PLUGINS: https://github.com/sladkoff/minecraft-prometheus-exporter/releases/download/v3.1.2/minecraft-prometheus-exporter-3.1.2.jar
               MODRINTH_PROJECTS: |
                 bluemap
             securityContext:
@@ -88,6 +101,18 @@ spec:
            port: &rcon-port 25578
           http:
             port: &web-port 8100
+          metrics:
+            port: &metrics-port 9940
+    serviceMonitor:
+      modded:
+        endpoints:
+          - interval: 30s
+            path: /metrics
+            port: metrics
+            scrapeTimeout: 10s
+        serviceName: modded
+        labels:
+          release: prometheus
     route:
       modded:
         hostnames: ["bluemap-modded.${SECRET_DOMAIN}"]
@@ -106,6 +131,12 @@ spec:
     persistence:
       tmp:
         type: emptyDir
+      prometheus-exporter-config:
+        type: configMap
+        name: modded-prometheus-exporter-config
+        globalMounts:
+          - path: /config/prometheus-exporter
+            readOnly: true
       data:
         existingClaim: *app
         globalMounts:

@@ -1,0 +1,19 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/servicemonitor_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: survival-minecraft-metrics
+  labels:
+    release: prometheus
+spec:
+  endpoints:
+    - interval: 30s
+      path: /metrics
+      port: metrics
+      scrapeTimeout: 10s
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: survival
+      app.kubernetes.io/component: metrics
+

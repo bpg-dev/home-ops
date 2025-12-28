@@ -10,4 +10,5 @@ resources:
   - ./modded/ks.yaml
   - ./namespace.yaml
   - ./router/ks.yaml
+  - ./status-exporter/ks.yaml
   - ./survival/ks.yaml

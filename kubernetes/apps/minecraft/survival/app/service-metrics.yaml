@@ -1,0 +1,20 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.31.0-standalone-strict/service-v1.json
+apiVersion: v1
+kind: Service
+metadata:
+  name: survival-minecraft-metrics
+  labels:
+    app.kubernetes.io/name: survival-minecraft
+    app.kubernetes.io/component: metrics
+spec:
+  type: ClusterIP
+  selector:
+    app: survival-minecraft
+  ports:
+    - name: metrics
+      port: 9940
+      targetPort: 9940
+      protocol: TCP
+
+
