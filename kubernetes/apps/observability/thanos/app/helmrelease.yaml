@@ -13,11 +13,10 @@ spec:
     remediation:
       retries: 3
   upgrade:
-    cleanupOnFail: true
     remediation:
-      # The initial install can fail before any successful release exists, making rollback impossible.
-      # Uninstall+reinstall is the most reliable remediation for a first successful deploy.
-      strategy: uninstall
+      # Keep the previous release around on failure to avoid wiping running pods; the upgrade can
+      # still retry while rolling back automatically before reattempting.
+      strategy: rollback
       retries: 3
   values:
     controllers:
