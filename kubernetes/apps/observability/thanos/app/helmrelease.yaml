@@ -36,6 +36,9 @@ spec:
               - --http-address=0.0.0.0:9090
               - --grpc-address=0.0.0.0:10901
               - --query.replica-label=prometheus_replica
+              # Performance: increase timeouts for long-range queries (7d+)
+              - --query.timeout=10m
+              - --store.response-timeout=5m
               # Discover Prometheus sidecar(s) via SRV records from kube-prometheus-stack's thanos discovery service
               - --endpoint=dnssrv+_grpc._tcp.kube-prometheus-stack-thanos-discovery.observability.svc.cluster.local
               - --endpoint=thanos-thanos-storegateway.observability.svc.cluster.local:10901
@@ -54,10 +57,10 @@ spec:
               capabilities: { drop: [ALL] }
             resources:
               requests:
-                cpu: 50m
-                memory: 256Mi
-              limits:
+                cpu: 100m
                 memory: 512Mi
+              limits:
+                memory: 1Gi
 
       thanos-storegateway:
         annotations:
@@ -74,6 +77,9 @@ spec:
               - --grpc-address=0.0.0.0:10901
               - --data-dir=/data
               - --objstore.config-file=/etc/thanos/objstore.yaml
+              # Performance: enable in-memory caching for faster queries
+              - --chunk-pool-size=2GB
+              - --max-time=-2w
             probes:
               liveness: &probes
                 enabled: true
@@ -89,10 +95,10 @@ spec:
               capabilities: { drop: [ALL] }
             resources:
               requests:
-                cpu: 50m
-                memory: 512Mi
-              limits:
+                cpu: 100m
                 memory: 1Gi
+              limits:
+                memory: 3Gi
 
       thanos-compactor:
         annotations:
@@ -115,6 +121,10 @@ spec:
               - --delete-delay=48h
               # Keep compactor running continuously (default is to exit after a single pass)
               - --wait
+              # Vertical compaction deduplicates overlapping blocks from same source
+              # Required to fix overlapping blocks from Prometheus restarts
+              - --compact.enable-vertical-compaction
+              - --deduplication.replica-label=prometheus_replica
             probes:
               liveness: &probes
                 enabled: true
@@ -130,10 +140,10 @@ spec:
               capabilities: { drop: [ALL] }
             resources:
               requests:
-                cpu: 50m
-                memory: 512Mi
-              limits:
+                cpu: 100m
                 memory: 1Gi
+              limits:
+                memory: 2Gi
 
     defaultPodOptions:
       securityContext:
