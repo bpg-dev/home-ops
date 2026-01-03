@@ -123,7 +123,6 @@ spec:
               # Vertical compaction deduplicates overlapping blocks from same source
               # Required to fix overlapping blocks from Prometheus restarts
               - --compact.enable-vertical-compaction
-              - --compactor.max-postings=400000
               - --deduplication.replica-label=prometheus_replica
             probes:
               liveness: &probes
