@@ -36,31 +36,6 @@ spec:
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDatasource
 metadata:
-  name: thanos
-spec:
-  instanceSelector:
-    matchLabels:
-      grafana.internal/instance: grafana
-  datasource:
-    type: prometheus
-    name: thanos
-    access: proxy
-    # Avoid duplicate "Watchdog" (and other Prometheus-rule) alerts in Grafana.
-    # Prometheus is the single source of truth for alert rule evaluation; Thanos is for long-range queries.
-    jsonData:
-      manageAlerts: false
-      # Increase timeout for long-range queries (7d+)
-      timeout: 300
-      # Query hints help optimize queries
-      queryTimeout: 5m
-      httpMethod: POST
-    # Query Thanos via query-frontend for range splitting (and future caching).
-    url: http://thanos-thanos-query-frontend.observability.svc.cluster.local:9090
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadatasource_v1beta1.json
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaDatasource
-metadata:
   name: loki
 spec:
   instanceSelector:
