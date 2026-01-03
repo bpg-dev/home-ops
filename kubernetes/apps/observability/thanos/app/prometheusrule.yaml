@@ -1,0 +1,148 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: thanos-rules
+spec:
+  groups:
+    - name: thanos.compactor
+      rules:
+        - alert: ThanosCompactorHalted
+          expr: thanos_compact_halted == 1
+          for: 5m
+          annotations:
+            summary: Thanos Compactor has halted
+            description: >-
+              Thanos Compactor has halted due to a critical error (likely overlapping blocks).
+              Check compactor logs: kubectl logs -n observability -l app.kubernetes.io/name=thanos --tail=100 | grep -i error
+          labels:
+            severity: critical
+
+        - alert: ThanosCompactorHighCompactionFailures
+          expr: rate(thanos_compact_group_compactions_failures_total[5m]) > 0
+          for: 15m
+          annotations:
+            summary: Thanos Compactor is experiencing compaction failures
+            description: >-
+              Thanos Compactor has been failing compactions for more than 15 minutes.
+              This may lead to the compactor halting if not resolved.
+          labels:
+            severity: warning
+
+        - alert: ThanosCompactorPendingCompactionsTooHigh
+          expr: sum(thanos_compact_todo_compaction_blocks) > 100
+          for: 30m
+          annotations:
+            summary: Thanos Compactor has too many pending compactions
+            description: >-
+              There are {{ $value }} blocks pending compaction for over 30 minutes.
+              The compactor may be falling behind or stuck.
+          labels:
+            severity: warning
+
+        - alert: ThanosCompactorNotRunning
+          expr: absent(up{job="thanos-thanos-compactor"} == 1)
+          for: 10m
+          annotations:
+            summary: Thanos Compactor is not running
+            description: >-
+              Thanos Compactor has been down for more than 10 minutes.
+              Historical data will not be compacted or deduplicated.
+          labels:
+            severity: warning
+
+    - name: thanos.storegateway
+      rules:
+        - alert: ThanosStoreGatewayNotRunning
+          expr: absent(up{job="thanos-thanos-storegateway"} == 1)
+          for: 5m
+          annotations:
+            summary: Thanos Store Gateway is not running
+            description: >-
+              Thanos Store Gateway has been down for more than 5 minutes.
+              Historical queries beyond Prometheus retention will fail.
+          labels:
+            severity: critical
+
+        - alert: ThanosStoreGatewayBlockSyncFailures
+          expr: rate(thanos_blocks_meta_sync_failures_total{job="thanos-thanos-storegateway"}[5m]) > 0
+          for: 10m
+          annotations:
+            summary: Thanos Store Gateway is failing to sync blocks
+            description: >-
+              Thanos Store Gateway has been failing to sync block metadata for over 10 minutes.
+              This may indicate S3 connectivity issues or corrupted blocks.
+          labels:
+            severity: warning
+
+        - alert: ThanosStoreGatewayNoBlocksLoaded
+          expr: thanos_bucket_store_blocks_loaded{job="thanos-thanos-storegateway"} == 0
+          for: 10m
+          annotations:
+            summary: Thanos Store Gateway has no blocks loaded
+            description: >-
+              Thanos Store Gateway has zero blocks loaded for over 10 minutes.
+              Historical queries will return no data.
+          labels:
+            severity: critical
+
+    - name: thanos.query
+      rules:
+        - alert: ThanosQueryNotRunning
+          expr: absent(up{job="thanos-thanos-query"} == 1)
+          for: 5m
+          annotations:
+            summary: Thanos Query is not running
+            description: >-
+              Thanos Query has been down for more than 5 minutes.
+              Grafana long-range queries will fail.
+          labels:
+            severity: critical
+
+        - alert: ThanosQueryHighQueryLatency
+          expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job="thanos-thanos-query"}[5m])) by (le)) > 30
+          for: 10m
+          annotations:
+            summary: Thanos Query latency is very high
+            description: >-
+              99th percentile query latency is above 30 seconds for over 10 minutes.
+              Queries may be timing out.
+          labels:
+            severity: warning
+
+        - alert: ThanosQueryGrpcErrors
+          expr: rate(grpc_server_handled_total{job="thanos-thanos-query", grpc_code!="OK"}[5m]) > 0
+          for: 10m
+          annotations:
+            summary: Thanos Query is experiencing gRPC errors
+            description: >-
+              Thanos Query has been receiving gRPC errors for over 10 minutes.
+              Check connectivity to Store Gateway and Prometheus sidecars.
+          labels:
+            severity: warning
+
+    - name: thanos.bucket
+      rules:
+        - alert: ThanosBucketOperationFailures
+          expr: rate(thanos_objstore_bucket_operation_failures_total[5m]) > 0
+          for: 15m
+          annotations:
+            summary: Thanos is experiencing S3 bucket operation failures
+            description: >-
+              Thanos {{ $labels.job }} has been failing {{ $labels.operation }} operations
+              against the S3 bucket for over 15 minutes.
+          labels:
+            severity: warning
+
+        - alert: ThanosBucketHighOperationLatency
+          expr: histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket[5m])) by (le, operation)) > 10
+          for: 15m
+          annotations:
+            summary: Thanos S3 operations are slow
+            description: >-
+              99th percentile S3 {{ $labels.operation }} latency is above 10 seconds.
+              Check Garage/S3 storage health.
+          labels:
+            severity: warning
+
