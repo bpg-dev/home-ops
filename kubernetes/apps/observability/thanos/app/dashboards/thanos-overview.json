@@ -17,7 +17,7 @@
   },
   "editable": true,
   "fiscalYearStartMonth": 0,
-  "graphTooltip": 0,
+  "graphTooltip": 1,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -26,7 +26,7 @@
         "type": "prometheus",
         "uid": "$DS_PROMETHEUS"
       },
-      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -37,10 +37,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
           "expr": "sum(up{job=~\"thanos-thanos-(query|storegateway|compactor)\"})",
           "instant": true,
           "refId": "A"
@@ -70,7 +67,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -81,10 +78,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
           "expr": "max(thanos_compact_halted) or vector(0)",
           "instant": true,
           "refId": "A"
@@ -98,7 +92,20 @@
         "type": "prometheus",
         "uid": "$DS_PROMETHEUS"
       },
-      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 100 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -109,16 +116,13 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
-          "expr": "sum(thanos_blocks_meta_synced{state=\"loaded\"})",
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(thanos_compact_todo_compaction_blocks) or vector(0)",
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Total Blocks in Bucket",
+      "title": "Pending Compactions",
       "type": "stat"
     },
     {
@@ -126,10 +130,10 @@
         "type": "prometheus",
         "uid": "$DS_PROMETHEUS"
       },
-      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "center",
         "orientation": "horizontal",
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
@@ -137,21 +141,98 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
-          "expr": "sum(thanos_blocks_meta_synced{state=\"marked_for_deletion\"})",
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(thanos_blocks_meta_synced{state=\"loaded\"})",
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Blocks Marked for Deletion",
+      "title": "Total Blocks",
       "type": "stat"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$DS_PROMETHEUS"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "orange", "value": 50 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(thanos_blocks_meta_synced{state=\"marked_for_deletion\"}) or vector(0)",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Pending Deletion",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$DS_PROMETHEUS"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 60 },
+              { "color": "red", "value": 80 }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(thanos_query_concurrent_gate_queries_in_flight) / sum(thanos_query_concurrent_gate_queries_max)",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Query Saturation",
+      "type": "gauge"
+    },
+    {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 4 },
       "id": 100,
       "panels": [],
       "title": "Compaction",
@@ -163,26 +244,54 @@
         "uid": "$DS_PROMETHEUS"
       },
       "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 5 },
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" },
         "tooltip": { "mode": "multi" }
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(thanos_compact_todo_compaction_blocks) or vector(0)",
+          "legendFormat": "Pending Compactions",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(thanos_compact_todo_deletion_blocks) or vector(0)",
+          "legendFormat": "Pending Deletions",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(thanos_compact_todo_downsample_blocks) or vector(0)",
+          "legendFormat": "Pending Downsamples",
+          "refId": "C"
+        }
+      ],
+      "title": "Compaction Queue (should trend to 0)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$DS_PROMETHEUS"
+      },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 5 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
           "expr": "sum(thanos_blocks_meta_synced{state=\"loaded\"})",
           "legendFormat": "Total Blocks",
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
           "expr": "sum(thanos_blocks_meta_synced{state=\"marked_for_deletion\"})",
           "legendFormat": "Marked for Deletion",
           "refId": "B"
@@ -197,37 +306,43 @@
         "uid": "$DS_PROMETHEUS"
       },
       "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 5 },
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" },
         "tooltip": { "mode": "multi" }
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
           "expr": "sum(increase(thanos_compact_group_compactions_total[$__rate_interval]))",
           "legendFormat": "Compactions",
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
           "expr": "sum(increase(thanos_compact_group_vertical_compactions_total[$__rate_interval]))",
-          "legendFormat": "Vertical Compactions (dedup)",
+          "legendFormat": "Vertical (dedup)",
           "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(increase(thanos_compact_garbage_collected_blocks_total[$__rate_interval]))",
+          "legendFormat": "GC'd Blocks",
+          "refId": "C"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(increase(thanos_compact_group_compactions_failures_total[$__rate_interval]))",
+          "legendFormat": "Failures",
+          "refId": "D"
         }
       ],
-      "title": "Compaction Rate",
+      "title": "Compaction Activity",
       "type": "timeseries"
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 12 },
       "id": 101,
       "panels": [],
       "title": "Query Performance",
@@ -238,24 +353,27 @@
         "type": "prometheus",
         "uid": "$DS_PROMETHEUS"
       },
-      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 13 },
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "single" }
+        "tooltip": { "mode": "multi" }
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
-          "expr": "sum(rate(http_requests_total{job=\"thanos-thanos-query\"}[$__rate_interval])) by (handler)",
-          "legendFormat": "{{handler}}",
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(thanos_query_concurrent_gate_queries_in_flight)",
+          "legendFormat": "In Flight",
           "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(thanos_query_concurrent_gate_queries_max)",
+          "legendFormat": "Max Allowed",
+          "refId": "B"
         }
       ],
-      "title": "Query API Requests",
+      "title": "Query Concurrency",
       "type": "timeseries"
     },
     {
@@ -264,35 +382,26 @@
         "uid": "$DS_PROMETHEUS"
       },
       "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 13 },
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" },
         "tooltip": { "mode": "multi" }
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
           "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"thanos-thanos-query\"}[$__rate_interval])) by (le))",
           "legendFormat": "p50",
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
           "expr": "histogram_quantile(0.90, sum(rate(http_request_duration_seconds_bucket{job=\"thanos-thanos-query\"}[$__rate_interval])) by (le))",
           "legendFormat": "p90",
           "refId": "B"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
           "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"thanos-thanos-query\"}[$__rate_interval])) by (le))",
           "legendFormat": "p99",
           "refId": "C"
@@ -302,11 +411,119 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$DS_PROMETHEUS"
+      },
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 13 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(rate(http_requests_total{job=\"thanos-thanos-query\"}[$__rate_interval])) by (handler)",
+          "legendFormat": "{{handler}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Query API Requests",
+      "type": "timeseries"
+    },
+    {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 20 },
       "id": 102,
       "panels": [],
-      "title": "Object Storage",
+      "title": "Store Gateway",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$DS_PROMETHEUS"
+      },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 21 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(thanos_bucket_store_blocks_loaded)",
+          "legendFormat": "Blocks Loaded",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(thanos_store_nodes_grpc_connections)",
+          "legendFormat": "gRPC Connections",
+          "refId": "B"
+        }
+      ],
+      "title": "Store Gateway Status",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$DS_PROMETHEUS"
+      },
+      "fieldConfig": { "defaults": { "unit": "decbytes" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 21 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(rate(thanos_bucket_store_series_data_size_fetched_bytes_sum[$__rate_interval]))",
+          "legendFormat": "Data Fetched/s",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(rate(thanos_bucket_store_series_data_size_touched_bytes_sum[$__rate_interval]))",
+          "legendFormat": "Data Touched/s",
+          "refId": "B"
+        }
+      ],
+      "title": "Data Transfer Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$DS_PROMETHEUS"
+      },
+      "fieldConfig": { "defaults": { "unit": "percentunit" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 21 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(rate(thanos_store_index_cache_hits_total[$__rate_interval])) / sum(rate(thanos_store_index_cache_requests_total[$__rate_interval]))",
+          "legendFormat": "Index Cache Hit Ratio",
+          "refId": "A"
+        }
+      ],
+      "title": "Index Cache Hit Ratio",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 28 },
+      "id": 103,
+      "panels": [],
+      "title": "Object Storage (S3)",
       "type": "row"
     },
     {
@@ -315,17 +532,14 @@
         "uid": "$DS_PROMETHEUS"
       },
       "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 29 },
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" },
         "tooltip": { "mode": "single" }
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
           "expr": "sum(rate(thanos_objstore_bucket_operations_total[$__rate_interval])) by (operation)",
           "legendFormat": "{{operation}}",
           "refId": "A"
@@ -340,26 +554,20 @@
         "uid": "$DS_PROMETHEUS"
       },
       "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 29 },
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" },
         "tooltip": { "mode": "multi" }
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
           "expr": "histogram_quantile(0.50, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket[$__rate_interval])) by (le, operation))",
           "legendFormat": "p50 {{operation}}",
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
           "expr": "histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket[$__rate_interval])) by (le, operation))",
           "legendFormat": "p99 {{operation}}",
           "refId": "B"
@@ -370,10 +578,10 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
-      "id": 103,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 36 },
+      "id": 104,
       "panels": [],
-      "title": "Store Gateway",
+      "title": "Resource Usage",
       "type": "row"
     },
     {
@@ -381,80 +589,67 @@
         "type": "prometheus",
         "uid": "$DS_PROMETHEUS"
       },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 33 },
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "center",
-        "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
-          "expr": "sum(thanos_bucket_store_blocks_loaded)",
-          "instant": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Blocks Loaded",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$DS_PROMETHEUS"
-      },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 33 },
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "center",
-        "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
-          "expr": "sum(thanos_store_nodes_grpc_connections)",
-          "instant": true,
-          "refId": "A"
-        }
-      ],
-      "title": "gRPC Connections",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$DS_PROMETHEUS"
-      },
-      "fieldConfig": { "defaults": { "unit": "percentunit" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 33 },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 37 },
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "single" }
+        "tooltip": { "mode": "multi" }
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$DS_PROMETHEUS"
-          },
-          "expr": "sum(rate(thanos_store_index_cache_hits_total[$__rate_interval])) / sum(rate(thanos_store_index_cache_requests_total[$__rate_interval]))",
-          "legendFormat": "Index Cache Hit Ratio",
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"observability\", pod=~\"thanos-thanos-query.*\"}[$__rate_interval])) * 1000",
+          "legendFormat": "Query",
           "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"observability\", pod=~\"thanos-thanos-storegateway.*\"}[$__rate_interval])) * 1000",
+          "legendFormat": "Store Gateway",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"observability\", pod=~\"thanos-thanos-compactor.*\"}[$__rate_interval])) * 1000",
+          "legendFormat": "Compactor",
+          "refId": "C"
         }
       ],
-      "title": "Index Cache Hit Ratio",
+      "title": "CPU Usage (millicores)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$DS_PROMETHEUS"
+      },
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 37 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"observability\", pod=~\"thanos-thanos-query.*\"})",
+          "legendFormat": "Query",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"observability\", pod=~\"thanos-thanos-storegateway.*\"})",
+          "legendFormat": "Store Gateway",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"observability\", pod=~\"thanos-thanos-compactor.*\"})",
+          "legendFormat": "Compactor",
+          "refId": "C"
+        }
+      ],
+      "title": "Memory Usage",
       "type": "timeseries"
     }
   ],
@@ -491,6 +686,6 @@
   "timezone": "browser",
   "title": "Thanos / Overview",
   "uid": "xhXVFwJ7z",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }
