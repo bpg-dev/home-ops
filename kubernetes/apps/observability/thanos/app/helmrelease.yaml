@@ -34,6 +34,10 @@ spec:
               - --http-address=0.0.0.0:9090
               # Split long range queries into smaller sub-queries to reduce latency on 7d+ dashboards.
               - --query-range.split-interval=12h
+              # Prefer downsampled data when possible to reduce query load for long ranges.
+              - --query-range.request-downsampled
+              # Align to the step to improve cache-ability (and avoids uneven splits).
+              - --query-range.align-range-with-step
               # Downstream is Thanos Query (querier).
               - --query-frontend.downstream-url=http://thanos-thanos-query.observability.svc.cluster.local:9090
             probes:
@@ -70,6 +74,8 @@ spec:
               - --http-address=0.0.0.0:9090
               - --grpc-address=0.0.0.0:10901
               - --query.replica-label=prometheus_replica
+              # Use downsampled blocks (5m/1h) for long-range queries to reduce load/latency.
+              - --query.auto-downsampling
               # Performance: increase timeouts for long-range queries (7d+)
               - --query.timeout=10m
               - --store.response-timeout=5m
