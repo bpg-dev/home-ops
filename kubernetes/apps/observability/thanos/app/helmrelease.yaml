@@ -120,6 +120,8 @@ spec:
               - --delete-delay=48h
               # Keep compactor running continuously (default is to exit after a single pass)
               - --wait
+              # Explicitly set the wait interval so pod template changes can force a restart when needed.
+              - --wait-interval=5m
               # Vertical compaction deduplicates overlapping blocks from same source
               # Required to fix overlapping blocks from Prometheus restarts
               - --compact.enable-vertical-compaction
