@@ -20,6 +20,41 @@ spec:
       retries: 3
   values:
     controllers:
+      thanos-query-frontend:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        strategy: RollingUpdate
+        containers:
+          app:
+            image:
+              repository: quay.io/thanos/thanos
+              tag: v0.40.1
+            args:
+              - query-frontend
+              - --http-address=0.0.0.0:9090
+              # Split long range queries into smaller sub-queries to reduce latency on 7d+ dashboards.
+              - --query-range.split-interval=12h
+              # Downstream is Thanos Query (querier).
+              - --query-frontend.downstream-url=http://thanos-thanos-query.observability.svc.cluster.local:9090
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /-/healthy
+                    port: 9090
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: [ALL] }
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                memory: 512Mi
       thanos-query:
         replicas: 2
         strategy: RollingUpdate
@@ -166,6 +201,11 @@ spec:
         ports:
           http:
             port: 9090
+      thanos-query-frontend:
+        controller: thanos-query-frontend
+        ports:
+          http:
+            port: 9090
       thanos-storegateway:
         controller: thanos-storegateway
         ports:
@@ -183,6 +223,11 @@ spec:
       thanos-query:
         service:
           identifier: thanos-query
+        endpoints:
+          - port: http
+      thanos-query-frontend:
+        service:
+          identifier: thanos-query-frontend
         endpoints:
           - port: http
       thanos-storegateway:

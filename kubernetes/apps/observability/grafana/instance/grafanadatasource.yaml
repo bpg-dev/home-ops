@@ -54,7 +54,8 @@ spec:
       # Query hints help optimize queries
       queryTimeout: 5m
       httpMethod: POST
-    url: http://thanos-thanos-query.observability.svc.cluster.local:9090
+    # Query Thanos via query-frontend for range splitting (and future caching).
+    url: http://thanos-thanos-query-frontend.observability.svc.cluster.local:9090
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadatasource_v1beta1.json
 apiVersion: grafana.integreatly.org/v1beta1

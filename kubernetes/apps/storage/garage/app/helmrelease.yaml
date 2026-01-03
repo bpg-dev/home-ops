@@ -38,7 +38,9 @@ spec:
               capabilities: { drop: [ALL] }
             resources:
               requests:
-                cpu: 500m
+                # Garage handles our Thanos object-store reads; give it more guaranteed CPU to reduce
+                # tail latency under bursts (avoids competing with other pods on the node).
+                cpu: 1000m
                 memory: 512Mi
               limits:
                 # No CPU limit - avoid throttling during compaction bursts
