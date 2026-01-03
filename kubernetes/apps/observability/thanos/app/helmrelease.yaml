@@ -78,7 +78,9 @@ spec:
               - --objstore.config-file=/etc/thanos/objstore.yaml
               # Performance: enable in-memory caching for faster queries
               - --chunk-pool-size=2GB
-              - --max-time=-2w
+              # Serve recent blocks from object storage to speed up common "last 7d" dashboards.
+              # Keep a small overlap so the Prometheus sidecar remains the source of truth for very recent data.
+              - --max-time=-2h
             probes:
               liveness: &probes
                 enabled: true
