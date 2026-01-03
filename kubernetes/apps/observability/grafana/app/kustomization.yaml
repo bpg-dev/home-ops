@@ -6,9 +6,8 @@ resources:
   - ./authentik-dashboard.yaml
   - ./couchdb-dashboard.yaml
   - ./externalsecret.yaml
-  - ./grafanadashboard.yaml
-  - ./garage-app-metrics-dashboard.yaml
   - ./garage-dashboard.yaml
+  - ./grafanadashboard.yaml
   - ./helmrelease.yaml
   - ./minecraft-performance-dashboard.yaml
   - ./minecraft-router-dashboard.yaml
@@ -23,9 +22,6 @@ configMapGenerator:
   - name: grafana-dashboard-couchdb
     files:
       - couchdb-10049-rev1.json=./dashboards/couchdb-10049-rev1.json
-  - name: grafana-dashboard-garage-app-metrics
-    files:
-      - garage-app-metrics.json=./dashboards/garage-app-metrics.json
   - name: grafana-dashboard-garage
     files:
       - garage.json=./dashboards/garage.json
