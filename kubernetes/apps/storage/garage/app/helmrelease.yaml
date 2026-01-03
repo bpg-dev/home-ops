@@ -38,10 +38,11 @@ spec:
               capabilities: { drop: [ALL] }
             resources:
               requests:
-                cpu: 100m
-              limits:
                 cpu: 500m
                 memory: 512Mi
+              limits:
+                # No CPU limit - avoid throttling during compaction bursts
+                memory: 2Gi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
