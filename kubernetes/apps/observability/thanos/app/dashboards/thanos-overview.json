@@ -26,7 +26,7 @@
         "type": "prometheus",
         "uid": "$DS_PROMETHEUS"
       },
-      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "gridPos": { "h": 4, "w": 3, "x": 0, "y": 0 },
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -67,7 +67,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "gridPos": { "h": 4, "w": 3, "x": 3, "y": 0 },
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -105,7 +105,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "gridPos": { "h": 4, "w": 3, "x": 6, "y": 0 },
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -130,7 +130,7 @@
         "type": "prometheus",
         "uid": "$DS_PROMETHEUS"
       },
-      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "gridPos": { "h": 4, "w": 3, "x": 9, "y": 0 },
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -168,7 +168,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "gridPos": { "h": 4, "w": 3, "x": 12, "y": 0 },
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -195,6 +195,76 @@
       },
       "fieldConfig": {
         "defaults": {
+          "unit": "d",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 30 },
+              { "color": "green", "value": 60 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 3, "x": 15, "y": 0 },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "(time() - min(prometheus_tsdb_lowest_timestamp_seconds)) / 86400",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Data Retention",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$DS_PROMETHEUS"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dateTimeFromNow"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 3, "x": 18, "y": 0 },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "expr": "min(prometheus_tsdb_lowest_timestamp_seconds) * 1000",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Oldest Data",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$DS_PROMETHEUS"
+      },
+      "fieldConfig": {
+        "defaults": {
           "max": 1,
           "min": 0,
           "thresholds": {
@@ -209,7 +279,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "gridPos": { "h": 4, "w": 3, "x": 21, "y": 0 },
       "options": {
         "minVizHeight": 75,
         "minVizWidth": 75,
@@ -686,6 +756,6 @@
   "timezone": "browser",
   "title": "Thanos / Overview",
   "uid": "xhXVFwJ7z",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }
