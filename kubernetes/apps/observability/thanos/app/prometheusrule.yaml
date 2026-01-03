@@ -1,4 +1,5 @@
 ---
+# yamllint disable rule:line-length
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -14,8 +15,15 @@ spec:
           annotations:
             summary: Thanos Compactor has halted
             description: >-
-              Thanos Compactor has halted due to a critical error (likely overlapping blocks).
-              Check compactor logs: kubectl logs -n observability -l app.kubernetes.io/name=thanos --tail=100 | grep -i error
+              Thanos Compactor has halted due to a critical error.
+              Start by checking the compactor logs for the exact error and affected
+              block ULIDs:
+              kubectl logs -n observability -l app.kubernetes.io/controller=thanos-compactor
+              --tail=200 | grep -iE 'critical error|halting|01[A-Z0-9]{24}'.
+              If the error mentions specific ULIDs, validate overlaps/duplicates
+              in the bucket and mark only redundant blocks for deletion (or
+              temporarily no-compact) to unblock compaction. See
+              docs/THANOS_COMPACTOR_HALT_RECOVERY.md.
           labels:
             severity: critical
 
@@ -66,12 +74,14 @@ spec:
             severity: critical
 
         - alert: ThanosStoreGatewayBlockSyncFailures
-          expr: rate(thanos_blocks_meta_sync_failures_total{job="thanos-thanos-storegateway"}[5m]) > 0
+          expr: >-
+            rate(thanos_blocks_meta_sync_failures_total{job="thanos-thanos-storegateway"}[5m]) > 0
           for: 10m
           annotations:
             summary: Thanos Store Gateway is failing to sync blocks
             description: >-
-              Thanos Store Gateway has been failing to sync block metadata for over 10 minutes.
+              Thanos Store Gateway has been failing to sync block metadata for
+              over 10 minutes.
               This may indicate S3 connectivity issues or corrupted blocks.
           labels:
             severity: warning
@@ -101,7 +111,11 @@ spec:
             severity: critical
 
         - alert: ThanosQueryHighQueryLatency
-          expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job="thanos-thanos-query"}[5m])) by (le)) > 30
+          expr: >-
+            histogram_quantile(
+              0.99,
+              sum(rate(http_request_duration_seconds_bucket{job="thanos-thanos-query"}[5m])) by (le)
+            ) > 30
           for: 10m
           annotations:
             summary: Thanos Query latency is very high
@@ -112,7 +126,8 @@ spec:
             severity: warning
 
         - alert: ThanosQueryGrpcErrors
-          expr: rate(grpc_server_handled_total{job="thanos-thanos-query", grpc_code!="OK"}[5m]) > 0
+          expr: >-
+            rate(grpc_server_handled_total{job="thanos-thanos-query", grpc_code!="OK"}[5m]) > 0
           for: 10m
           annotations:
             summary: Thanos Query is experiencing gRPC errors
@@ -136,7 +151,11 @@ spec:
             severity: warning
 
         - alert: ThanosBucketHighOperationLatency
-          expr: histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket[5m])) by (le, operation)) > 10
+          expr: >-
+            histogram_quantile(
+              0.99,
+              sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket[5m])) by (le, operation)
+            ) > 10
           for: 15m
           annotations:
             summary: Thanos S3 operations are slow
@@ -145,4 +164,4 @@ spec:
               Check Garage/S3 storage health.
           labels:
             severity: warning
-
+# yamllint enable rule:line-length
