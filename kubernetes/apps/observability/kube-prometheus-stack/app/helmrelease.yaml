@@ -70,6 +70,10 @@ spec:
           parentRefs:
             - name: envoy-internal
               namespace: network
+      # Nice-to-have for HA: make Prometheus UI/API "sticky" so Grafana tends to hit the same replica
+      # (reduces minor query drift due to scrape timing / WAL replay differences).
+      service:
+        sessionAffinity: ClientIP
       prometheusSpec:
         # Run Prometheus in HA mode (2 replicas). This also ensures the second TSDB PVC is mounted
         # so CSI can complete filesystem resize after expansion.
