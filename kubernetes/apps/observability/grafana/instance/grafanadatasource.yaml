@@ -13,7 +13,8 @@ spec:
     name: prometheus
     access: proxy
     isDefault: true
-    url: http://prometheus-operated.observability.svc.cluster.local:9090
+    # Use ClusterIP service (not headless) so we can take advantage of sessionAffinity for HA "stickiness".
+    url: http://kube-prometheus-stack-prometheus.observability.svc.cluster.local:9090
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadatasource_v1beta1.json
 apiVersion: grafana.integreatly.org/v1beta1
