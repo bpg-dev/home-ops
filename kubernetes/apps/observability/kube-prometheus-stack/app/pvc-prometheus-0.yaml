@@ -1,0 +1,21 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.0-standalone-strict/persistentvolumeclaim-v1.json
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-kube-prometheus-stack-db-prometheus-kube-prometheus-stack-0
+  labels:
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: prometheus-operator
+    app.kubernetes.io/name: prometheus
+    operator.prometheus.io/name: kube-prometheus-stack
+    operator.prometheus.io/shard: "0"
+    prometheus: kube-prometheus-stack
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 250Gi
+  storageClassName: ceph-rbd
+
