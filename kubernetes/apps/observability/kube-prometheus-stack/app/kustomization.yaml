@@ -8,6 +8,7 @@ resources:
   - ./grafanadashboard.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
+  - ./pdb-prometheus.yaml
   - ./pvc-prometheus-0.yaml
   - ./pvc-prometheus-1.yaml
   - ./scrapeconfig.yaml
