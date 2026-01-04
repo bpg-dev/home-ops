@@ -10,8 +10,6 @@ spec:
       namespace: rook-ceph-external
     - name: external-secrets
       namespace: external-secrets
-    - name: thanos
-      namespace: observability
   interval: 1h
   path: ./kubernetes/apps/observability/kube-prometheus-stack/app
   postBuild:
