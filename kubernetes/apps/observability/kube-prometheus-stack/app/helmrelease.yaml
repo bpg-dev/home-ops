@@ -88,8 +88,10 @@ spec:
         ruleSelectorNilUsesHelmValues: false
         scrapeConfigSelectorNilUsesHelmValues: false
         serviceMonitorSelectorNilUsesHelmValues: false
-        retention: 14d
-        retentionSize: 50GB
+        # Keep 90 days of metrics locally (Prometheus TSDB).
+        # Ensure PVC size is large enough; otherwise Prometheus will hit disk pressure and evict old blocks earlier.
+        retention: 90d
+        retentionSize: 250GB
         resources:
           requests:
             cpu: 100m
@@ -101,7 +103,7 @@ spec:
               storageClassName: ceph-rbd
               resources:
                 requests:
-                  storage: 50Gi
+                  storage: 250Gi
     prometheus-node-exporter:
       enabled: false
     kube-state-metrics:
