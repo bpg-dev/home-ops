@@ -1,0 +1,20 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.27.0/_definitions.json#/definitions/io.k8s.api.core.v1.Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki-memberlist
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: loki
+    app.kubernetes.io/component: memberlist
+spec:
+  clusterIP: None  # Headless service for memberlist discovery
+  selector:
+    app.kubernetes.io/name: loki
+  ports:
+    - name: memberlist
+      port: 7946
+      protocol: TCP
+      targetPort: 7946
+

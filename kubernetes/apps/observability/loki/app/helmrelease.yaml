@@ -14,8 +14,10 @@ spec:
 
     controllers:
       loki:
-        # RWO PVC: avoid multi-attach during rollouts.
-        strategy: Recreate
+        # HA mode: use RollingUpdate with memberlist ring KV store
+        # Memberlist allows multiple pods to coordinate without shared storage
+        replicas: 3
+        strategy: RollingUpdate
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
@@ -27,6 +29,11 @@ spec:
               - -target=all
               - -config.file=/etc/loki/config.yaml
               - -config.expand-env=true
+            env:
+              - name: POD_IP
+                valueFrom:
+                  fieldRef:
+                    fieldPath: status.podIP
             envFrom:
               - secretRef:
                   name: loki-secret
@@ -88,10 +95,7 @@ spec:
           - path: /etc/loki/rules/fake
       data:
         enabled: true
-        type: persistentVolumeClaim
-        storageClass: ceph-rbd
-        accessMode: ReadWriteOnce
-        size: 20Gi
+        type: emptyDir
         globalMounts:
           - path: /var/loki
       tmp:

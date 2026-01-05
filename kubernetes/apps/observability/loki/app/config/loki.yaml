@@ -6,10 +6,10 @@ server:
 
 common:
   path_prefix: /var/loki
-  replication_factor: 1
+  replication_factor: 3
   ring:
     kvstore:
-      store: inmemory
+      store: memberlist
   storage:
     s3:
       endpoint: ${S3_ENDPOINT}
@@ -48,16 +48,31 @@ limits_config:
   # when Loki restarts and Fluent-bit sends buffered logs
   reject_old_samples_max_age: 15m
 
+memberlist:
+  join_members:
+    - loki-memberlist.observability.svc.cluster.local
+  bind_addr:
+    - "0.0.0.0"
+  bind_port: 7946
+  advertise_addr: ${POD_IP}
+  advertise_port: 7946
+
 ruler:
   enable_api: true
   rule_path: /var/loki/rules
   alertmanager_url: http://alertmanager-operated.observability.svc.cluster.local:9093
   ring:
     kvstore:
-      store: inmemory
+      store: memberlist
   storage:
-    type: local
-    local:
-      directory: /etc/loki/rules
+    type: s3
+    s3:
+      endpoint: ${S3_ENDPOINT}
+      region: ${S3_REGION}
+      bucketnames: ${S3_BUCKET}
+      access_key_id: ${S3_ACCESS_KEY_ID}
+      secret_access_key: ${S3_SECRET_ACCESS_KEY}
+      s3forcepathstyle: true
+      insecure: true
 
 
