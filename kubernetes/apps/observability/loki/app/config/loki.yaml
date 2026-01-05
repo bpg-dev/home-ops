@@ -10,6 +10,9 @@ common:
   ring:
     kvstore:
       store: memberlist
+    # Reduce heartbeat timeout to detect stale instances faster
+    heartbeat_timeout: 30s
+    heartbeat_period: 5s
   storage:
     s3:
       endpoint: ${S3_ENDPOINT}
