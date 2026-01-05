@@ -83,11 +83,15 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       affinity:
         podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: loki
-              topologyKey: kubernetes.io/hostname
+          # Use preferredDuringScheduling to allow rolling updates
+          # With 3 replicas and 3 nodes, requiredDuringScheduling blocks new pods during updates
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: loki
+                topologyKey: kubernetes.io/hostname
 
     service:
       app:
