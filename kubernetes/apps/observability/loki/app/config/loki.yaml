@@ -44,6 +44,9 @@ compactor:
 
 limits_config:
   retention_period: 2160h # 90d
+  # Allow entries up to 15 minutes old to handle recovery scenarios
+  # when Loki restarts and Fluent-bit sends buffered logs
+  reject_old_samples_max_age: 15m
 
 ruler:
   enable_api: true
