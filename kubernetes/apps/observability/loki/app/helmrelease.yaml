@@ -45,10 +45,10 @@ spec:
                   httpGet:
                     path: /ready
                     port: &port 3100
-                  initialDelaySeconds: 10
-                  periodSeconds: 5
-                  timeoutSeconds: 1
-                  failureThreshold: 60  # Allow up to 5 minutes for startup
+                  initialDelaySeconds: 30  # Give Loki time to start components
+                  periodSeconds: 10  # Check every 10 seconds
+                  timeoutSeconds: 2  # Allow 2 seconds for response
+                  failureThreshold: 60  # Allow up to 10 minutes for startup (60 * 10s)
               liveness: &probes
                 enabled: true
                 custom: true
@@ -56,11 +56,21 @@ spec:
                   httpGet:
                     path: /ready
                     port: *port
-                  initialDelaySeconds: 60  # Wait for startup probe to succeed first
-                  periodSeconds: 10
-                  timeoutSeconds: 1
+                  initialDelaySeconds: 120  # Wait for startup probe to succeed first (2 minutes)
+                  periodSeconds: 30  # Check less frequently once started
+                  timeoutSeconds: 2
                   failureThreshold: 3
-              readiness: *probes
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ready
+                    port: *port
+                  initialDelaySeconds: 30  # Start checking readiness after 30s
+                  periodSeconds: 10
+                  timeoutSeconds: 2
+                  failureThreshold: 30  # Allow up to 5 minutes for readiness (30 * 10s)
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
