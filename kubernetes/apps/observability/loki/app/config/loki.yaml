@@ -38,6 +38,13 @@ storage_config:
     active_index_directory: /var/loki/index
     cache_location: /var/loki/cache
 
+ingester:
+  wal:
+    enabled: true
+    dir: /var/loki/wal
+    flush_on_shutdown: true
+    checkpoint_duration: 5m
+
 compactor:
   working_directory: /var/loki/compactor
   compaction_interval: 10m

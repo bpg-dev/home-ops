@@ -10,5 +10,5 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: loki
-      app.kubernetes.io/component: loki
+      app.kubernetes.io/controller: loki
 
