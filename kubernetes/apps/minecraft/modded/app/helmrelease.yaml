@@ -80,7 +80,7 @@ spec:
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
-                cpu: 2
+                cpu: 500m
                 memory: *max-memory
         pod:
           securityContext:

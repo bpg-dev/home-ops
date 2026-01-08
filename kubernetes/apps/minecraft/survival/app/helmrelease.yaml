@@ -50,7 +50,7 @@ spec:
       tag: 2026.1.0-java21
     resources:
       requests:
-        cpu: 2
+        cpu: 500m
         memory: &memory-limit 12G
     extraEnv:
       TZ: "America/Toronto"
