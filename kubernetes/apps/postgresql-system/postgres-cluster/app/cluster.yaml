@@ -45,10 +45,6 @@ spec:
       work_mem: "4MB"
       min_wal_size: "1GB"
       max_wal_size: "4GB"
-      # Enable pg_stat_statements for query performance analysis
-      shared_preload_libraries: "pg_stat_statements"
-      pg_stat_statements.max: "10000"
-      pg_stat_statements.track: "all"
     # Configure pg_hba to allow password authentication with TLS
     # This is required even when enableSuperuserAccess is true
     pg_hba:
