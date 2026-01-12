@@ -1,0 +1,87 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app booklore
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: booklore
+  interval: 1h
+  timeout: 10m
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      booklore:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: ghcr.io/booklore-app/booklore
+              tag: v1.17.0@sha256:5b594a607fb0d9533d06a850156e2b54877ed0ddd0da8cd1f0240cb38bb6ac70
+            env:
+              TZ: "America/Toronto"
+              USER_ID: "1000"
+              GROUP_ID: "1000"
+              BOOKLORE_PORT: &port 6060
+              SWAGGER_ENABLED: "false"
+            envFrom:
+              - secretRef:
+                  name: booklore-secret
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v1/healthcheck
+                    port: *port
+                  initialDelaySeconds: 60
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness: *probes
+            resources:
+              requests:
+                cpu: 50m
+                memory: 512Mi
+              limits:
+                memory: 2Gi
+    service:
+      app:
+        controller: booklore
+        ports:
+          http:
+            port: *port
+    route:
+      app:
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: "BookLore"
+          gethomepage.dev/description: "Digital library management"
+          gethomepage.dev/group: "Media"
+          gethomepage.dev/icon: "bookstack.png"
+        hostnames: ["booklore.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *port
+    persistence:
+      data:
+        existingClaim: "${VOLSYNC_CLAIM:=${APP}}"
+        globalMounts:
+          - path: /app/data

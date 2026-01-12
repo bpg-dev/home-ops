@@ -10,6 +10,7 @@ components:
 resources:
   - ./namespace.yaml
   - ./actual-budget/ks.yaml
+  - ./booklore/ks.yaml
   - ./cv-site/ks.yaml
   - ./echo/ks.yaml
   - ./homepage/ks.yaml
