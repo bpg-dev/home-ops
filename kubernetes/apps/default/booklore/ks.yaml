@@ -9,8 +9,6 @@ spec:
   dependsOn:
     - name: rook-ceph-cluster
       namespace: rook-ceph-external
-    - name: postgres-cluster
-      namespace: postgresql-system
   components:
     - ../../../../components/volsync
   interval: 1h
@@ -22,8 +20,8 @@ spec:
     substitute:
       APP: *app
       VOLSYNC_CLAIM: *app
-      # VOLSYNC_CAPACITY for BookLore app data (no DB - uses shared PostgreSQL)
-      VOLSYNC_CAPACITY: 5Gi
+      # VOLSYNC_CAPACITY for BookLore app data + MariaDB sidecar
+      VOLSYNC_CAPACITY: 10Gi
     substituteFrom:
       - name: cluster-secrets
         kind: Secret

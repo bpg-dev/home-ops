@@ -57,6 +57,32 @@ spec:
                 memory: 512Mi
               limits:
                 memory: 2Gi
+          mariadb:
+            image:
+              repository: lscr.io/linuxserver/mariadb
+              tag: 11.4.5
+            env:
+              TZ: "America/Toronto"
+              PUID: "1000"
+              PGID: "1000"
+              MYSQL_USER: booklore
+              MYSQL_DATABASE: booklore
+              MYSQL_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: booklore-secret
+                    key: MYSQL_PASSWORD
+              MYSQL_ROOT_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: booklore-secret
+                    key: MYSQL_ROOT_PASSWORD
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 512Mi
     service:
       app:
         controller: booklore
@@ -83,5 +109,11 @@ spec:
     persistence:
       data:
         existingClaim: "${VOLSYNC_CLAIM:=${APP}}"
-        globalMounts:
-          - path: /app/data
+        advancedMounts:
+          booklore:
+            app:
+              - path: /app/data
+                subPath: app
+            mariadb:
+              - path: /config
+                subPath: db
