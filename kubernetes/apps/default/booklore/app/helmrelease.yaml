@@ -114,6 +114,10 @@ spec:
             app:
               - path: /app/data
                 subPath: app
+              - path: /books
+                subPath: books
+              - path: /bookdrop
+                subPath: bookdrop
             mariadb:
               - path: /config
                 subPath: db
