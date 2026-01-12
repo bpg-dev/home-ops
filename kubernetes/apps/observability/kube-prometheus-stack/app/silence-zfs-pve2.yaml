@@ -1,0 +1,46 @@
+---
+# Alertmanager Silence - ZFS Pool Degradation on pve2
+#
+# Purpose: Silence critical ZfsUnexpectedPoolState alert during planned NVMe drive replacement
+# Duration: 20 days (480 hours)
+# Created: 2026-01-08
+# Expires: ~2026-01-28
+# Reason: NVMe drive /dev/nvme2 on pve2 is being replaced (Kingston OM8PGP41024Q-A0 → Crucial P310)
+#         Pool will be in degraded state during replacement and resilver
+#
+# Related Documentation:
+#   - docs/PVE2_NVME_REPLACEMENT_GUIDE.md - Full replacement procedure
+#   - docs/ALERTMANAGER_SILENCE_MANAGEMENT.md - Silence management guide
+#   - scripts/silence-zfs-pve2.sh - Quick silence script
+#
+# To create the silence, run:
+#   ./scripts/silence-zfs-pve2.sh
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-silence-zfs-pve2
+  namespace: observability
+  annotations:
+    # Silence expires 20 days from creation
+    expires: "2026-01-28T00:00:00Z"
+data:
+  instructions: |
+    This ConfigMap documents a manual silence that should be created in Alertmanager.
+
+    Execute the following command to create the silence:
+
+    kubectl exec -n observability alertmanager-kube-prometheus-stack-0 -c alertmanager -- \
+      amtool silence add \
+        alertname=ZfsUnexpectedPoolState \
+        instance=192.168.1.82:9100 \
+        --comment="ZFS pool degradation on pve2 expected during NVMe replacement - silenced for 20 days" \
+        --duration=480h \
+        --alertmanager.url=http://localhost:9093
+
+    To verify the silence:
+    kubectl exec -n observability alertmanager-kube-prometheus-stack-0 -c alertmanager -- \
+      amtool silence query --alertmanager.url=http://localhost:9093
+
+    To remove the silence early (if maintenance completes):
+    kubectl exec -n observability alertmanager-kube-prometheus-stack-0 -c alertmanager -- \
+      amtool silence expire <SILENCE_ID> --alertmanager.url=http://localhost:9093
