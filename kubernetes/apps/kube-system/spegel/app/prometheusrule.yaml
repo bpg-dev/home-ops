@@ -1,0 +1,85 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: spegel
+spec:
+  groups:
+    - name: spegel.rules
+      rules:
+        # Alert when spegel CPU usage exceeds 80% of the 500m limit for sustained period
+        - alert: SpegelHighCPU
+          expr: |-
+            sum by (pod, node) (
+              rate(container_cpu_usage_seconds_total{
+                namespace="kube-system",
+                pod=~"spegel-.*",
+                container="registry"
+              }[5m])
+            ) > 0.4
+          annotations:
+            summary: >-
+              Spegel pod {{ $labels.pod }} on {{ $labels.node }} has high CPU usage ({{ $value | humanize }} cores)
+            description: >-
+              Spegel is consuming excessive CPU which may indicate a runaway P2P loop or
+              large containerd content store. Consider restarting the pod or investigating
+              the node's containerd content store size.
+          for: 10m
+          labels:
+            severity: warning
+
+        # Alert when spegel network TX exceeds normal baseline significantly
+        - alert: SpegelHighNetworkTX
+          expr: |-
+            sum by (pod) (
+              rate(container_network_transmit_bytes_total{
+                namespace="kube-system",
+                pod=~"spegel-.*"
+              }[5m])
+            ) > 512000
+          annotations:
+            summary: >-
+              Spegel pod {{ $labels.pod }} has high network TX ({{ $value | humanize }}B/s)
+            description: >-
+              Spegel is transmitting excessive network traffic (>500KB/s sustained).
+              This correlates with high CPU usage and can cause network congestion
+              affecting other services like NFS/NAS. Check CPU alerts and consider
+              restarting the pod.
+          for: 10m
+          labels:
+            severity: warning
+
+        # Alert when memory allocation rate is very high (leading indicator)
+        - alert: SpegelHighMemoryAllocation
+          expr: |-
+            sum by (pod) (
+              rate(go_memstats_alloc_bytes_total{
+                namespace="kube-system",
+                pod=~"spegel-.*"
+              }[5m])
+            ) > 17000000
+          annotations:
+            summary: >-
+              Spegel pod {{ $labels.pod }} has high memory allocation rate ({{ $value | humanize }}B/s)
+            description: >-
+              Spegel is allocating memory at >1GB/min which indicates excessive GC
+              pressure and CPU churn. This is a leading indicator of the high CPU
+              issue. Consider restarting the pod.
+          for: 10m
+          labels:
+            severity: warning
+
+        # Critical alert if spegel is completely absent
+        - alert: SpegelAbsent
+          expr: |-
+            absent(up{job="spegel"})
+          annotations:
+            summary: >-
+              Spegel metrics endpoint has disappeared from Prometheus target discovery
+            description: >-
+              No spegel pods are reporting metrics. This could indicate all pods
+              crashed or the ServiceMonitor is misconfigured.
+          for: 5m
+          labels:
+            severity: critical
