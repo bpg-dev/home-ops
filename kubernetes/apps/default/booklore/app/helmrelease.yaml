@@ -107,6 +107,7 @@ spec:
               - identifier: app
                 port: *port
     persistence:
+      # App data and MariaDB on Volsync-backed PVC
       data:
         existingClaim: "${VOLSYNC_CLAIM:=${APP}}"
         advancedMounts:
@@ -114,10 +115,24 @@ spec:
             app:
               - path: /app/data
                 subPath: app
-              - path: /books
-                subPath: books
-              - path: /bookdrop
-                subPath: bookdrop
             mariadb:
               - path: /config
                 subPath: db
+      # Book library on NFS (computer-books/ and novels/ collections inside)
+      books:
+        type: nfs
+        server: nas.internal
+        path: /mnt/tank/nfs/booklore/library
+        advancedMounts:
+          booklore:
+            app:
+              - path: /books
+      # BookDrop import folder on NFS
+      bookdrop:
+        type: nfs
+        server: nas.internal
+        path: /mnt/tank/nfs/booklore/incoming
+        advancedMounts:
+          booklore:
+            app:
+              - path: /bookdrop
