@@ -15,10 +15,13 @@ spec:
       containerdRegistryConfigPath: /etc/cri/conf.d/hosts
     # Chart defaults are 128Mi/128Mi which is too low during image pull spikes and causes OOMKilled.
     # Keep the request modest but give the registry process enough headroom.
+    # CPU limit added to prevent runaway CPU consumption observed on nodes with large content stores.
     resources:
       requests:
+        cpu: 100m
         memory: 128Mi
       limits:
+        cpu: 500m
         memory: 512Mi
     service:
       registry:
