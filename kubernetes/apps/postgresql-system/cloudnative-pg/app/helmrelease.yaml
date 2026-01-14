@@ -25,6 +25,16 @@ spec:
   values:
     # CloudNativePG operator configuration
     # See: https://cloudnative-pg.io/documentation/current/installation_upgrade/
+    replicaCount: 2
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: cloudnative-pg
+              topologyKey: kubernetes.io/hostname
     resources:
       requests:
         cpu: 100m
@@ -40,4 +50,3 @@ spec:
       runAsUser: 1000
       runAsGroup: 1000
       fsGroup: 1000
-
