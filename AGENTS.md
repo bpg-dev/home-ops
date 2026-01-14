@@ -203,6 +203,13 @@ These rules prevent cluster failures, data corruption, or GitOps drift.
 - **ALWAYS use rootless containers** - Never run as root (UID 0)
 - **Drop ALL capabilities** - Use `capabilities.drop: [ALL]`
 
+### High Availability Rules
+
+- **NEVER increase kube-state-metrics replicas** - Multiple KSM replicas produce duplicate series that break Prometheus rule evaluations with "many-to-many matching not allowed" errors
+- **Reloader requires `enableHA: true`** when scaling to multiple replicas - Without this flag, pods crash with "POD_NAME not set" errors
+- **Check chart defaults before adding anti-affinity** - Some charts (e.g., kube-prometheus-stack alertmanagerSpec) include built-in anti-affinity that conflicts with custom affinity configs
+- **Verify Helm value paths** - Chart value structures vary (e.g., `deployment.replicas` vs `replicaCount`); always check with `helm get values` or chart documentation
+
 ## Architecture Details
 
 ### Network Architecture
