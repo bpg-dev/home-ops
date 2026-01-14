@@ -45,7 +45,7 @@ spec:
                 name: *secret
       autoscaling:
         enabled: true
-        minReplicas: 1
+        minReplicas: 2
         maxReplicas: 3
       resources:
         requests:
