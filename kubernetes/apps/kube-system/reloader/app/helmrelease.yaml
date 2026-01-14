@@ -12,12 +12,12 @@ spec:
   values:
     fullnameOverride: reloader
     reloader:
-      replicaCount: 2
       readOnlyRootFileSystem: true
       podMonitor:
         enabled: true
         namespace: "{{ .Release.Namespace }}"
       deployment:
+        replicas: 2
         affinity:
           podAntiAffinity:
             preferredDuringSchedulingIgnoredDuringExecution:
