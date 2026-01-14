@@ -41,15 +41,6 @@ spec:
         alertmanagerConfiguration:
           name: alertmanager
         externalUrl: https://alertmanager.${SECRET_DOMAIN}
-        affinity:
-          podAntiAffinity:
-            preferredDuringSchedulingIgnoredDuringExecution:
-              - weight: 100
-                podAffinityTerm:
-                  labelSelector:
-                    matchLabels:
-                      app.kubernetes.io/name: alertmanager
-                  topologyKey: kubernetes.io/hostname
         storage:
           volumeClaimTemplate:
             spec:
