@@ -12,6 +12,7 @@ spec:
   values:
     fullnameOverride: reloader
     reloader:
+      enableHA: true
       readOnlyRootFileSystem: true
       podMonitor:
         enabled: true
