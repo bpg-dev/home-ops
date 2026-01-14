@@ -118,6 +118,16 @@ spec:
       enabled: false
     kube-state-metrics:
       fullnameOverride: kube-state-metrics
+      replicas: 2
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: kube-state-metrics
+                topologyKey: kubernetes.io/hostname
     grafana:
       enabled: false
       forceDeployDashboards: true
