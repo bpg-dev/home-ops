@@ -39,7 +39,7 @@ spec:
         secret.reloader.stakater.com/reload: docs-config
       image:
         repository: lasuite/impress-backend
-        tag: latest
+        tag: v4.0.0
       envVars:
         # django-configurations: pin settings module + configuration explicitly.
         # This prevents unintended dev-only apps (e.g., django_extensions) from being enabled by default.
@@ -199,7 +199,7 @@ spec:
         secret.reloader.stakater.com/reload: docs-config
       image:
         repository: lasuite/impress-frontend
-        tag: latest
+        tag: v4.0.0
       resources:
         requests:
           cpu: 100m
@@ -217,7 +217,7 @@ spec:
     celery:
       image:
         repository: lasuite/impress-backend
-        tag: latest
+        tag: v4.0.0
       envVars:
         DJANGO_SETTINGS_MODULE: impress.settings
         DJANGO_CONFIGURATION: Production

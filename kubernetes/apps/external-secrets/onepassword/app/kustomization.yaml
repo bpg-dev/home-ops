@@ -5,6 +5,6 @@ kind: Kustomization
 namespace: external-secrets
 resources:
   - ./clustersecretstore.yaml
-  - ./onepassword-secret.sops.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
+  - ./onepassword-secret.sops.yaml

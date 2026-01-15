@@ -1,8 +1,10 @@
-allowVolumeExpansion: true
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/storageclass-storage-v1.json
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: ceph-rbd
+allowVolumeExpansion: true
 parameters:
   clusterID: rook-ceph-external
   csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
@@ -20,11 +22,12 @@ provisioner: rook-ceph-external.rbd.csi.ceph.com
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 ---
-allowVolumeExpansion: true
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/storageclass-storage-v1.json
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: cephfs
+allowVolumeExpansion: true
 parameters:
   clusterID: rook-ceph-external
   csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner

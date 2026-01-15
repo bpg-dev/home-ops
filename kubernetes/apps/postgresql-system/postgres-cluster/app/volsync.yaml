@@ -1,8 +1,8 @@
 ---
 # VolSync backups for PostgreSQL cluster PVCs
 # Each PostgreSQL instance gets its own PVC and needs its own ReplicationSource
-
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/volsync.backube/replicationsource_v1alpha1.json
 # ReplicationSource for postgres-1 PVC
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
@@ -36,6 +36,7 @@ spec:
     volumeSnapshotClassName: csi-ceph-rbd
 
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/volsync.backube/replicationsource_v1alpha1.json
 # ReplicationSource for postgres-2 PVC
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
@@ -69,6 +70,7 @@ spec:
     volumeSnapshotClassName: csi-ceph-rbd
 
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/volsync.backube/replicationsource_v1alpha1.json
 # ReplicationSource for postgres-3 PVC
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource

@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: postgresql-system
@@ -8,8 +9,8 @@ components:
   - ../../components/alerts
 
 resources:
-  - ./namespace.yaml
-  - ./cloudnative-pg/ks.yaml
   - ./barman-cloud-plugin/ks.yaml
+  - ./cloudnative-pg/ks.yaml
+  - ./namespace.yaml
   - ./postgres-cluster/ks.yaml
 

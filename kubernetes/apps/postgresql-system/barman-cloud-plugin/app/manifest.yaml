@@ -1,3 +1,4 @@
+---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -692,6 +693,7 @@ spec:
     subresources:
       status: {}
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/serviceaccount-v1.json
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -699,8 +701,8 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: plugin-barman-cloud
   name: plugin-barman-cloud
-  namespace: postgresql-system
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/role-rbac-v1.json
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -708,7 +710,6 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: plugin-barman-cloud
   name: barman-plugin-leader-election-role
-  namespace: postgresql-system
 rules:
 - apiGroups:
   - ""
@@ -742,6 +743,7 @@ rules:
   - create
   - patch
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/clusterrole-rbac-v1.json
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -760,6 +762,7 @@ rules:
   verbs:
   - create
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/clusterrole-rbac-v1.json
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -770,6 +773,7 @@ rules:
   verbs:
   - get
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/clusterrole-rbac-v1.json
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -797,6 +801,7 @@ rules:
   verbs:
   - get
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/clusterrole-rbac-v1.json
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -820,6 +825,7 @@ rules:
   verbs:
   - get
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/clusterrole-rbac-v1.json
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -888,6 +894,7 @@ rules:
   - update
   - watch
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/rolebinding-rbac-v1.json
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -895,7 +902,6 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: plugin-barman-cloud
   name: barman-plugin-leader-election-rolebinding
-  namespace: postgresql-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -905,6 +911,7 @@ subjects:
   name: plugin-barman-cloud
   namespace: postgresql-system
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/clusterrolebinding-rbac-v1.json
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -918,6 +925,7 @@ subjects:
   name: plugin-barman-cloud
   namespace: postgresql-system
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/clusterrolebinding-rbac-v1.json
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -934,6 +942,7 @@ subjects:
   name: plugin-barman-cloud
   namespace: postgresql-system
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/secret-v1.json
 apiVersion: v1
 data:
   SIDECAR_IMAGE: |
@@ -942,9 +951,9 @@ data:
 kind: Secret
 metadata:
   name: plugin-barman-cloud-dgkb8f78tm
-  namespace: postgresql-system
 type: Opaque
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/service-v1.json
 apiVersion: v1
 kind: Service
 metadata:
@@ -956,7 +965,6 @@ metadata:
     app: barman-cloud
     cnpg.io/pluginName: barman-cloud.cloudnative-pg.io
   name: barman-cloud
-  namespace: postgresql-system
 spec:
   ports:
   - port: 9090
@@ -965,13 +973,13 @@ spec:
   selector:
     app: barman-cloud
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/deployment-apps-v1.json
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
     app: barman-cloud
   name: barman-cloud
-  namespace: postgresql-system
 spec:
   replicas: 1
   selector:
@@ -1038,11 +1046,11 @@ spec:
         secret:
           secretName: barman-cloud-client-tls
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: barman-cloud-client
-  namespace: postgresql-system
 spec:
   commonName: barman-cloud-client
   duration: 2160h
@@ -1056,11 +1064,11 @@ spec:
   usages:
   - client auth
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: barman-cloud-server
-  namespace: postgresql-system
 spec:
   commonName: barman-cloud
   dnsNames:
@@ -1076,10 +1084,10 @@ spec:
   usages:
   - server auth
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cert-manager.io/issuer_v1.json
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: selfsigned-issuer
-  namespace: postgresql-system
 spec:
   selfSigned: {}

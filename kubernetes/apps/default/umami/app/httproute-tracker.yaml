@@ -1,8 +1,8 @@
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.networking.k8s.io/httproute_v1.json
 # HTTPRoute for Umami tracker script with path rewrite
 # This route specifically handles /um/um.js and rewrites it to /um.js
 # It also handles /um/api/* paths and rewrites them to /um/api/*
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.networking.k8s.io/httproute_v1.json
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:

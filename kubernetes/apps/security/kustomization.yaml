@@ -9,6 +9,6 @@ components:
   - ../../components/alerts
 
 resources:
-  - ./namespace.yaml
   - ./authentik/ks.yaml
+  - ./namespace.yaml
 
