@@ -29,7 +29,7 @@ spec:
                 - |
                   cd /usr/src/paperless/src
                   python3 manage.py document_importer /backup
-              image: ghcr.io/paperless-ngx/paperless-ngx:2.20.3
+              image: ghcr.io/paperless-ngx/paperless-ngx:2.20.4
               env:
                 - name: PAPERLESS_DATA_DIR
                   value: /library/data
