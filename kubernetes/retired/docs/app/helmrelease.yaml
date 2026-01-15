@@ -199,7 +199,7 @@ spec:
         secret.reloader.stakater.com/reload: docs-config
       image:
         repository: lasuite/impress-frontend
-        tag: v4.0.0
+        tag: v4.4.0
       resources:
         requests:
           cpu: 100m
