@@ -11,7 +11,7 @@ spec:
   interval: 1h
   values:
     fullnameOverride: *app
-    replicaCount: 2
+    replicas: 2
     affinity:
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
