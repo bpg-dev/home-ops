@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: default
@@ -8,12 +9,12 @@ components:
   - ../../components/alerts
 
 resources:
-  - ./namespace.yaml
   - ./actual-budget/ks.yaml
   - ./booklore/ks.yaml
   - ./cv-site/ks.yaml
   - ./echo/ks.yaml
   - ./homepage/ks.yaml
+  - ./namespace.yaml
   - ./paperless-ngx/ks.yaml
   - ./umami/ks.yaml
   - ./wallos/ks.yaml

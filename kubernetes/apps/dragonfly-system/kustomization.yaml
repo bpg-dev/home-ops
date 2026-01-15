@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: dragonfly-system
@@ -8,6 +9,6 @@ components:
   - ../../components/alerts
 
 resources:
-  - ./namespace.yaml
   - ./dragonfly/ks.yaml
+  - ./namespace.yaml
 

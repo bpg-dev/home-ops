@@ -5,6 +5,6 @@ kind: Kustomization
 namespace: observability
 
 resources:
-  - externalsecret.yaml
   - deployment.yaml
+  - externalsecret.yaml
   - service.yaml

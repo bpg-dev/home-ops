@@ -1,9 +1,9 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/cronjob-batch-v1.json
 # CronJob for restoring paperless-ngx documents from backup
 # Uses document_importer to import documents, thumbnails, and metadata
 # IMPORTANT: This job is suspended by default - enable manually when needed
 # Schedule: Daily at 22:36 (10:36 PM) - but suspended
-# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/cronjob.json
 apiVersion: batch/v1
 kind: CronJob
 metadata:

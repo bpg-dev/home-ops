@@ -1,6 +1,6 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/job-batch-v1.json
 # this job should not be included in the kustomization.yaml file
-# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.0/job.json
 apiVersion: batch/v1
 kind: Job
 metadata:

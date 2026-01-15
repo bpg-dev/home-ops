@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/barmancloud.cnpg.io/objectstore_v1.json
 # ObjectStore for Barman Cloud Plugin S3 backups
 # This resource requires the Barman Cloud Plugin to be installed
 apiVersion: barmancloud.cnpg.io/v1

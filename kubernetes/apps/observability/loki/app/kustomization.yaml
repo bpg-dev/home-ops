@@ -8,8 +8,8 @@ resources:
   - ./grafanadashboard-stack-monitoring.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
-  - ./service-memberlist.yaml
   - ./pdb.yaml
+  - ./service-memberlist.yaml
 
 configMapGenerator:
   - name: loki-configmap
