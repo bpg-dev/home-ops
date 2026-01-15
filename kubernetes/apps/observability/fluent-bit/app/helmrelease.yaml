@@ -34,7 +34,10 @@ spec:
           name tail
           alias kubernetes
           path /var/log/containers/*.log
-          parser containerd
+          # Use multiline parser to handle:
+          # 1. Containerd partial lines (P/F flags)
+          # 2. Java stacktraces and multiline log messages
+          multiline.parser cri,multiline-java
           tag kubernetes.*
           skip_empty_lines on
           skip_long_lines on
@@ -122,6 +125,22 @@ spec:
           time_key time
           time_format %Y-%m-%dT%H:%M:%S.%L%z
 
+        # Multiline parser for Java/Spring Boot stacktraces
+        # Continues lines that are part of a stacktrace:
+        # - Lines starting with whitespace (stacktrace frames)
+        # - Lines starting with "Caused by:" or "Suppressed:"
+        # - Lines starting with "... N more"
+        # - Lines that are exception class names (java.*, javax.*, org.*, com.*, etc.)
+        [MULTILINE_PARSER]
+          name          multiline-java
+          type          regex
+          flush_timeout 1000
+          # Start pattern: Spring Boot timestamp format or common log format
+          # Matches: 2024-01-15T17:46:52.051-05:00  INFO ...
+          rule          "start_state"   "/^(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}|[A-Z][a-z]{2} \d{2}).*/"   "cont"
+          # Continuation: stacktrace lines (start with whitespace, "at ", "Caused by", etc.)
+          rule          "cont"          "/^(\s+at\s|Caused by:|Suppressed:|\s*\.\.\.\s+\d+\s+more|\s+\.\.\.|\t|    |[a-z]+\.[a-zA-Z])/"   "cont"
+
       outputs: |-
         [OUTPUT]
           name loki
@@ -183,6 +202,18 @@ spec:
             },
           }
 
+          -- Patterns that indicate an error even if level is not set
+          local error_indicators = {
+            "Exception",
+            "Error:",
+            "FATAL",
+            "panic:",
+            "PANIC",
+            "Caused by:",
+            "Traceback",
+            "at [%w%.]+%([%w%.]+%.java:%d+%)",  -- Java stacktrace frame
+          }
+
           -- Parse log field using patterns
           function parse_log(tag, timestamp, record)
             local log = record["log"]
@@ -195,6 +226,8 @@ spec:
               return 0, 0, 0
             end
 
+            local modified = false
+
             -- Try each pattern
             for _, pattern in ipairs(patterns) do
               local captures = {string.match(log, pattern.regex)}
@@ -205,11 +238,31 @@ spec:
                   end
                 end
                 record["_parser"] = pattern.name
-                return 1, timestamp, record
+                modified = true
+                break
               end
             end
 
-            -- No pattern matched, return unchanged
+            -- Check for error indicators in the log message (for stacktraces, etc.)
+            if record["level"] == nil or string.lower(record["level"] or "") == "info" then
+              for _, indicator in ipairs(error_indicators) do
+                if string.match(log, indicator) then
+                  -- Only upgrade to error if we found an error indicator
+                  -- and current level is not already error/fatal
+                  local current = string.lower(record["level"] or "")
+                  if current ~= "error" and current ~= "fatal" then
+                    record["level"] = "error"
+                    record["_error_detected"] = true
+                    modified = true
+                  end
+                  break
+                end
+              end
+            end
+
+            if modified then
+              return 1, timestamp, record
+            end
             return 0, 0, 0
           end
 
