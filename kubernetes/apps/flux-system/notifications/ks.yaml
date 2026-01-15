@@ -9,6 +9,7 @@ spec:
   interval: 10m
   path: ./kubernetes/apps/flux-system/notifications/app
   prune: true
+  targetNamespace: flux-system
   wait: true
   sourceRef:
     kind: GitRepository
