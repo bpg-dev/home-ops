@@ -10,6 +10,16 @@ spec:
     name: grafana-operator
   interval: 1h
   values:
+    replicaCount: 2
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: grafana-operator
+              topologyKey: kubernetes.io/hostname
     dashboard:
       enabled: true
     serviceMonitor:

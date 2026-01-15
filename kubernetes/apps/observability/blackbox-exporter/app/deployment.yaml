@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: blackbox-exporter
     app.kubernetes.io/instance: blackbox-exporter
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app.kubernetes.io/name: blackbox-exporter
@@ -19,6 +19,16 @@ spec:
         app.kubernetes.io/name: blackbox-exporter
         app.kubernetes.io/instance: blackbox-exporter
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: blackbox-exporter
+                    app.kubernetes.io/instance: blackbox-exporter
+                topologyKey: kubernetes.io/hostname
       containers:
         - name: blackbox-exporter
           image: prom/blackbox-exporter:v0.28.0

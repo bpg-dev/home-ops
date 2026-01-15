@@ -41,6 +41,9 @@ spec:
         alertmanagerConfiguration:
           name: alertmanager
         externalUrl: https://alertmanager.${SECRET_DOMAIN}
+        podDisruptionBudget:
+          enabled: true
+          minAvailable: 1
         storage:
           volumeClaimTemplate:
             spec:

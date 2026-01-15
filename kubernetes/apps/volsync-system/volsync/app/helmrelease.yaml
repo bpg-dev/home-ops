@@ -11,6 +11,16 @@ spec:
   interval: 1h
   values:
     fullnameOverride: volsync # Required for volsync-perfectra1n fork
+    replicaCount: 2
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: volsync-perfectra1n
+              topologyKey: kubernetes.io/hostname
     image: &image
       repository: ghcr.io/perfectra1n/volsync
       tag: 0.17.6

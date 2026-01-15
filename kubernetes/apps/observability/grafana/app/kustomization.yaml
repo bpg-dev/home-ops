@@ -12,6 +12,7 @@ resources:
   - ./minecraft-router-dashboard.yaml
   - ./minecraft-status-dashboard.yaml
   - ./ocirepository.yaml
+  - ./pdb.yaml
   - ./proxmox-dashboard.yaml
 
 configMapGenerator:
