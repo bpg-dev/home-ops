@@ -12,4 +12,3 @@ resources:
   - ./flux-instance/ks.yaml
   - ./flux-operator/ks.yaml
   - ./namespace.yaml
-  - ./notifications/ks.yaml
