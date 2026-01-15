@@ -11,14 +11,7 @@ spec:
   interval: 1h
   values:
     fullnameOverride: *app
-    replicas: 2
-    affinity:
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchLabels:
-                app.kubernetes.io/name: cloudflare-dns
-            topologyKey: kubernetes.io/hostname
+    # Note: external-dns chart doesn't support replicas value (hardcoded to 1)
     provider: cloudflare
     env:
       - name: CF_API_TOKEN
