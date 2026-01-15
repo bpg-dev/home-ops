@@ -187,6 +187,7 @@ These rules prevent cluster failures, data corruption, or GitOps drift.
 ### Resource Rules
 
 - **NEVER specify `metadata.namespace` in app resources** - Breaks inheritance from parent kustomization
+- **If app resources omit `metadata.namespace`, Flux `Kustomization` MUST set `spec.targetNamespace`** - Otherwise reconciliation can fail (e.g. for Notification `Provider`/`Alert`)
 - **NEVER use `latest` or non-semantic version tags** - Pin specific versions
 - **NEVER share databases between applications** - Dedicated instances per app
 - **NEVER create LoadBalancer services** without explicit discussion
@@ -332,6 +333,8 @@ spec:
 
 - Use 2-space indentation
 - Start with `---` document separator
+- If using YAML schema directives, place `# yaml-language-server: $schema=...` **immediately after `---`**
+  - For multi-document YAML, repeat the schema directive **after every `---`** for each document
 - Add yaml-language-server schema directive:
 
 ```yaml
@@ -339,11 +342,17 @@ spec:
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
 ```
 
-Schema sources (preference order):
+Schema sources:
 
-1. `kubernetes-schemas.pages.dev`
-2. `json.schemastore.org`
-3. `raw.githubusercontent.com/datreeio/CRDs-catalog`
+1. **Flux toolkit resources** (HelmRelease/OCIRepository/Kustomization/Notification, etc.): `kubernetes-schemas.pages.dev`
+2. **Kustomize `kustomization.yaml`**: `https://json.schemastore.org/kustomization`
+3. **Core Kubernetes resources** (Namespace/Secret/Service/PDB/etc.): `https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone-strict/`
+4. **Other CRDs** (when not available on `kubernetes-schemas.pages.dev`): `https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/`
+
+Whenever updating schema directives, validate:
+
+- **placement** (schema line is immediately after `---`)
+- **schema existence** (remote URL returns 2xx/3xx, or local relative path exists)
 
 ### Resource Naming
 
