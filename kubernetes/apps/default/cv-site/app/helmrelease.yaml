@@ -12,6 +12,7 @@ spec:
   values:
     controllers:
       cv-site:
+        replicas: 2
         strategy: RollingUpdate
         containers:
           app:
@@ -41,6 +42,22 @@ spec:
               limits:
                 memory: 64Mi
     defaultPodOptions:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: cv-site
+                topologyKey: kubernetes.io/hostname
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: cv-site
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534

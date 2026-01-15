@@ -12,6 +12,7 @@ spec:
   values:
     controllers:
       umami:
+        replicas: 2
         strategy: RollingUpdate
         containers:
           app:
@@ -49,6 +50,22 @@ spec:
               limits:
                 memory: 512Mi
     defaultPodOptions:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: umami
+                topologyKey: kubernetes.io/hostname
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: umami
       securityContext:
         runAsNonRoot: true
         runAsUser: 1001

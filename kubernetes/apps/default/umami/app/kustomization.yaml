@@ -8,3 +8,4 @@ resources:
   - ./helmrelease.yaml
   - ./httproute-tracker.yaml
   - ./ocirepository.yaml
+  - ./pdb.yaml
