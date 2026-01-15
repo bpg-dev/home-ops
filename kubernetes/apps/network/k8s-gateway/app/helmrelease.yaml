@@ -10,6 +10,7 @@ spec:
   interval: 1h
   values:
     fullnameOverride: k8s-gateway
+    priorityClassName: system-cluster-critical
     replicaCount: 2
     affinity:
       podAntiAffinity:
@@ -18,6 +19,19 @@ spec:
               matchLabels:
                 app.kubernetes.io/name: k8s-gateway
             topologyKey: kubernetes.io/hostname
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: k8s-gateway
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
     domain: "${SECRET_DOMAIN}"
     ttl: 1
     service:

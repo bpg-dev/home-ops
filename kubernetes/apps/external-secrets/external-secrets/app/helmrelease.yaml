@@ -10,6 +10,8 @@ spec:
     name: external-secrets
   interval: 1h
   values:
+    global:
+      priorityClassName: system-cluster-critical
     leaderElect: true
     replicaCount: 2
     affinity:
@@ -19,6 +21,19 @@ spec:
               matchLabels:
                 app.kubernetes.io/name: external-secrets
             topologyKey: kubernetes.io/hostname
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: external-secrets
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
     serviceMonitor:
       enabled: true
     grafanaDashboard:
@@ -33,10 +48,31 @@ spec:
                   app.kubernetes.io/name: external-secrets
                   app.kubernetes.io/component: cert-controller
               topologyKey: kubernetes.io/hostname
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          memory: 256Mi
       serviceMonitor:
         enabled: true
     webhook:
       replicaCount: 2
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: external-secrets-webhook
+                topologyKey: kubernetes.io/hostname
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          memory: 256Mi
       serviceMonitor:
         enabled: true
     extraArgs:

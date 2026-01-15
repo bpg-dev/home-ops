@@ -13,6 +13,7 @@ spec:
       imageRegistry: mirror.gcr.io
     deployment:
       replicas: 2
+      priorityClassName: system-cluster-critical
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -21,6 +22,14 @@ spec:
                   app.kubernetes.io/name: gateway-helm
                   control-plane: envoy-gateway
               topologyKey: kubernetes.io/hostname
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: gateway-helm
+              control-plane: envoy-gateway
     config:
       envoyGateway:
         provider:

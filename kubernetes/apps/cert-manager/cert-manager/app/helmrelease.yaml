@@ -11,6 +11,8 @@ spec:
   values:
     crds:
       enabled: true
+    global:
+      priorityClassName: system-cluster-critical
     replicaCount: 2
     affinity:
       podAntiAffinity:
@@ -19,6 +21,20 @@ spec:
               matchLabels:
                 app.kubernetes.io/name: cert-manager
             topologyKey: kubernetes.io/hostname
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: cert-manager
+            app.kubernetes.io/component: controller
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
     cainjector:
       replicaCount: 2
       affinity:
@@ -29,6 +45,12 @@ spec:
                   app.kubernetes.io/name: cert-manager
                   app.kubernetes.io/component: cainjector
               topologyKey: kubernetes.io/hostname
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          memory: 256Mi
     webhook:
       replicaCount: 2
       affinity:
@@ -39,6 +61,12 @@ spec:
                   app.kubernetes.io/name: cert-manager
                   app.kubernetes.io/component: webhook
               topologyKey: kubernetes.io/hostname
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          memory: 256Mi
     dns01RecursiveNameservers: https://1.1.1.1:443/dns-query,https://1.0.0.1:443/dns-query
     dns01RecursiveNameserversOnly: true
     prometheus:
