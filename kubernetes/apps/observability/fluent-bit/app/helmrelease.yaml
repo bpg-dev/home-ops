@@ -95,7 +95,7 @@ spec:
         [FILTER]
           name lua
           match kubernetes.*
-          script /fluent-bit/etc/parse_logs.lua
+          script /fluent-bit/etc/conf/parse_logs.lua
           call parse_log
 
         # Normalize level field to lowercase for consistent querying
@@ -110,7 +110,7 @@ spec:
         [FILTER]
           name lua
           match kubernetes.*
-          script /fluent-bit/etc/parse_logs.lua
+          script /fluent-bit/etc/conf/parse_logs.lua
           call normalize_level
 
       customParsers: |-
