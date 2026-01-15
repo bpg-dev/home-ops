@@ -87,7 +87,34 @@ spec:
           rename k_labels_app app
           rename k_labels_k8s-app app
 
+        # ============================================================
+        # Log Parsing via Lua
+        # Tries patterns in order, stops at first match.
+        # JSON logs are already handled by merge_log above.
+        # ============================================================
+        [FILTER]
+          name lua
+          match kubernetes.*
+          script /fluent-bit/etc/parse_logs.lua
+          call parse_log
+
+        # Normalize level field to lowercase for consistent querying
+        [FILTER]
+          name modify
+          match kubernetes.*
+          # Rename common alternatives to "level"
+          rename severity level
+          rename loglevel level
+          rename lvl level
+
+        [FILTER]
+          name lua
+          match kubernetes.*
+          script /fluent-bit/etc/parse_logs.lua
+          call normalize_level
+
       customParsers: |-
+        # Containerd log wrapper format
         [PARSER]
           name containerd
           format regex
@@ -117,6 +144,96 @@ spec:
           Retry_Limit 60
           # syslog-rfc5424 parser emits `host` and `ident` fields.
           labels job=proxmox,host=$host,ident=$ident
+
+      # Lua script for intelligent log parsing
+      # Tries patterns in order, stops at first match
+      extraFiles:
+        parse_logs.lua: |
+          -- Pattern definitions: tried in order, first match wins
+          local patterns = {
+            -- Spring Boot: 2024-01-15T17:46:54.848-05:00  INFO 12 --- [app] [thread] logger : message
+            {
+              name = "springboot",
+              regex = "^(%d%d%d%d%-%d%d%-%d%dT%d%d:%d%d:%d%d%.%d+[%+%-]%d%d:%d%d)%s+(%w+)%s+(%d+)%s+%-%-%-%s+%[([^%]]+)%]%s+%[([^%]]*)%]%s+(%S+)%s+:%s+(.*)$",
+              fields = {"time", "level", "pid", "appname", "thread", "logger", "message"}
+            },
+            -- Python Celery: [2024-01-15 22:43:03,853] [INFO] [logger] message
+            {
+              name = "python_celery",
+              regex = "^%[(%d%d%d%d%-%d%d%-%d%d%s+%d%d:%d%d:%d%d,%d+)%]%s+%[(%w+)%]%s+%[([^%]]+)%]%s+(.*)$",
+              fields = {"time", "level", "logger", "message"}
+            },
+            -- Zap logger (Go): timestamp\tLEVEL\tmodule\tsource\tmessage\t{json}
+            {
+              name = "zap",
+              regex = "^(%d%d%d%d%-%d%d%-%d%dT%d%d:%d%d:%d%d%.%d+Z)\t(%w+)\t([^\t]+)\t([^\t]+)\t([^\t]+)(.*)$",
+              fields = {"time", "level", "module", "source", "message", "extra"}
+            },
+            -- CoreDNS: [INFO] ip:port - id "query" RCODE flags size duration
+            {
+              name = "coredns",
+              regex = "^%[(%w+)%]%s+([^%s:]+):(%d+)%s+%-%s+(%d+)%s+\"([^\"]+)\"%s+(%w+)%s+([^%s]+)%s+(%d+)%s+(%S+)$",
+              fields = {"level", "client_ip", "client_port", "query_id", "query", "rcode", "flags", "size", "duration"}
+            },
+            -- Logfmt: time=X level=Y msg="Z" (common in Go apps like Cilium)
+            {
+              name = "logfmt",
+              regex = "^time=(%S+)%s+level=(%w+)%s+msg=\"([^\"]+)\"(.*)$",
+              fields = {"time", "level", "msg", "extra"}
+            },
+          }
+
+          -- Parse log field using patterns
+          function parse_log(tag, timestamp, record)
+            local log = record["log"]
+            if log == nil or log == "" then
+              return 0, 0, 0
+            end
+
+            -- Skip if already parsed (has level field from merge_log JSON parsing)
+            if record["level"] ~= nil then
+              return 0, 0, 0
+            end
+
+            -- Try each pattern
+            for _, pattern in ipairs(patterns) do
+              local captures = {string.match(log, pattern.regex)}
+              if #captures > 0 then
+                for i, field in ipairs(pattern.fields) do
+                  if captures[i] and captures[i] ~= "" then
+                    record[field] = captures[i]
+                  end
+                end
+                record["_parser"] = pattern.name
+                return 1, timestamp, record
+              end
+            end
+
+            -- No pattern matched, return unchanged
+            return 0, 0, 0
+          end
+
+          -- Normalize level to lowercase
+          function normalize_level(tag, timestamp, record)
+            local level = record["level"]
+            if level == nil then
+              return 0, 0, 0
+            end
+
+            local normalized = string.lower(level)
+            -- Map WARNING to warn for consistency
+            if normalized == "warning" then
+              normalized = "warn"
+            end
+
+            if normalized ~= level then
+              record["level"] = normalized
+              return 1, timestamp, record
+            end
+
+            return 0, 0, 0
+          end
+
     dashboards:
       enabled: true
     # Fluent Bit runs on every node; set requests/limits so resource dashboards can render and to avoid noisy eviction risk.
