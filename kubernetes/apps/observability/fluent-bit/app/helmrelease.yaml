@@ -34,10 +34,8 @@ spec:
           name tail
           alias kubernetes
           path /var/log/containers/*.log
-          # Use multiline parser to handle:
-          # 1. Containerd partial lines (P/F flags)
-          # 2. Java stacktraces and multiline log messages
-          multiline.parser cri,multiline-java
+          # Use cri parser to handle containerd partial lines (P/F flags)
+          multiline.parser cri
           tag kubernetes.*
           skip_empty_lines on
           skip_long_lines on
@@ -68,6 +66,14 @@ spec:
           k8s-logging.exclude on
           namespace_labels off
           annotations off
+
+        # Multiline filter for Java stacktraces - runs AFTER kubernetes filter
+        # extracts the log content, so it can concatenate stacktrace lines
+        [FILTER]
+          name multiline
+          match kubernetes.*
+          multiline.key_content log
+          multiline.parser multiline-java
 
         [FILTER]
           name nest
@@ -126,20 +132,28 @@ spec:
           time_format %Y-%m-%dT%H:%M:%S.%L%z
 
         # Multiline parser for Java/Spring Boot stacktraces
-        # Continues lines that are part of a stacktrace:
-        # - Lines starting with whitespace (stacktrace frames)
-        # - Lines starting with "Caused by:" or "Suppressed:"
-        # - Lines starting with "... N more"
-        # - Lines that are exception class names (java.*, javax.*, org.*, com.*, etc.)
+        # Used by the multiline FILTER (not input) to concatenate stacktrace lines
+        # after the kubernetes filter extracts the log content.
         [MULTILINE_PARSER]
           name          multiline-java
           type          regex
-          flush_timeout 1000
-          # Start pattern: Spring Boot timestamp format or common log format
-          # Matches: 2024-01-15T17:46:52.051-05:00  INFO ...
-          rule          "start_state"   "/^(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}|[A-Z][a-z]{2} \d{2}).*/"   "cont"
-          # Continuation: stacktrace lines (start with whitespace, "at ", "Caused by", etc.)
-          rule          "cont"          "/^(\s+at\s|Caused by:|Suppressed:|\s*\.\.\.\s+\d+\s+more|\s+\.\.\.|\t|    |[a-z]+\.[a-zA-Z])/"   "cont"
+          flush_timeout 2000
+          # Start pattern: Timestamp at start of line (various formats)
+          # - Spring Boot: 2024-01-15T17:46:52.051-05:00  INFO ...
+          # - Simple: 2024-01-15 17:46:52.051 [D] ...
+          rule          "start_state"   "/^\d{4}-\d{2}-\d{2}[T ]/"   "cont"
+          # Continuation patterns for Java stacktraces:
+          # - Tab or spaces followed by "at " (stacktrace frame)
+          # - "Caused by:" or "Suppressed:" (chained exceptions)
+          # - "... N more" (truncated frames)
+          # - Exception class names (java.*, javax.*, org.*, com.*, io.*, etc.)
+          # - Blank lines within stacktrace
+          rule          "cont"          "/^(\t|    )/"              "cont"
+          rule          "cont"          "/^Caused by:/"             "cont"
+          rule          "cont"          "/^Suppressed:/"            "cont"
+          rule          "cont"          "/^\.\.\. \d+ (more|common)/"  "cont"
+          rule          "cont"          "/^[a-z]+\.[a-zA-Z]/"       "cont"
+          rule          "cont"          "/^$/"                      "cont"
 
       outputs: |-
         [OUTPUT]
