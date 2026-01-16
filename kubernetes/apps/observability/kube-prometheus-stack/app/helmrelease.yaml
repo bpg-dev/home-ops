@@ -112,6 +112,7 @@ spec:
           runAsUser: 64535
           runAsGroup: 64535
           fsGroup: 64535
+          fsGroupChangePolicy: OnRootMismatch
         podMonitorSelectorNilUsesHelmValues: false
         probeSelectorNilUsesHelmValues: false
         ruleSelectorNilUsesHelmValues: false
@@ -124,9 +125,11 @@ spec:
         resources:
           requests:
             cpu: 100m
-            memory: 1500Mi
+            memory: 2000Mi
           limits:
-            memory: 4000Mi
+            # Temporarily at 6Gi while TSDB compacts overlapping blocks from prior crashes.
+            # Can reduce to 4Gi once series count drops after histogram metrics age out (~2h).
+            memory: 6000Mi
         storageSpec:
           volumeClaimTemplate:
             spec:
