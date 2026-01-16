@@ -51,10 +51,26 @@ spec:
               resources:
                 requests:
                   storage: 1Gi
+    # Drop high-cardinality apiserver histogram bucket metrics to reduce memory usage.
+    # These detailed latency buckets are rarely needed for home clusters and account for ~65k series.
+    kubeApiServer:
+      serviceMonitor:
+        metricRelabelings:
+          - sourceLabels: [__name__]
+            regex: apiserver_(request_duration|request_body_size|request_sli_duration|watch_cache_read_wait|response_sizes|watch_list_duration|watch_events_sizes)_seconds_bucket
+            action: drop
+          - sourceLabels: [__name__]
+            regex: apiserver_request_body_size_bytes_bucket
+            action: drop
     kubeEtcd:
       service:
         selector:
           component: kube-apiserver # etcd runs on control plane nodes
+      serviceMonitor:
+        metricRelabelings:
+          - sourceLabels: [__name__]
+            regex: etcd_request_duration_seconds_bucket
+            action: drop
     kubeProxy:
       enabled: false
     prometheus:
@@ -101,16 +117,16 @@ spec:
         ruleSelectorNilUsesHelmValues: false
         scrapeConfigSelectorNilUsesHelmValues: false
         serviceMonitorSelectorNilUsesHelmValues: false
-        # Keep 90 days of metrics locally (Prometheus TSDB).
+        # Keep 60 days of metrics locally (Prometheus TSDB).
         # Ensure PVC size is large enough; otherwise Prometheus will hit disk pressure and evict old blocks earlier.
-        retention: 90d
-        retentionSize: 250GB
+        retention: 60d
+        retentionSize: 200GB
         resources:
           requests:
             cpu: 100m
-            memory: 2000Mi
+            memory: 1500Mi
           limits:
-            memory: 6000Mi
+            memory: 4000Mi
         storageSpec:
           volumeClaimTemplate:
             spec:
