@@ -125,11 +125,9 @@ spec:
         resources:
           requests:
             cpu: 100m
-            memory: 2000Mi
+            memory: 1500Mi
           limits:
-            # Temporarily at 6Gi while TSDB compacts overlapping blocks from prior crashes.
-            # Can reduce to 4Gi once series count drops after histogram metrics age out (~2h).
-            memory: 6000Mi
+            memory: 4000Mi
         storageSpec:
           volumeClaimTemplate:
             spec:
