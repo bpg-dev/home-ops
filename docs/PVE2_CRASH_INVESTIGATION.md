@@ -1,0 +1,159 @@
+# PVE2 Crash Investigation - January 2026
+
+## Summary
+
+**Node**: pve2 (192.168.1.82)
+**Issue**: Repeated system hangs requiring manual power cycle
+**Root Cause**: Faulty Kingston OM8PGP41024Q-A0 NVMe causing PCIe bus freeze
+**Resolution**: Driver unbound pending physical drive replacement
+
+## Timeline
+
+| Date           | Event                                                     |
+|----------------|-----------------------------------------------------------|
+| Jan 4, 2026    | First crashes observed                                    |
+| Jan 4-7, 2026  | Multiple crashes (4+ incidents)                           |
+| Jan 7, 2026    | NVMe identified as failing (717+ errors), offlined in ZFS |
+| Jan 15, 2026   | Crashes continued despite ZFS offline                     |
+| Jan 16, 2026   | Investigation revealed PCIe-level issues; driver unbound  |
+
+## Crash Analysis
+
+### Symptoms
+
+- System completely unresponsive (keyboard dead, network unreachable)
+- Hardware watchdog (iTCO_wdt, 10s timeout) failed to trigger reboot
+- Required manual power cycle to recover
+- `pvestatd` segfault visible on console before hang
+
+### Console Output Before Crash
+
+```text
+perf: interrupt took too long (2501 > 2500), lowering kernel.perf_event_max_sample_rate to 79000
+hrtimer: interrupt took 28038 ns
+perf: interrupt took too long (3129 > 3126), lowering kernel.perf_event_max_sample_rate to 63000
+perf: interrupt took too long (3913 > 3911), lowering kernel.perf_event_max_sample_rate to 51000
+pvestatd[17411]: segfault at 11 ip 0000061b4a78e3aa0 sp 00007ffdda275750 error 6 in perl[...] likely on CPU 3 (core 4, socket 0)
+```
+
+### Key Findings
+
+1. **NVMe Error Log**: 726 errors (up from initial 717)
+2. **PCIe Link Degraded**: Running at 8GT/s x2 instead of rated 16GT/s x4
+3. **PCIe Device Status**: `CorrErr+` and `UnsupReq+` flags set
+4. **42 Unsafe Shutdowns** recorded on the drive
+5. **No EDAC memory errors**: RAM is healthy (0 correctable, 0 uncorrectable)
+
+### PCIe Status (Before Fix)
+
+```text
+59:00.0 Non-Volatile memory controller: Kingston Technology Company, Inc. OM8PGP4 NVMe PCIe SSD
+    LnkSta: Speed 8GT/s (downgraded), Width x2 (downgraded)
+    DevSta: CorrErr+ NonFatalErr- FatalErr- UnsupReq+ AuxPwr- TransPend-
+```
+
+### Why Watchdog Failed
+
+The hang occurred at the **hardware/PCIe level**, not software:
+
+1. Faulty NVMe held the PCIe bus in an invalid state
+2. All PCIe traffic blocked (USB keyboard, network NIC)
+3. CPU couldn't execute any code, including watchdog reset handling
+4. Even hardware watchdog reset couldn't propagate through frozen chipset
+
+## Root Cause
+
+The Kingston OM8PGP41024Q-A0 NVMe drive, even when **offlined in ZFS**, was still:
+
+1. Active on the PCIe bus and generating hardware errors
+2. Operating on a degraded PCIe link (signal integrity issues)
+3. Sending interrupts and consuming CPU cycles
+4. Occasionally freezing the PCIe fabric, causing complete system hangs
+
+**Important**: Offlining a drive in ZFS only stops ZFS from using it. The kernel NVMe driver still communicates with the device for health monitoring, SMART data, etc. This communication was triggering the PCIe freezes.
+
+## Resolution
+
+### Immediate Fix (Applied 2026-01-16)
+
+1. **Unbound NVMe driver** from the faulty device:
+
+   ```bash
+   echo "0000:59:00.0" > /sys/bus/pci/drivers/nvme/unbind
+   ```
+
+2. **Set driver override** to prevent rebinding:
+
+   ```bash
+   echo 'none' > /sys/bus/pci/devices/0000:59:00.0/driver_override
+   ```
+
+3. **Created udev rule** for persistence across reboots:
+
+   ```bash
+   # /etc/udev/rules.d/99-block-faulty-nvme.rules
+   ACTION=="add", SUBSYSTEM=="pci", KERNEL=="0000:59:00.0", ATTR{driver_override}="none"
+   ```
+
+### Permanent Fix
+
+Physical replacement of the faulty NVMe drive with Crucial P310 1TB.
+See: [PVE2_NVME_REPLACEMENT_GUIDE.md](PVE2_NVME_REPLACEMENT_GUIDE.md)
+
+## Post-Fix Status
+
+```text
+Node        Model                    Status
+nvme0       Intel SSDPE2KE032T7      ✓ Healthy (Ceph OSD)
+nvme1       Kingston OM8PGP41024Q-A0 ✗ BLOCKED (driver unbound)
+nvme2       Kingston SNV3S1000G      ✓ Healthy (ZFS rpool)
+```
+
+ZFS pool running in degraded mode on single healthy drive (nvme2).
+
+## Cleanup After Physical Replacement
+
+After replacing the faulty drive, remove the udev rule:
+
+```bash
+rm /etc/udev/rules.d/99-block-faulty-nvme.rules
+udevadm control --reload-rules
+```
+
+## Lessons Learned
+
+1. **Offlining a drive in ZFS is not enough** - The kernel driver still interacts with the hardware
+2. **Faulty NVMe can cause system-wide hangs** - PCIe bus freeze affects all devices
+3. **Hardware watchdog can fail** - When the hang is at the PCIe/chipset level
+4. **PCIe link degradation is a warning sign** - Check `lspci -vvs` for link status
+5. **Driver unbind is an effective workaround** - Stops all kernel interaction with faulty hardware
+
+## Diagnostic Commands Reference
+
+```bash
+# Check for PCIe errors
+lspci -vvs 59:00.0 | grep -E 'LnkSta|DevSta'
+
+# Check NVMe error log
+nvme error-log /dev/nvme1 | head -20
+smartctl -a /dev/nvme1
+
+# Check memory errors (EDAC)
+cat /sys/devices/system/edac/mc/mc*/ce_count
+cat /sys/devices/system/edac/mc/mc*/ue_count
+
+# Check crash history
+last reboot | head -10
+
+# Check for segfaults
+journalctl --since '7 days ago' | grep -i segfault
+
+# Verify driver binding
+ls /sys/bus/pci/devices/0000:59:00.0/driver 2>/dev/null || echo "No driver bound"
+```
+
+## Document History
+
+- **Created**: 2026-01-16
+- **Author**: Home-ops automation
+- **Related**: [PVE2_NVME_REPLACEMENT_GUIDE.md](PVE2_NVME_REPLACEMENT_GUIDE.md)

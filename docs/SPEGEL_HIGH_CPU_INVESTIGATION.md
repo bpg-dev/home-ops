@@ -17,7 +17,7 @@ Investigation into spegel (P2P container registry mirror) consuming excessive CP
 
 The node `talos-prod-2` had:
 - **1,053 containerd content blobs** (vs ~772-817 on other nodes)
-- **59 pods scheduled** (vs 44 and 22 on other nodes)  
+- **59 pods scheduled** (vs 44 and 22 on other nodes)
 - **74% disk usage** on `/var` (vs 55-56% on other nodes)
 
 The larger content store caused spegel to work harder tracking and advertising all the image digests via the libp2p DHT. This resulted in:
