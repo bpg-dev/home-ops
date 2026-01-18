@@ -231,9 +231,16 @@ journalctl --since '7 days ago' | grep -i segfault
 ls /sys/bus/pci/devices/0000:59:00.0/driver 2>/dev/null || echo "No driver bound"
 ```
 
+## Downstream Impacts
+
+The PVE2 outages caused downstream issues in the Kubernetes cluster:
+
+- **Loki Memberlist Ring**: Pod restart loop due to stale ring entry after abrupt node reboot.
+  See: [LOKI_MEMBERLIST_RING_RECOVERY.md](LOKI_MEMBERLIST_RING_RECOVERY.md)
+
 ## Document History
 
 - **Created**: 2026-01-16
-- **Updated**: 2026-01-18 (NVMe physically removed; CPU core 4 re-enabled for testing)
+- **Updated**: 2026-01-18 (NVMe physically removed; CPU core 4 re-enabled for testing; added downstream impacts)
 - **Author**: Home-ops automation
 - **Related**: [PVE2_NVME_REPLACEMENT_GUIDE.md](PVE2_NVME_REPLACEMENT_GUIDE.md)
