@@ -4,13 +4,13 @@
 
 This guide documents the process of replacing the failing Kingston OM8PGP41024Q-A0 NVMe drive (`/dev/nvme2`) on **pve2** (192.168.1.82) with a new Crucial P310 1TB drive.
 
-> **⚠️ IMPORTANT: Driver Unbind Workaround Active**
+> **⚠️ STATUS UPDATE (2026-01-18)**
 >
-> As of 2026-01-16, the faulty NVMe driver has been **unbound** to prevent system crashes.
-> The drive caused PCIe-level hangs even when offlined in ZFS.
-> See: [PVE2_CRASH_INVESTIGATION.md](PVE2_CRASH_INVESTIGATION.md) for details.
+> - The faulty Kingston OM8PGP41024Q-A0 has been **physically removed**
+> - CPU core 4 showed crashes but is **currently enabled** for testing
+> - See: [PVE2_CRASH_INVESTIGATION.md](PVE2_CRASH_INVESTIGATION.md) for full details
 >
-> **After physical replacement**, you must remove the udev rule:
+> **Before installing replacement drive**, remove the old udev rule:
 >
 > ```bash
 > rm /etc/udev/rules.d/99-block-faulty-nvme.rules

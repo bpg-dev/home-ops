@@ -100,25 +100,104 @@ The Kingston OM8PGP41024Q-A0 NVMe drive, even when **offlined in ZFS**, was stil
 Physical replacement of the faulty NVMe drive with Crucial P310 1TB.
 See: [PVE2_NVME_REPLACEMENT_GUIDE.md](PVE2_NVME_REPLACEMENT_GUIDE.md)
 
-## Post-Fix Status
+## Post-Fix Status (Updated 2026-01-18)
+
+### NVMe Status
+
+The faulty Kingston OM8PGP41024Q-A0 was **physically removed** on 2026-01-17.
 
 ```text
 Node        Model                    Status
 nvme0       Intel SSDPE2KE032T7      ✓ Healthy (Ceph OSD)
-nvme1       Kingston OM8PGP41024Q-A0 ✗ BLOCKED (driver unbound)
-nvme2       Kingston SNV3S1000G      ✓ Healthy (ZFS rpool)
+nvme1       Kingston SNV3S1000G      ✓ Healthy (ZFS rpool)
 ```
 
-ZFS pool running in degraded mode on single healthy drive (nvme2).
+ZFS pool running in degraded mode on single healthy drive.
 
-## Cleanup After Physical Replacement
+### CPU Core 4 Investigation
 
-After replacing the faulty drive, remove the udev rule:
+**Observation**: Crashes occurred on CPU 3 (core 4) even with NVMe driver unbound
+(but drive still physically present).
+
+```text
+pveproxy worker[23030]: segfault ... error 6 in perl... likely on CPU 3 (core 4, socket 0)
+pvestatd[1750]: segfault ... error 6 in perl... likely on CPU 3 (core 4, socket 0)
+pvestatd[348299]: segfault ... error 7 in perl... likely on CPU 3 (core 4, socket 0)
+```
+
+**Timeline**:
+
+1. NVMe driver unbound to stop crashes
+2. System crashed again (NVMe physically present, driver unbound)
+3. NVMe **physically removed** after that crash
+4. Now monitoring to see if crashes were caused by NVMe or CPU
+
+**Current status (2026-01-18)**:
+
+- Faulty NVMe: **Physically removed**
+- CPU core 4: **Enabled** (monitoring for crashes)
+- Online CPUs: `0-19` (all 20 threads active)
+
+**If crashes return on core 4**, disable it with:
 
 ```bash
+# Immediate disable
+echo 0 > /sys/devices/system/cpu/cpu2/online
+echo 0 > /sys/devices/system/cpu/cpu3/online
+
+# To make persistent, create systemd service (see below)
+```
+
+## Cleanup After NVMe Replacement
+
+After installing the replacement Crucial P310 drive:
+
+```bash
+# Remove the udev rule (no longer needed since drive was removed)
 rm /etc/udev/rules.d/99-block-faulty-nvme.rules
 udevadm control --reload-rules
 ```
+
+## CPU Core 4 - Contingency Plan
+
+If crashes return on CPU core 4 after NVMe removal:
+
+### Disable Core 4 (Immediate)
+
+```bash
+echo 0 > /sys/devices/system/cpu/cpu2/online
+echo 0 > /sys/devices/system/cpu/cpu3/online
+```
+
+### Disable Core 4 (Persistent)
+
+Create systemd service:
+
+```bash
+cat > /etc/systemd/system/disable-cpu-core4.service << 'EOF'
+[Unit]
+Description=Disable CPU Core 4 (CPUs 2,3) due to suspected hardware fault
+After=sysinit.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'echo 0 > /sys/devices/system/cpu/cpu3/online; echo 0 > /sys/devices/system/cpu/cpu2/online'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable disable-cpu-core4.service
+```
+
+### Long-term Options
+
+1. **Keep running with core disabled** - Minor performance loss (~10%)
+2. **Check for BIOS/microcode updates** - May address CPU errata
+3. **RMA the CPU** - If under warranty, this is a hardware defect
+4. **Run memtest86+** - If crashes appear on other cores, suspect RAM
 
 ## Lessons Learned
 
@@ -155,5 +234,6 @@ ls /sys/bus/pci/devices/0000:59:00.0/driver 2>/dev/null || echo "No driver bound
 ## Document History
 
 - **Created**: 2026-01-16
+- **Updated**: 2026-01-18 (NVMe physically removed; CPU core 4 re-enabled for testing)
 - **Author**: Home-ops automation
 - **Related**: [PVE2_NVME_REPLACEMENT_GUIDE.md](PVE2_NVME_REPLACEMENT_GUIDE.md)
