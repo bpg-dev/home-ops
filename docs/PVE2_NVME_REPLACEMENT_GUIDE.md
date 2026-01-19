@@ -4,10 +4,10 @@
 
 This guide documents the process of replacing the failing Kingston OM8PGP41024Q-A0 NVMe drive (`/dev/nvme2`) on **pve2** (192.168.1.82) with a new Crucial P310 1TB drive.
 
-> **⚠️ STATUS UPDATE (2026-01-18)**
+> **⚠️ STATUS UPDATE (2026-01-19)**
 >
 > - The faulty Kingston OM8PGP41024Q-A0 has been **physically removed**
-> - CPU core 4 showed crashes but is **currently enabled** for testing
+> - **CPU core 4 confirmed faulty** and permanently disabled (5 crashes, all on same core)
 > - See: [PVE2_CRASH_INVESTIGATION.md](PVE2_CRASH_INVESTIGATION.md) for full details
 >
 > **Before installing replacement drive**, remove the old udev rule:
@@ -15,6 +15,12 @@ This guide documents the process of replacing the failing Kingston OM8PGP41024Q-
 > ```bash
 > rm /etc/udev/rules.d/99-block-faulty-nvme.rules
 > udevadm control --reload-rules
+> ```
+>
+> **Keep CPU core 4 disabled** - do not remove the systemd service:
+>
+> ```bash
+> systemctl status disable-cpu-core4.service  # Should show enabled
 > ```
 
 ## Alert Silence

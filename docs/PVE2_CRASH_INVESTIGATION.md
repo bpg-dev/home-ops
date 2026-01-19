@@ -130,15 +130,17 @@ pvestatd[348299]: segfault ... error 7 in perl... likely on CPU 3 (core 4, socke
 1. NVMe driver unbound to stop crashes
 2. System crashed again (NVMe physically present, driver unbound)
 3. NVMe **physically removed** after that crash
-4. Now monitoring to see if crashes were caused by NVMe or CPU
+4. Crashes continued (5 total, all on CPU 3/core 4)
+5. **CPU core 4 confirmed faulty and disabled** (2026-01-19)
 
-**Current status (2026-01-18)**:
+**Current status (2026-01-19)**:
 
 - Faulty NVMe: **Physically removed**
-- CPU core 4: **Enabled** (monitoring for crashes)
-- Online CPUs: `0-19` (all 20 threads active)
+- CPU core 4: **DISABLED** (confirmed faulty - 5 crashes all on this core)
+- Online CPUs: `0-1,4-19` (18 of 20 threads)
+- Systemd service: `disable-cpu-core4.service` (enabled)
 
-**If crashes return on core 4**, disable it with:
+**To re-enable core 4** (not recommended):
 
 ```bash
 # Immediate disable
@@ -241,6 +243,7 @@ The PVE2 outages caused downstream issues in the Kubernetes cluster:
 ## Document History
 
 - **Created**: 2026-01-16
-- **Updated**: 2026-01-18 (NVMe physically removed; CPU core 4 re-enabled for testing; added downstream impacts)
+- **Updated**: 2026-01-18 (NVMe physically removed; CPU core 4 re-enabled for testing)
+- **Updated**: 2026-01-19 (CPU core 4 confirmed faulty - 5 crashes all on same core; permanently disabled)
 - **Author**: Home-ops automation
 - **Related**: [PVE2_NVME_REPLACEMENT_GUIDE.md](PVE2_NVME_REPLACEMENT_GUIDE.md)
