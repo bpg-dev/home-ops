@@ -135,12 +135,12 @@ kubectl delete -f kubernetes/apps/storage/garage/test/benchmark.yaml
 
 ## Phase 3: Deployment
 
-- [ ] Document current bucket/key configuration (backup)
-- [ ] Suspend Flux kustomization
-- [ ] Commit and push changes
-- [ ] Resume Flux kustomization
-- [ ] Wait for StatefulSet pods to be ready
-- [ ] Initialize cluster layout
+- [x] Document current bucket/key configuration (backup)
+- [x] Suspend Flux kustomization
+- [x] Commit and push changes
+- [x] Resume Flux kustomization
+- [x] Wait for StatefulSet pods to be ready
+- [x] Initialize cluster layout
 
 ### Pre-Deployment Backup
 
@@ -190,13 +190,13 @@ kubectl exec -n storage garage-0 -- garage layout apply --version 1
 
 ## Phase 4: Bucket Recreation and Verification
 
-- [ ] Recreate API keys (import from secrets)
-- [ ] Recreate buckets
-- [ ] Grant key permissions to buckets
-- [ ] Check cluster health
-- [ ] Verify all nodes connected
-- [ ] Test S3 operations
-- [ ] Restart dependent services
+- [x] Recreate API keys (import from secrets)
+- [x] Recreate buckets
+- [x] Grant key permissions to buckets
+- [x] Check cluster health
+- [x] Verify all nodes connected
+- [x] Test S3 operations
+- [x] Restart dependent services
 
 ### 4.1 Get Admin Token
 
