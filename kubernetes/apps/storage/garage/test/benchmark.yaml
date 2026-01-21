@@ -1,0 +1,50 @@
+---
+# Storage benchmark resources for comparing ceph-rbd vs openebs-hostpath
+# Apply: kubectl apply -f kubernetes/apps/storage/garage/test/benchmark.yaml
+# Cleanup: kubectl delete -f kubernetes/apps/storage/garage/test/benchmark.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bench-ceph-rbd
+  namespace: storage
+spec:
+  storageClassName: ceph-rbd
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bench-hostpath
+  namespace: storage
+spec:
+  storageClassName: openebs-hostpath
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: storage-bench
+  namespace: storage
+spec:
+  containers:
+    - name: fio
+      image: nixery.dev/shell/fio
+      command: ["sleep", "infinity"]
+      volumeMounts:
+        - name: ceph
+          mountPath: /ceph
+        - name: hostpath
+          mountPath: /hostpath
+  volumes:
+    - name: ceph
+      persistentVolumeClaim:
+        claimName: bench-ceph-rbd
+    - name: hostpath
+      persistentVolumeClaim:
+        claimName: bench-hostpath

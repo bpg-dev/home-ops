@@ -12,8 +12,25 @@ spec:
   values:
     controllers:
       garage:
+        type: statefulset
+        replicas: 3
         annotations:
           reloader.stakater.com/auto: "true"
+        statefulset:
+          podManagementPolicy: Parallel
+          volumeClaimTemplates:
+            - name: meta
+              storageClass: openebs-hostpath
+              accessMode: ReadWriteOnce
+              size: 10Gi
+              globalMounts:
+                - path: /meta
+            - name: data
+              storageClass: openebs-hostpath
+              accessMode: ReadWriteOnce
+              size: 100Gi
+              globalMounts:
+                - path: /data
         containers:
           app:
             image:
@@ -54,11 +71,20 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
         supplementalGroups: [10000]
         seccompProfile: { type: RuntimeDefault }
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: garage
+              topologyKey: kubernetes.io/hostname
     service:
       app:
         ports:
           s3:
             port: &port 3900
+          rpc:
+            port: 3901
           api:
             port: 3903
           metrics:
@@ -85,11 +111,17 @@ spec:
             db_engine = "lmdb"
             metadata_auto_snapshot_interval = "6h"
 
-            replication_factor = 1
+            replication_factor = 2
             compression_level = 2
 
             rpc_bind_addr = "[::]:3901"
-            rpc_public_addr = "127.0.0.1:3901"
+            rpc_public_addr = "$(HOSTNAME).garage-headless.storage.svc.cluster.local:3901"
+
+            bootstrap_peers = [
+              "garage-0.garage-headless.storage.svc.cluster.local:3901",
+              "garage-1.garage-headless.storage.svc.cluster.local:3901",
+              "garage-2.garage-headless.storage.svc.cluster.local:3901"
+            ]
 
             [s3_api]
             s3_region = "us-east-1"
@@ -106,15 +138,3 @@ spec:
         globalMounts:
           - path: /etc/garage.toml
             subPath: configuration.toml
-      data:
-        type: nfs
-        server: nas.internal
-        path: /mnt/tank/nfs/garage/data
-        globalMounts:
-          - path: /data
-      meta:
-        type: nfs
-        server: nas.internal
-        path: /mnt/tank/nfs/garage/meta
-        globalMounts:
-          - path: /meta
