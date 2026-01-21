@@ -4,8 +4,13 @@
 
 **Node**: pve2 (192.168.1.82)
 **Issue**: Repeated system hangs requiring manual power cycle
-**Root Cause**: Faulty Kingston OM8PGP41024Q-A0 NVMe causing PCIe bus freeze
-**Resolution**: Driver unbound pending physical drive replacement
+**Root Causes**:
+
+1. Faulty Kingston OM8PGP41024Q-A0 NVMe (removed 2026-01-17)
+2. Defective CPU core 4 (disabled 2026-01-19)
+3. **Suspected additional CPU defects** (hard lockup with core 4 disabled)
+
+**Status**: Monitoring with core 4 disabled; RMA recommended
 
 ## Timeline
 
@@ -100,7 +105,7 @@ The Kingston OM8PGP41024Q-A0 NVMe drive, even when **offlined in ZFS**, was stil
 Physical replacement of the faulty NVMe drive with Crucial P310 1TB.
 See: [PVE2_NVME_REPLACEMENT_GUIDE.md](PVE2_NVME_REPLACEMENT_GUIDE.md)
 
-## Post-Fix Status (Updated 2026-01-18)
+## Post-Fix Status (Updated 2026-01-19)
 
 ### NVMe Status
 
@@ -116,8 +121,7 @@ ZFS pool running in degraded mode on single healthy drive.
 
 ### CPU Core 4 Investigation
 
-**Observation**: Crashes occurred on CPU 3 (core 4) even with NVMe driver unbound
-(but drive still physically present).
+**Observation**: All logged segfaults occurred on CPU 3 (core 4):
 
 ```text
 pveproxy worker[23030]: segfault ... error 6 in perl... likely on CPU 3 (core 4, socket 0)
@@ -131,14 +135,34 @@ pvestatd[348299]: segfault ... error 7 in perl... likely on CPU 3 (core 4, socke
 2. System crashed again (NVMe physically present, driver unbound)
 3. NVMe **physically removed** after that crash
 4. Crashes continued (5 total, all on CPU 3/core 4)
-5. **CPU core 4 confirmed faulty and disabled** (2026-01-19)
+5. **CPU core 4 disabled** (2026-01-19 11:35)
+6. **System crashed AGAIN at ~15:47** with core 4 disabled (no segfault logged)
 
-**Current status (2026-01-19)**:
+### Critical Finding: Crash with Core 4 Disabled
+
+On 2026-01-19, the system crashed at ~15:47 **with core 4 already disabled**:
+
+- Boot at 11:35 with core 4 disabled (verified in logs)
+- System ran stable for ~4 hours 12 minutes
+- Hard lockup at ~15:47 - NO segfault logged
+- Last log entry: normal Ceph/pvedaemon activity
+- Required manual power cycle
+
+**This indicates the CPU may have defects beyond core 4**, possibly in:
+
+- L3 cache (shared between all cores)
+- Ring interconnect
+- Memory controller
+- Another P-core or E-core
+
+**Current status (2026-01-19 17:32)**:
 
 - Faulty NVMe: **Physically removed**
-- CPU core 4: **DISABLED** (confirmed faulty - 5 crashes all on this core)
+- CPU core 4: **DISABLED** (confirmed faulty for segfaults)
 - Online CPUs: `0-1,4-19` (18 of 20 threads)
 - Systemd service: `disable-cpu-core4.service` (enabled)
+- **NEW**: CPU affinity monitoring enabled (`cpu-crash-monitor.service`)
+- **NEW**: Kernel panic settings configured for auto-reboot on hung tasks
 
 **To re-enable core 4** (not recommended):
 
@@ -208,6 +232,47 @@ systemctl enable disable-cpu-core4.service
 3. **Hardware watchdog can fail** - When the hang is at the PCIe/chipset level
 4. **PCIe link degradation is a warning sign** - Check `lspci -vvs` for link status
 5. **Driver unbind is an effective workaround** - Stops all kernel interaction with faulty hardware
+6. **Segfaults consistently on one core indicate hardware fault** - 100% correlation is strong evidence
+7. **CPU defects may extend beyond a single core** - Shared components (L3, ring, memory controller) can also fail
+8. **Set up monitoring before disabling cores** - Track CPU affinity to diagnose future crashes
+
+## Monitoring Setup (Added 2026-01-19)
+
+### CPU Affinity Monitor
+
+Tracks which CPU cores processes are using:
+
+```bash
+# Service: cpu-crash-monitor.service
+# Log: /var/log/cpu-affinity-monitor.log
+# Check status
+systemctl status cpu-crash-monitor.service
+# View recent logs
+tail -50 /var/log/cpu-affinity-monitor.log
+```
+
+### Kernel Panic Settings
+
+Auto-reboot on hung tasks:
+
+```bash
+# /etc/sysctl.d/99-watchdog.conf
+kernel.nmi_watchdog = 1
+kernel.softlockup_panic = 1
+kernel.hung_task_panic = 1
+kernel.hung_task_timeout_secs = 120
+kernel.panic = 10           # Reboot 10 seconds after panic
+kernel.panic_on_oops = 1
+```
+
+### Hardware Watchdog
+
+Proxmox's built-in watchdog is active:
+
+```bash
+systemctl status watchdog-mux.service
+# Uses iTCO_wdt (Intel TCO Watchdog)
+```
 
 ## Diagnostic Commands Reference
 
@@ -231,6 +296,12 @@ journalctl --since '7 days ago' | grep -i segfault
 
 # Verify driver binding
 ls /sys/bus/pci/devices/0000:59:00.0/driver 2>/dev/null || echo "No driver bound"
+
+# Check CPU core status
+cat /sys/devices/system/cpu/cpu{2,3}/online
+
+# View CPU affinity monitor log
+tail -100 /var/log/cpu-affinity-monitor.log
 ```
 
 ## Downstream Impacts
@@ -245,5 +316,8 @@ The PVE2 outages caused downstream issues in the Kubernetes cluster:
 - **Created**: 2026-01-16
 - **Updated**: 2026-01-18 (NVMe physically removed; CPU core 4 re-enabled for testing)
 - **Updated**: 2026-01-19 (CPU core 4 confirmed faulty - 5 crashes all on same core; permanently disabled)
+- **Updated**: 2026-01-19 (Crash #12: hard lockup with core 4 disabled; added monitoring)
 - **Author**: Home-ops automation
-- **Related**: [PVE2_NVME_REPLACEMENT_GUIDE.md](PVE2_NVME_REPLACEMENT_GUIDE.md)
+- **Related**:
+  - [PVE2_NVME_REPLACEMENT_GUIDE.md](PVE2_NVME_REPLACEMENT_GUIDE.md)
+  - [PVE2_CPU_RMA_EVIDENCE.md](PVE2_CPU_RMA_EVIDENCE.md)
