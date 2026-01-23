@@ -1,0 +1,38 @@
+:80 {
+    root * /srv
+
+    # API proxy - route to backend on localhost (same pod)
+    handle /api/* {
+        reverse_proxy localhost:8080
+    }
+
+    # Auth callback - route to backend
+    handle /auth/* {
+        reverse_proxy localhost:8080
+    }
+
+    # SPA - serve static files with fallback to index.html
+    handle {
+        try_files {path} /index.html
+        file_server
+    }
+
+    # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+
+    # Compression
+    encode gzip
+
+    # Health check endpoint
+    respond /health 200
+
+    # Logging
+    log {
+        output stdout
+        format console
+    }
+}

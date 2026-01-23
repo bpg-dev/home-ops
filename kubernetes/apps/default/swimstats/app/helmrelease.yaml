@@ -1,0 +1,154 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app swimstats
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: swimstats
+  interval: 1h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      swimstats:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        strategy: Recreate
+        initContainers:
+          01-init-db:
+            image:
+              repository: ghcr.io/onedr0p/postgres-init
+              tag: 17.4
+            envFrom:
+              - secretRef:
+                  name: swimstats-secret
+        containers:
+          backend:
+            image:
+              repository: ghcr.io/bpg/swimstats/backend
+              tag: 0.2.0
+            env:
+              ENV: production
+              PORT: &backend-port 8080
+              OIDC_ISSUER: "https://auth.${SECRET_DOMAIN}"
+              OIDC_REDIRECT_URL: "https://swimstats.${SECRET_DOMAIN}/auth/callback"
+              OIDC_FULL_ACCESS_CLAIM: "Parents"
+            envFrom:
+              - secretRef:
+                  name: swimstats-secret
+            probes:
+              liveness: &backend-probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/health
+                    port: *backend-port
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *backend-probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+          frontend:
+            image:
+              repository: ghcr.io/bpg/swimstats/frontend
+              tag: 0.2.0
+            env:
+              TZ: "America/Toronto"
+            probes:
+              liveness: &frontend-probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: &frontend-port 80
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *frontend-probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        controller: swimstats
+        ports:
+          http:
+            port: *frontend-port
+    route:
+      app:
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: "SwimStats"
+          gethomepage.dev/description: "Swimming time tracking"
+          gethomepage.dev/group: "Personal & Finance"
+          gethomepage.dev/icon: "si-swimmer"
+        hostnames: ["swimstats.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *frontend-port
+    persistence:
+      caddyfile:
+        type: configMap
+        name: swimstats-caddyfile
+        advancedMounts:
+          swimstats:
+            frontend:
+              - path: /etc/caddy/Caddyfile
+                subPath: Caddyfile
+                readOnly: true
+      caddy-config:
+        type: emptyDir
+        advancedMounts:
+          swimstats:
+            frontend:
+              - path: /config
+      caddy-data:
+        type: emptyDir
+        advancedMounts:
+          swimstats:
+            frontend:
+              - path: /data
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp

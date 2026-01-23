@@ -16,5 +16,6 @@ resources:
   - ./homepage/ks.yaml
   - ./namespace.yaml
   - ./paperless-ngx/ks.yaml
+  - ./swimstats/ks.yaml
   - ./umami/ks.yaml
   - ./wallos/ks.yaml
