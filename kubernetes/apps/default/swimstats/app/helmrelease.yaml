@@ -96,10 +96,9 @@ spec:
                 memory: 32Mi
               limits:
                 memory: 128Mi
-    serviceAccount:
-      swimstats:
-        create: false
     defaultPodOptions:
+      imagePullSecrets:
+        - name: swimstats-registry-secret
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
