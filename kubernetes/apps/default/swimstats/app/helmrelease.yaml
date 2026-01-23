@@ -38,7 +38,7 @@ spec:
             env:
               ENV: production
               PORT: &backend-port 8080
-              OIDC_ISSUER: "https://sso.${SECRET_DOMAIN}"
+              OIDC_ISSUER: "https://sso.${SECRET_DOMAIN}/application/o/swimstats/"
               OIDC_REDIRECT_URL: "https://swimstats.${SECRET_DOMAIN}/auth/callback"
               OIDC_FULL_ACCESS_CLAIM: "Parents"
             envFrom:
