@@ -96,6 +96,8 @@ spec:
                 memory: 32Mi
               limits:
                 memory: 128Mi
+    serviceAccount:
+      name: swimstats
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true

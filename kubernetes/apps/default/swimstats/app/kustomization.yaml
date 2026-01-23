@@ -5,6 +5,7 @@ resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
+  - ./serviceaccount.yaml
 configMapGenerator:
   - name: swimstats-caddyfile
     files:
