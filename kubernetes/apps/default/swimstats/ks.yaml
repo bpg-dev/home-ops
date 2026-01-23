@@ -19,6 +19,9 @@ spec:
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
+      - name: swimstats-secret
+        kind: Secret
+        optional: true
   prune: true
   sourceRef:
     kind: GitRepository

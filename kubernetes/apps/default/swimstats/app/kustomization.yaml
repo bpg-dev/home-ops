@@ -9,5 +9,8 @@ configMapGenerator:
   - name: swimstats-caddyfile
     files:
       - Caddyfile=./config/Caddyfile
+  - name: swimstats-config
+    files:
+      - config.json=./config/config.json
 generatorOptions:
   disableNameSuffixHash: true

@@ -1,0 +1,6 @@
+{
+  "oidc": {
+    "authority": "https://sso.${SECRET_DOMAIN}/application/o/swimstats/",
+    "clientId": "${OIDC_CLIENT_ID}"
+  }
+}
