@@ -327,12 +327,30 @@ kubectl delete pvc test-ceph-pvc
 
 ### 7.2 Proxmox Installation
 
-1. Install Proxmox VE (same version as other nodes)
-2. Configure network:
-   - IP: 192.168.1.82
-   - Gateway: 192.168.1.1
-   - DNS: 192.168.1.1
-3. Set hostname: `pve2`
+```bash
+# Check current Proxmox version on existing nodes first
+pveversion
+
+# Install the same Proxmox VE version on the new node
+# During installation:
+# - IP: 192.168.1.82/24
+# - Gateway: 192.168.1.1
+# - DNS: 192.168.1.1
+# - Hostname: pve2.local (or your domain)
+```
+
+After installation, configure the apt repositories:
+
+```bash
+# Disable enterprise repo (if no subscription)
+sed -i 's/^deb/#deb/' /etc/apt/sources.list.d/pve-enterprise.list
+
+# Add no-subscription repo
+echo "deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription" > /etc/apt/sources.list.d/pve-no-subscription.list
+
+# Update
+apt update && apt upgrade -y
+```
 
 ### 7.3 Join Proxmox Cluster
 
@@ -340,67 +358,167 @@ kubectl delete pvc test-ceph-pvc
 # On pve2 (new installation)
 pvecm add 192.168.1.81
 
-# Verify
+# Verify cluster status
 pvecm status
+pvecm nodes
 ```
 
-### 7.4 Configure Ceph OSD
+### 7.4 Install Ceph Packages
+
+```bash
+# On pve2 - install Ceph (use same version as other nodes)
+# Check version on pve1/pve3 first:
+ceph --version
+
+# Install Ceph via Proxmox
+pveceph install
+
+# Ceph configuration will sync from the cluster automatically
+# Verify ceph.conf exists
+cat /etc/ceph/ceph.conf
+```
+
+### 7.5 Add Ceph MON (if pve2 was a MON)
+
+```bash
+# On pve2 - create MON
+pveceph mon create
+
+# Verify MON is running
+ceph mon stat
+# Should show 3 monitors
+```
+
+### 7.6 Create Ceph OSD
 
 ```bash
 # On pve2 - identify the NVMe drive for Ceph
 lsblk
 
-# Create OSD (adjust device path as needed)
-ceph-volume lvm create --data /dev/nvmeXnY
+# The Ceph OSD drive is typically the second NVMe (not the boot drive)
+# Example: /dev/nvme1n1
 
-# Verify OSD is up
+# Wipe the drive if needed (DESTRUCTIVE - only for new/replacement drives)
+ceph-volume lvm zap /dev/nvme1n1 --destroy
+
+# Create OSD
+pveceph osd create /dev/nvme1n1
+
+# Verify OSD is up and rebalancing begins
 ceph osd tree
+ceph -w
+# Wait for HEALTH_OK (data will rebalance to 3 replicas)
 ```
 
-### 7.5 Restore Kubernetes Configuration
+### 7.7 Restore Kubernetes Configuration
 
-**Revert Ceph MON endpoints:**
+**Edit Ceph MON endpoints:**
 
-```yaml
-# kubernetes/apps/rook-ceph-external/rook-ceph/app/configmaps.yaml
-data: "pve1=192.168.1.81:6789,pve2=192.168.1.82:6789,pve3=192.168.1.83:6789"
+```bash
+# File: kubernetes/apps/rook-ceph-external/rook-ceph/app/configmaps.yaml
+# Change this line:
+#   data: "pve1=192.168.1.81:6789,pve3=192.168.1.83:6789"
+# To:
+#   data: "pve1=192.168.1.81:6789,pve2=192.168.1.82:6789,pve3=192.168.1.83:6789"
 ```
 
-**Revert Prometheus scrape configs:**
+**Edit Prometheus scrape configs:**
 
-```yaml
-# Add back to all three scrape configs:
-# ceph-metrics-exporter: 192.168.1.82:9283
-# pve-node-exporter: 192.168.1.82:9100
-# prometheus-pve-exporter: 192.168.1.82
+```bash
+# File: kubernetes/apps/observability/kube-prometheus-stack/app/scrapeconfig.yaml
+
+# 1. ceph-metrics-exporter - add to targets:
+#        - 192.168.1.82:9283
+
+# 2. pve-node-exporter - add to targets:
+#        - 192.168.1.82:9100
+
+# 3. prometheus-pve-exporter - add to targets:
+#        - 192.168.1.82
 ```
 
-### 7.6 Restore Talos VM (Optional)
+**Commit and push:**
+
+```bash
+git add -A
+git commit -m "chore: restore pve2 to cluster configs after RMA"
+git push
+```
+
+**Restart rook-ceph operator to pick up MON changes:**
+
+```bash
+kubectl rollout restart deployment -n rook-ceph-external rook-ceph-operator
+```
+
+### 7.8 Configure Monitoring Services
+
+```bash
+# On pve2 - install node_exporter
+apt install prometheus-node-exporter
+
+# Verify it's running
+systemctl status prometheus-node-exporter
+
+# Ceph exporter is provided by ceph-mgr prometheus module (auto-enabled)
+# Verify metrics endpoints
+curl -s http://localhost:9100/metrics | head
+curl -s http://localhost:9283/metrics | head
+```
+
+### 7.9 Restore Talos VM (Optional)
 
 If you want to migrate talos-prod-2 back to pve2:
 
 ```bash
 # From any Proxmox node
 qm migrate 1002 pve2 --online
+
+# Verify VM is running
+qm status 1002
+
+# Verify Kubernetes node is healthy
+kubectl get nodes
 ```
 
-### 7.7 Configure Monitoring Services
+### 7.10 Final Verification
 
 ```bash
-# On pve2 - install node_exporter
-apt install prometheus-node-exporter
+# Proxmox cluster - should show 3 nodes
+pvecm status
+pvecm nodes
 
-# Install ceph-exporter (if not automatic)
-# The ceph-mgr prometheus module should auto-enable
+# Ceph cluster - should show HEALTH_OK with 3 OSDs
+ceph status
+ceph osd tree
+ceph df
 
-# Verify metrics endpoints
-curl -s http://localhost:9100/metrics | head
-curl -s http://localhost:9283/metrics | head
+# Kubernetes
+kubectl get nodes
+kubectl get pods -A | grep -v Running | grep -v Completed
+kubectl get pods -n rook-ceph-external
+
+# Storage test
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-ceph-pvc
+  namespace: default
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: ceph-rbd
+  resources:
+    requests:
+      storage: 1Gi
+EOF
+
+kubectl get pvc test-ceph-pvc
+kubectl delete pvc test-ceph-pvc
+
+# Prometheus targets - check no scrape errors
+kubectl get scrapeconfigs -n observability
 ```
-
-### 7.8 Final Verification
-
-Run all verification commands from Part 6 to ensure full restoration.
 
 ---
 
