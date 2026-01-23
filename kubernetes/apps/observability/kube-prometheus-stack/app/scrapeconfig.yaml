@@ -10,7 +10,6 @@ spec:
   metricsPath: /metrics
   staticConfigs:
     - targets:
-        - 192.168.1.82:9283
         - 192.168.1.83:9283
         - 192.168.1.81:9283
   relabelings:
@@ -30,7 +29,6 @@ spec:
   staticConfigs:
     - targets:
         - 192.168.1.81:9100
-        - 192.168.1.82:9100
         - 192.168.1.83:9100
   relabelings:
     - action: replace
@@ -75,7 +73,6 @@ spec:
   staticConfigs:
     - targets:
         - 192.168.1.81
-        - 192.168.1.82
         - 192.168.1.83
   relabelings:
     - sourceLabels: [__address__]
