@@ -6,12 +6,8 @@
         reverse_proxy localhost:8080
     }
 
-    # Auth callback - route to backend
-    handle /auth/* {
-        reverse_proxy localhost:8080
-    }
-
     # SPA - serve static files with fallback to index.html
+    # Note: /auth/callback is handled by the React app (client-side OIDC)
     handle {
         try_files {path} /index.html
         file_server
