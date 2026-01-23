@@ -1,5 +1,5 @@
-:80 {
-    root * /srv
+:3000 {
+    root * /usr/share/caddy
 
     # API proxy - route to backend on localhost (same pod)
     handle /api/* {
@@ -27,12 +27,13 @@
     # Compression
     encode gzip
 
-    # Health check endpoint
-    respond /health 200
-
     # Logging
     log {
         output stdout
         format console
     }
+}
+
+:2019 {
+    respond /health 200
 }

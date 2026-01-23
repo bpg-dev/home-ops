@@ -38,7 +38,7 @@ spec:
             env:
               ENV: production
               PORT: &backend-port 8080
-              OIDC_ISSUER: "https://auth.${SECRET_DOMAIN}"
+              OIDC_ISSUER: "https://sso.${SECRET_DOMAIN}"
               OIDC_REDIRECT_URL: "https://swimstats.${SECRET_DOMAIN}/auth/callback"
               OIDC_FULL_ACCESS_CLAIM: "Parents"
             envFrom:
@@ -80,12 +80,17 @@ spec:
                 spec:
                   httpGet:
                     path: /health
-                    port: &frontend-port 80
+                    port: 2019
                   initialDelaySeconds: 5
                   periodSeconds: 10
                   timeoutSeconds: 5
                   failureThreshold: 3
               readiness: *frontend-probes
+            ports:
+              - name: http
+                containerPort: &frontend-port 3000
+              - name: health
+                containerPort: 2019
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
