@@ -34,13 +34,13 @@ spec:
           backend:
             image:
               repository: ghcr.io/bpg/swimstats/backend
-              tag: 0.6.2
+              tag: 0.7.0
             env:
               ENV: production
               PORT: &backend-port 8080
               OIDC_ISSUER: "https://sso.${SECRET_DOMAIN}/application/o/swimstats/"
               OIDC_REDIRECT_URL: "https://swimstats.${SECRET_DOMAIN}/auth/callback"
-              OIDC_FULL_ACCESS_CLAIM: "Parents"
+              OIDC_FULL_ACCESS_CLAIM: "Family"
             envFrom:
               - secretRef:
                   name: swimstats-secret
@@ -70,7 +70,7 @@ spec:
           frontend:
             image:
               repository: ghcr.io/bpg/swimstats/frontend
-              tag: 0.6.2
+              tag: 0.7.0
             env:
               TZ: "America/Toronto"
             probes:
