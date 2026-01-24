@@ -30,7 +30,7 @@ spec:
                 - |
                   cd /usr/src/paperless/src
                   python3 manage.py document_exporter --use-folder-prefix --compare-checksums --no-color --skip-checks /backup
-              image: ghcr.io/paperless-ngx/paperless-ngx:2.20.4
+              image: ghcr.io/paperless-ngx/paperless-ngx:2.20.5
               env:
                 - name: PAPERLESS_DATA_DIR
                   value: /library/data
