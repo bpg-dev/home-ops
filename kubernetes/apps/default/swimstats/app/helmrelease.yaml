@@ -30,11 +30,23 @@ spec:
             envFrom:
               - secretRef:
                   name: swimstats-secret
+          02-migrate:
+            image:
+              repository: ghcr.io/bpg/swimstats/backend
+              tag: &version 0.10.0
+            args: ["migrate"]
+            envFrom:
+              - secretRef:
+                  name: swimstats-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
         containers:
           backend:
             image:
               repository: ghcr.io/bpg/swimstats/backend
-              tag: 0.9.0
+              tag: *version
             env:
               ENV: production
               PORT: &backend-port 8080
@@ -70,7 +82,7 @@ spec:
           frontend:
             image:
               repository: ghcr.io/bpg/swimstats/frontend
-              tag: 0.9.0
+              tag: *version
             env:
               TZ: "America/Toronto"
             probes:
