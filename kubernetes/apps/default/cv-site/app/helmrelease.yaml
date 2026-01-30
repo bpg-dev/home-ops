@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/bpg/cv
-              tag: '20260130-043f848'
+              tag: '20260130-4c50719'
             env:
               XDG_DATA_HOME: /data
               XDG_CONFIG_HOME: /config
