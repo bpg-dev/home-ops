@@ -18,19 +18,32 @@ spec:
           app:
             image:
               repository: ghcr.io/bpg/cv
-              tag: '20260130-4c50719'
+              tag: '20260130-f023821'
             env:
               XDG_DATA_HOME: /data
               XDG_CONFIG_HOME: /config
             probes:
-              liveness: &probes
+              liveness:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
                     path: /
                     port: 80
-              readiness: *probes
+                  initialDelaySeconds: 5
+                  periodSeconds: 30
+                  timeoutSeconds: 3
+                  failureThreshold: 3
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 80
+                  initialDelaySeconds: 3
+                  periodSeconds: 10
+                  timeoutSeconds: 3
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
@@ -60,9 +73,9 @@ spec:
               app.kubernetes.io/name: cv-site
       securityContext:
         runAsNonRoot: true
-        runAsUser: 65534
-        runAsGroup: 65534
-        fsGroup: 65534
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
         fsGroupChangePolicy: OnRootMismatch
     service:
       app:
