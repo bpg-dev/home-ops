@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(KUBECONFIG=./kubeconfig kubectl get:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl describe:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl logs:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl exec:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl events:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl top:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl diff:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl kustomize:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl wait:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl api-resources:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl explain:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl rollout:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl auth:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl cluster-info:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl version:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl debug:*)",
+      "Bash(KUBECONFIG=./kubeconfig kubectl cnpg:*)",
+      "Bash(KUBECONFIG=./kubeconfig cilium:*)",
+      "Bash(KUBECONFIG=./kubeconfig flux get:*)",
+      "Bash(KUBECONFIG=./kubeconfig flux logs:*)",
+      "Bash(KUBECONFIG=./kubeconfig flux reconcile:*)",
+      "Bash(KUBECONFIG=./kubeconfig flux suspend:*)",
+      "Bash(KUBECONFIG=./kubeconfig flux resume:*)",
+      "Bash(KUBECONFIG=./kubeconfig flux tree:*)",
+      "Bash(KUBECONFIG=./kubeconfig helm get:*)",
+      "Bash(KUBECONFIG=./kubeconfig helm list:*)",
+      "Bash(KUBECONFIG=./kubeconfig helm template:*)",
+      "Bash(KUBECONFIG=./kubeconfig helm show:*)",
+      "Bash(TALOSCONFIG=./talos/clusterconfig/talosconfig talosctl:*)",
+      "Bash(task:*)",
+      "Bash(sops -d:*)",
+      "Bash(./scripts/:*)"
+    ]
+  }
+}

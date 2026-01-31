@@ -15,13 +15,14 @@ spec:
       containerdRegistryConfigPath: /etc/cri/conf.d/hosts
     # Chart defaults are 128Mi/128Mi which is too low during image pull spikes and causes OOMKilled.
     # Keep the request modest but give the registry process enough headroom.
-    # CPU limit added to prevent runaway CPU consumption observed on nodes with large content stores.
+    # CPU limit removed: Spegel's libp2p DHT can spike during P2P cache rebuilds (e.g., after node
+    # reboots). CPU throttling causes a feedback loop where Spegel can't complete work and keeps
+    # retrying. See: https://github.com/k3s-io/k3s/issues/12127
     resources:
       requests:
         cpu: 100m
         memory: 128Mi
       limits:
-        cpu: 500m
         memory: 512Mi
     service:
       registry:

@@ -8,7 +8,8 @@ spec:
   groups:
     - name: spegel.rules
       rules:
-        # Alert when spegel CPU usage exceeds 80% of the 500m limit for sustained period
+        # Alert when spegel CPU usage exceeds 400m sustained (indicates P2P issues)
+        # Normal idle is ~5m, brief spikes during cache rebuild are expected
         - alert: SpegelHighCPU
           expr: |-
             sum by (pod, node) (
@@ -22,9 +23,9 @@ spec:
             summary: >-
               Spegel pod {{ $labels.pod }} on {{ $labels.node }} has high CPU usage ({{ $value | humanize }} cores)
             description: >-
-              Spegel is consuming excessive CPU which may indicate a runaway P2P loop or
-              large containerd content store. Consider restarting the pod or investigating
-              the node's containerd content store size.
+              Spegel is consuming excessive CPU for >10min which may indicate a runaway
+              libp2p DHT loop. Try restarting the pod. If issue persists, check containerd
+              content store size on the node.
           for: 10m
           labels:
             severity: warning
