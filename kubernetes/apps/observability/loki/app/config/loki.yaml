@@ -39,11 +39,15 @@ storage_config:
     cache_location: /var/loki/cache
 
 ingester:
+  chunk_target_size: 1572864  # 1.5MB - flush chunks at this size to limit memory
+  max_chunk_age: 2h           # force flush after 2 hours
+  chunk_idle_period: 1h       # flush inactive chunks after 1 hour
   wal:
     enabled: true
     dir: /var/loki/wal
     flush_on_shutdown: true
     checkpoint_duration: 5m
+    replay_memory_ceiling: 512MB  # limit memory during WAL replay
 
 compactor:
   working_directory: /var/loki/compactor
@@ -57,6 +61,16 @@ limits_config:
   # Allow entries up to 15 minutes old to handle recovery scenarios
   # when Loki restarts and Fluent-bit sends buffered logs
   reject_old_samples_max_age: 15m
+  # Ingestion rate limits (per tenant)
+  ingestion_rate_mb: 4
+  ingestion_burst_size_mb: 6
+  per_stream_rate_limit: 3MB
+  per_stream_rate_limit_burst: 15MB
+  # Query limits to prevent memory exhaustion
+  max_query_series: 500
+  max_entries_limit_per_query: 5000
+  max_query_parallelism: 16
+  max_query_length: 721h  # ~30 days max query range
 
 memberlist:
   join_members:
