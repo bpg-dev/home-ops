@@ -1,0 +1,8 @@
+---
+apiVersion: garage.rajsingh.info/v1alpha1
+kind: GarageBucket
+metadata:
+  name: postgres-backups
+spec:
+  clusterRef:
+    name: garage

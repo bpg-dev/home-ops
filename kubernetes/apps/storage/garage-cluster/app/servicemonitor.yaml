@@ -6,12 +6,11 @@ metadata:
   name: garage
 spec:
   endpoints:
-    - port: api
+    - port: admin
       path: /metrics
       bearerTokenSecret:
-        name: garage
+        name: garage-secrets
         key: GARAGE_METRICS_TOKEN
   selector:
     matchLabels:
-      app.kubernetes.io/instance: garage
-
+      app.kubernetes.io/name: garage

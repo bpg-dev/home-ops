@@ -1,0 +1,78 @@
+---
+apiVersion: garage.rajsingh.info/v1alpha1
+kind: GarageCluster
+metadata:
+  name: garage
+spec:
+  replicas: 3
+  zone: home
+
+  image: dxflrs/garage:v2.2.0
+  imagePullPolicy: IfNotPresent
+
+  replication:
+    factor: 2
+
+  database:
+    engine: lmdb
+
+  storage:
+    data:
+      size: 100Gi
+      storageClassName: openebs-hostpath
+    metadata:
+      size: 10Gi
+      storageClassName: openebs-hostpath
+
+  network:
+    rpcBindPort: 3901
+    rpcSecretRef:
+      name: garage-secrets
+      key: GARAGE_RPC_SECRET
+
+  s3Api:
+    bindPort: 3900
+    region: us-east-1
+    rootDomain: ".s3.${SECRET_DOMAIN}"
+
+  admin:
+    enabled: true
+    bindPort: 3903
+    adminTokenSecretRef:
+      name: garage-secrets
+      key: GARAGE_ADMIN_TOKEN
+    metricsTokenSecretRef:
+      name: garage-secrets
+      key: GARAGE_METRICS_TOKEN
+
+  security:
+    allowWorldReadableSecrets: true
+
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: garage
+          topologyKey: kubernetes.io/hostname
+
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    fsGroupChangePolicy: OnRootMismatch
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL

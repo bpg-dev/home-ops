@@ -3,18 +3,19 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: &app garage
+  name: &app garage-cluster
   namespace: flux-system
 spec:
-  path: ./kubernetes/apps/storage/garage/app
+  dependsOn:
+    - name: garage-operator
+      namespace: storage
+  interval: 1h
+  path: ./kubernetes/apps/storage/garage-cluster/app
   prune: false
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  interval: 30m
-  retryInterval: 1m
-  timeout: 3m
   targetNamespace: storage
   postBuild:
     substitute:
@@ -34,17 +35,15 @@ metadata:
   name: &app garage-webui
   namespace: flux-system
 spec:
-  path: ./kubernetes/apps/storage/garage/webui
-  prune: false
   dependsOn:
-    - name: garage
+    - name: garage-cluster
+  interval: 1h
+  path: ./kubernetes/apps/storage/garage-cluster/webui
+  prune: false
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  interval: 30m
-  retryInterval: 1m
-  timeout: 3m
   targetNamespace: storage
   postBuild:
     substitute:

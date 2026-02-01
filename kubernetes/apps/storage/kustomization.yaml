@@ -9,6 +9,7 @@ components:
   - ../../components/alerts
 
 resources:
-  - ./garage/ks.yaml
+  - ./garage-cluster/ks.yaml
+  - ./garage-operator/ks.yaml
   - ./namespace.yaml
 
