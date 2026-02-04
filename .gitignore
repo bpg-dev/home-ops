@@ -20,3 +20,6 @@ talosconfig
 .tmp/
 .DS_Store
 Thumbs.db
+
+.env
+.mcp.json
