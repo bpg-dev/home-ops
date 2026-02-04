@@ -8,9 +8,10 @@ spec:
   endpoints:
     - port: admin
       path: /metrics
-      bearerTokenSecret:
-        name: garage-secrets
-        key: GARAGE_METRICS_TOKEN
+      authorization:
+        credentials:
+          name: garage-secrets
+          key: GARAGE_METRICS_TOKEN
   selector:
     matchLabels:
       app.kubernetes.io/name: garage
