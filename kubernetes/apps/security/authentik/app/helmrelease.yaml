@@ -37,6 +37,20 @@ spec:
       enabled: false
 
     server:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/component
+                      operator: In
+                      values: ["server"]
+                    - key: app.kubernetes.io/instance
+                      operator: In
+                      values: ["authentik"]
+                topologyKey: kubernetes.io/hostname
       initContainers:
         - name: init-db
           image: ghcr.io/home-operations/postgres-init:18.1.0@sha256:3c54d39f19fdb82ed5b3f286450e4071133cc6025bd0e25856bc2c522f8fc030
@@ -81,6 +95,20 @@ spec:
 
     # Worker configuration
     worker:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/component
+                      operator: In
+                      values: ["worker"]
+                    - key: app.kubernetes.io/instance
+                      operator: In
+                      values: ["authentik"]
+                topologyKey: kubernetes.io/hostname
       autoscaling:
         enabled: true
         # Keep >=2 workers so background tasks continue even if one worker loses its heartbeat.

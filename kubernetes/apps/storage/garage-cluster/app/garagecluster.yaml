@@ -11,7 +11,7 @@ spec:
   imagePullPolicy: IfNotPresent
 
   replication:
-    factor: 2
+    factor: 3
 
   database:
     engine: lmdb
