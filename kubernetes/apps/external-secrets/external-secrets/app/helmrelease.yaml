@@ -76,4 +76,4 @@ spec:
       serviceMonitor:
         enabled: true
     extraArgs:
-      store-requeue-interval: 30m
+      store-requeue-interval: 10m

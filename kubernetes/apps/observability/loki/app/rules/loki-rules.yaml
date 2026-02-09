@@ -27,4 +27,30 @@ groups:
           description: |
             Fluent Bit pod {{ $labels.pod }} has emitted warning/error logs in the last 5 minutes.
 
+      - alert: AppHighErrorRate
+        expr: |
+          sum by (namespace, app) (
+            count_over_time({job="fluent-bit"} | json | level=~"error|fatal" [15m])
+          ) > 50
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate in {{ $labels.app }} ({{ $labels.namespace }})"
+          description: |
+            Application {{ $labels.app }} in namespace {{ $labels.namespace }} has produced
+            more than 50 error/fatal log entries in the last 15 minutes.
 
+      - alert: CriticalNamespaceErrors
+        expr: |
+          sum by (namespace, pod) (
+            count_over_time({job="fluent-bit", namespace=~"kube-system|flux-system|cert-manager|network"} | json | level=~"error|fatal" [15m])
+          ) > 20
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Persistent errors in critical namespace {{ $labels.namespace }}"
+          description: |
+            Pod {{ $labels.pod }} in critical namespace {{ $labels.namespace }} has been producing
+            error/fatal logs persistently.

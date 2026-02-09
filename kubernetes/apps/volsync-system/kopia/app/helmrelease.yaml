@@ -27,8 +27,6 @@ spec:
             envFrom:
               - secretRef:
                   name: kopia-secret
-            args:
-              - --without-password
             probes:
               liveness: &probes
                 enabled: true
