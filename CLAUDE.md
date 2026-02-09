@@ -203,6 +203,9 @@ ssh root@pve3.internal
 
 # TrueNAS Scale (NFS storage)
 ssh root@nas.internal
+
+# OPNsense Firewall/Router (csh shell, not bash!)
+ssh root@opnsense
 ```
 
 ### Backup and Restore
