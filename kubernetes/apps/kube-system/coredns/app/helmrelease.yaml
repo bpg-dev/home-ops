@@ -42,9 +42,6 @@ spec:
           - name: forward
             parameters: . 192.168.1.1
           - name: cache
-            configBlock: |-
-              prefetch 20
-              serve_stale
           - name: loop
           - name: reload
           - name: loadbalance
