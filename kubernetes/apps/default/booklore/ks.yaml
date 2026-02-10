@@ -22,6 +22,7 @@ spec:
       VOLSYNC_CLAIM: *app
       # VOLSYNC_CAPACITY for BookLore app data + MariaDB sidecar
       VOLSYNC_CAPACITY: 10Gi
+      VOLSYNC_SCHEDULE: "10 * * * *"
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
