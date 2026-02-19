@@ -23,7 +23,7 @@ spec:
         - notification-controller
       sync:
         kind: GitRepository
-        url: "https://github.com/bpg/home-ops.git"
+        url: "https://github.com/bpg-dev/home-ops.git"
         ref: "refs/heads/main"
         path: kubernetes/flux/cluster
       commonMetadata:

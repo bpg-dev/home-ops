@@ -32,7 +32,7 @@ spec:
                   name: swimstats-secret
           02-migrate:
             image:
-              repository: ghcr.io/bpg/swimstats/backend
+              repository: ghcr.io/bpg-dev/swimstats/backend
               tag: &version 1.0.6
             args: ["migrate"]
             envFrom:
@@ -45,7 +45,7 @@ spec:
         containers:
           backend:
             image:
-              repository: ghcr.io/bpg/swimstats/backend
+              repository: ghcr.io/bpg-dev/swimstats/backend
               tag: *version
             env:
               ENV: production
@@ -81,7 +81,7 @@ spec:
                 memory: 256Mi
           frontend:
             image:
-              repository: ghcr.io/bpg/swimstats/frontend
+              repository: ghcr.io/bpg-dev/swimstats/frontend
               tag: *version
             env:
               TZ: "America/Toronto"

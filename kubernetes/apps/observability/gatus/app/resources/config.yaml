@@ -37,12 +37,12 @@ ui:
   title: Status | Gatus
   header: Status
   logo: https://avatars.githubusercontent.com/u/627562
-  link: https://github.com/bpg
+  link: https://github.com/bpg-dev
   buttons:
     - name: Github
-      link: https://github.com/bpg
+      link: https://github.com/bpg-dev
     - name: Homelab
-      link: https://github.com/bpg/home-ops
+      link: https://github.com/bpg-dev/home-ops
 
 web:
   port: ${GATUS_WEB_PORT}

@@ -17,7 +17,7 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/bpg/cv
+              repository: ghcr.io/bpg-dev/cv
               tag: '20260130-1c34ac3'
             probes:
               liveness:
