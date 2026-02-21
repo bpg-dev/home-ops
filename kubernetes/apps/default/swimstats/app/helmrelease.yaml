@@ -33,7 +33,7 @@ spec:
           02-migrate:
             image:
               repository: ghcr.io/bpg-dev/swimstats/backend
-              tag: &version 1.0.6
+              tag: &version 2.0.0
             args: ["migrate"]
             envFrom:
               - secretRef:
