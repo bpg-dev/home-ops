@@ -20,7 +20,7 @@ spec:
           app:
             image:
               repository: docker.io/actualbudget/actual-server
-              tag: 26.2.0
+              tag: 26.2.1
             env:
               TZ: "America/Toronto"
             probes:
