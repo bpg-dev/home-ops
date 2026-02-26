@@ -37,6 +37,16 @@ spec:
       enabled: false
 
     server:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      containerSecurityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: [ALL]
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -60,7 +70,7 @@ spec:
       autoscaling:
         enabled: true
         minReplicas: 2
-        maxReplicas: 5
+        maxReplicas: 3
       resources:
         requests:
           cpu: 200m
@@ -93,8 +103,17 @@ spec:
       rules:
         enabled: false
 
-    # Worker configuration
     worker:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      containerSecurityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: [ALL]
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -111,29 +130,12 @@ spec:
                 topologyKey: kubernetes.io/hostname
       autoscaling:
         enabled: true
-        # Keep >=2 workers so background tasks continue even if one worker loses its heartbeat.
-        # This avoids relying on liveness-probe-based restarts for an internal (thread/fork) failure mode.
         minReplicas: 2
+        maxReplicas: 3
       resources:
         requests:
           cpu: 200m
+          memory: 512Mi
         limits:
-          memory: 1Gi
-
-    # Security context
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 1000
-      runAsGroup: 1000
-      fsGroup: 1000
-      fsGroupChangePolicy: OnRootMismatch
-
-    # Pod security context
-    podSecurityContext:
-      runAsNonRoot: true
-      runAsUser: 1000
-      runAsGroup: 1000
-      fsGroup: 1000
-      fsGroupChangePolicy: OnRootMismatch
-
+          memory: 1.5Gi
 
