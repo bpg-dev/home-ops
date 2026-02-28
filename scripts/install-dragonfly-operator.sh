@@ -10,7 +10,7 @@ export ROOT_DIR="$(git rev-parse --show-toplevel)"
 function apply_dragonfly_operator() {
     log info "Applying Dragonfly operator"
 
-    local -r operator_version="main"
+    local -r operator_version="v1.4.0"
     local -r operator_url="https://raw.githubusercontent.com/dragonflydb/dragonfly-operator/${operator_version}/manifests/dragonfly-operator.yaml"
 
     log info "Downloading Dragonfly operator manifest" "url=${operator_url}"
