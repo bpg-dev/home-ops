@@ -14,15 +14,15 @@ spec:
       containerdSock: /run/containerd/containerd.sock
       containerdRegistryConfigPath: /etc/cri/conf.d/hosts
     # Chart defaults are 128Mi/128Mi which is too low during image pull spikes and causes OOMKilled.
-    # Keep the request modest but give the registry process enough headroom.
-    # CPU limit removed: Spegel's libp2p DHT can spike during P2P cache rebuilds (e.g., after node
-    # reboots). CPU throttling causes a feedback loop where Spegel can't complete work and keeps
-    # retrying. See: https://github.com/k3s-io/k3s/issues/12127
+    # CPU limit required: without it, libp2p DHT goes runaway (1.6+ cores) when a node has a large
+    # containerd content store. 750m balances headroom for legitimate DHT rebuilds (e.g., after node
+    # reboots) with preventing runaway behavior. See docs/SPEGEL_HIGH_CPU_INVESTIGATION.md
     resources:
       requests:
         cpu: 100m
         memory: 128Mi
       limits:
+        cpu: 750m
         memory: 512Mi
     service:
       registry:

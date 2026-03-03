@@ -16,11 +16,13 @@ Investigation into spegel (P2P container registry mirror) consuming excessive CP
 ## Root Cause
 
 The node `talos-prod-2` had:
+
 - **1,053 containerd content blobs** (vs ~772-817 on other nodes)
 - **59 pods scheduled** (vs 44 and 22 on other nodes)
 - **74% disk usage** on `/var` (vs 55-56% on other nodes)
 
 The larger content store caused spegel to work harder tracking and advertising all the image digests via the libp2p DHT. This resulted in:
+
 - Excessive memory allocation churn (~48GB allocated in minutes, 13,000+ GC cycles)
 - High CPU from constant content scanning and P2P operations
 - High network traffic from DHT advertisements and peer communication
@@ -64,6 +66,7 @@ The fix reduced network traffic on **all nodes** because spegel is P2P - when on
 ## Impact on NAS
 
 The excessive spegel network traffic was:
+
 1. Competing for bandwidth with NFS traffic to NAS (volsync backups)
 2. Causing all spegel pods to respond with their own P2P traffic
 3. Creating network congestion that affected NFS performance
@@ -81,6 +84,7 @@ After the fix, NAS-related traffic normalized as the network was no longer satur
 ## Alerts Added
 
 PrometheusRule alerts were added to catch this issue early:
+
 - `SpegelHighCPU`: Sustained CPU usage >400m for 10 minutes
 - `SpegelHighNetworkTX`: Sustained network TX >500 KB/s for 10 minutes
 - `SpegelHighMemoryAllocation`: Memory allocation rate >1GB/min (leading indicator)
@@ -91,6 +95,23 @@ PrometheusRule alerts were added to catch this issue early:
 2. **Monitor per-pod metrics**: Not just aggregate, but individual pod CPU/network
 3. **Containerd garbage collection**: Periodically clean unused images
 4. **Balanced pod distribution**: Avoid overloading single nodes with many pods
+
+## March 2026 Recurrence
+
+The CPU limit was removed after the January fix due to concerns about throttling feedback loops during
+node reboots (see https://github.com/k3s-io/k3s/issues/12127). Without the limit, talos-prod-3 went runaway again:
+
+| Pod | Node | CPU |
+|-----|------|-----|
+| spegel-wjv6h | talos-prod-3 | **1637m** (firing) |
+| spegel-bbb9w | talos-prod-2 | 416m (pending) |
+| spegel-dlp6v | talos-prod-1 | 265m |
+
+All 3 nodes had elevated network TX (695kB/s - 1.27MB/s) due to P2P amplification.
+Restarting the pod did not help — the new pod hit 1993m within 90 seconds.
+
+**Fix**: Re-added CPU limit at **750m** (up from original 500m) as a compromise between
+throttling during legitimate DHT rebuilds and preventing runaway behavior.
 
 ## Related Files
 
