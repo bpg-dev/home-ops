@@ -12,7 +12,14 @@
   dependencyDashboard: true,
   dependencyDashboardTitle: "Renovate Dashboard 🤖",
   schedule: ["every weekend"],
-  ignorePaths: ["**/*.sops.*"],
+  ignorePaths: [
+    "**/*.sops.*",
+    // The plugin-barman-cloud manifest contains a base64-encoded SIDECAR_IMAGE
+    // secret that Renovate cannot rewrite. Partial bumps of only the operator
+    // image leave the injected sidecar stuck at the old version. The whole
+    // manifest must be re-downloaded on update — see the directory README.
+    "kubernetes/apps/postgresql-system/barman-cloud-plugin/app/manifest.yaml",
+  ],
   flux: {
     managerFilePatterns: ["/(^|/)kubernetes/.+\\.ya?ml(?:\\.j2)?$/"],
   },

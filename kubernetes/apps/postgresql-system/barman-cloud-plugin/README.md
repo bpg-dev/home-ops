@@ -8,11 +8,14 @@ The plugin is installed via the manifest from the official GitHub releases. The 
 
 ## Version
 
-Current version: **v0.9.0**
+Current version: **v0.12.0**
 
 ## Updating
 
-To update to a newer version:
+The manifest must be re-downloaded in full — it contains a base64-encoded
+`SIDECAR_IMAGE` secret that Renovate cannot rewrite, so a partial bump of
+only the operator container image leaves the injected sidecar stuck at the
+old version. Renovate is disabled on this file (see `.renovaterc.json5`).
 
 1. Download the latest manifest:
 
@@ -22,9 +25,18 @@ To update to a newer version:
      kubernetes/apps/postgresql-system/barman-cloud-plugin/app/manifest.yaml
    ```
 
-2. Replace `<VERSION>` with the desired version (e.g., `v0.10.0`)
+2. Replace `<VERSION>` with the desired version (e.g., `v0.13.0`)
 
-3. Commit and push the changes
+3. Commit, push, and let Flux reconcile.
+
+4. Restart the plugin operator so it re-reads the new `SIDECAR_IMAGE`:
+
+   ```bash
+   kubectl rollout restart deploy barman-cloud -n postgresql-system
+   ```
+
+5. Recreate the postgres pods (replicas first, primary last) so the operator
+   injects the new sidecar image.
 
 ## Requirements
 
