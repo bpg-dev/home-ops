@@ -22,6 +22,7 @@ spec:
       main:
         enabled: true
     defaultPodOptions:
+      automountServiceAccountToken: true
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
