@@ -1,5 +1,5 @@
 ---
-apiVersion: garage.rajsingh.info/v1alpha1
+apiVersion: garage.rajsingh.info/v1beta1
 kind: GarageCluster
 metadata:
   name: garage
@@ -36,7 +36,6 @@ spec:
     rootDomain: ".s3.${SECRET_DOMAIN}"
 
   admin:
-    enabled: true
     bindPort: 3903
     adminTokenSecretRef:
       name: garage-secrets
@@ -46,7 +45,7 @@ spec:
       key: GARAGE_METRICS_TOKEN
 
   security:
-    allowWorldReadableSecrets: true
+    allowInsecureSecretPermissions: true
 
   resources:
     requests:
