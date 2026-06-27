@@ -26,7 +26,7 @@ spec:
           00-copy-prometheus-exporter-config:
             image:
               repository: ghcr.io/home-operations/busybox
-              tag: 1.37.0
+              tag: 1.38.0
             command:
               - /bin/sh
               - -lc
@@ -38,7 +38,7 @@ spec:
           01-fix-bluemap:
             image:
               repository: ghcr.io/home-operations/busybox
-              tag: 1.37.0
+              tag: 1.38.0
             command:
               - /bin/sh
               - -lc
