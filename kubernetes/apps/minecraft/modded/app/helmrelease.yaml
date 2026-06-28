@@ -23,7 +23,7 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
-          00-copy-prometheus-exporter-config:
+          00-fix-bluemap:
             image:
               repository: ghcr.io/home-operations/busybox
               tag: 1.38.0
@@ -33,24 +33,12 @@ spec:
             args:
               - |
                 set -euo pipefail
-                mkdir -p /data/plugins/PrometheusExporter
-                cp /config/prometheus-exporter/config.yml /data/plugins/PrometheusExporter/config.yml
-          01-fix-bluemap:
-            image:
-              repository: ghcr.io/home-operations/busybox
-              tag: 1.38.0
-            command:
-              - /bin/sh
-              - -lc
-            args:
-              - |
-                set -euo pipefail
-                mkdir -p /data/plugins/BlueMap
-                if [ ! -f /data/plugins/BlueMap/core.conf ]; then
-                  echo 'accept-download: true' > /data/plugins/BlueMap/core.conf
+                mkdir -p /data/config/bluemap
+                if [ ! -f /data/config/bluemap/core.conf ]; then
+                  echo 'accept-download: true' > /data/config/bluemap/core.conf
                   exit 0
                 fi
-                sed -i 's/^accept-download: false$/accept-download: true/' /data/plugins/BlueMap/core.conf || true
+                sed -i 's/^accept-download: false$/accept-download: true/' /data/config/bluemap/core.conf || true
         containers:
           modded:
             image:
@@ -59,8 +47,8 @@ spec:
             env:
               EULA: "true"
               TZ: America/Toronto
-              TYPE: "PAPER"
-              VERSION: "1.21.11"
+              TYPE: "FABRIC"
+              VERSION: "26.2"
               ONLINE_MODE: false
               SERVER_NAME: *app
               DIFFICULTY: easy
@@ -71,9 +59,20 @@ spec:
               ALLOW_FLIGHT: true
               INIT_MEMORY: 1G
               MAX_MEMORY: &max-memory 12G
-              PLUGINS: https://github.com/sladkoff/minecraft-prometheus-exporter/releases/download/v3.1.2/minecraft-prometheus-exporter-3.1.2.jar
+              MODRINTH_DOWNLOAD_DEPENDENCIES: required
               MODRINTH_PROJECTS: |
                 bluemap
+                fabric-api
+                fabric-language-kotlin
+                cloth-config
+                cristel-lib
+                forge-config-api-port
+                balm
+                jamlib
+                clumps
+                fallingtree
+                rightclickharvest
+                veinminer
             probes:
               startup:
                 enabled: true
@@ -127,18 +126,6 @@ spec:
            port: &rcon-port 25578
           http:
             port: &web-port 8100
-          metrics:
-            port: &metrics-port 9940
-    serviceMonitor:
-      modded:
-        endpoints:
-          - interval: 30s
-            path: /metrics
-            port: metrics
-            scrapeTimeout: 10s
-        serviceName: modded
-        labels:
-          release: prometheus
     route:
       modded:
         hostnames: ["bluemap-modded.${SECRET_DOMAIN}"]
@@ -157,12 +144,6 @@ spec:
     persistence:
       tmp:
         type: emptyDir
-      prometheus-exporter-config:
-        type: configMap
-        name: modded-prometheus-exporter-config
-        globalMounts:
-          - path: /config/prometheus-exporter
-            readOnly: true
       data:
         existingClaim: *app
         globalMounts:
