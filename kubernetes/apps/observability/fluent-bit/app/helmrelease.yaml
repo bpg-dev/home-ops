@@ -142,6 +142,8 @@ spec:
           # - Spring Boot: 2024-01-15T17:46:52.051-05:00  INFO ...
           # - Simple: 2024-01-15 17:46:52.051 [D] ...
           rule          "start_state"   "/^\d{4}-\d{2}-\d{2}[T ]/"   "cont"
+          # Minecraft / Log4j console line: [16:24:06] [Server thread/ERROR]: ...  or  [16:24:06 ERROR]: ...
+          rule          "start_state"   "/^\[\d{2}:\d{2}:\d{2}[\] ]/"   "cont"
           # Continuation patterns for Java stacktraces:
           # - Tab or spaces followed by "at " (stacktrace frame)
           # - "Caused by:" or "Suppressed:" (chained exceptions)
@@ -184,6 +186,19 @@ spec:
         parse_logs.lua: |
           -- Pattern definitions: tried in order, first match wins
           local patterns = {
+            -- Minecraft / Fabric / vanilla Log4j: [16:24:06] [Server thread/INFO]: message
+            -- (also matches a leading mod category, e.g. [Server thread/INFO] (Sodium): ...)
+            {
+              name = "minecraft_fabric",
+              regex = "^%[(%d%d:%d%d:%d%d)[%.%d]*%]%s+%[[^/]*/(%w+)%][^:]*:%s?(.*)$",
+              fields = {"time", "level", "message"}
+            },
+            -- Minecraft / Paper console: [16:24:06 INFO]: message
+            {
+              name = "minecraft_paper",
+              regex = "^%[(%d%d:%d%d:%d%d)%s+(%w+)%]:%s?(.*)$",
+              fields = {"time", "level", "message"}
+            },
             -- Spring Boot: 2024-01-15T17:46:54.848-05:00  INFO 12 --- [app] [thread] logger : message
             {
               name = "springboot",
@@ -234,6 +249,9 @@ spec:
             if log == nil or log == "" then
               return 0, 0, 0
             end
+
+            -- Strip ANSI color escapes (itzg/Log4j may colorize console output) before matching
+            log = log:gsub("\27%[[%d;]*m", "")
 
             -- Skip if already parsed (has level field from merge_log JSON parsing)
             if record["level"] ~= nil then
