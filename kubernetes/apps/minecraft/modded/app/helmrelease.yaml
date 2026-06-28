@@ -52,7 +52,7 @@ spec:
               ONLINE_MODE: false
               SERVER_NAME: *app
               DIFFICULTY: easy
-              OPS: "MrPurgen"
+              OPS: "MrPurgen,alix_kb"
               MAX_PLAYERS: 40
               KEEP_INVENTORY: true
               ENABLE_ROLLING_LOGS: false
