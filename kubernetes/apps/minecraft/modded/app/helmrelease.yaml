@@ -43,7 +43,7 @@ spec:
           modded:
             image:
               repository: ghcr.io/itzg/minecraft-server
-              tag: 2026.6.1-java21
+              tag: 2026.6.1-java25
             env:
               EULA: "true"
               TZ: America/Toronto
