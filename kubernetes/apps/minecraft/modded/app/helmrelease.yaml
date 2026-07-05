@@ -74,10 +74,15 @@ spec:
                 forge-config-api-port
                 balm
                 jamlib
+                puzzles-lib
                 clumps
                 fallingtree
+                jade
+                journeymap
                 rightclickharvest
+                trashslot
                 veinminer
+                visual-workbench
             probes:
               startup:
                 enabled: true
