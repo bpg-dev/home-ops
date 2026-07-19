@@ -57,7 +57,8 @@ spec:
               # itzg resolves bare usernames to ONLINE Mojang UUIDs, which never match here, so
               # alix_kb is given its offline UUID directly. MrPurgen's existing offline-UUID entry
               # is retained by the SYNC_FILE_MERGE_LIST merge.
-              OPS: "MrPurgen,ff7736d8-12fd-3a9e-8ebf-358ee00b02b4"
+              # OPS: "MrPurgen,ff7736d8-12fd-3a9e-8ebf-358ee00b02b4"
+              OPS: "MrPurgen"
               MAX_PLAYERS: 40
               KEEP_INVENTORY: true
               ENABLE_ROLLING_LOGS: false
