@@ -86,7 +86,32 @@ With `replication_factor: 3`, Loki requires **at least 2 live replicas** to acce
 
 ## Resolution
 
-### Fix Applied
+### Preferred Fix: Forget the Stale Instance (2026-07-24)
+
+Recurrence after the talos-prod-3 reboot confirmed a gentler fix that avoids any
+ingestion gap: POST a `forget` for the stale instance to the ring endpoint on any
+healthy replica. No pod restarts needed — the blocked pod becomes ready on its own
+within a minute or two.
+
+```bash
+# 1. Identify the stale member (UNHEALTHY state, IP matches no current pod)
+curl -s http://loki.observability:3100/ring | grep -B8 "<stale-ip>" | grep -oE "loki-[a-z0-9-]+"
+
+# 2. Forget it (expect HTTP 302)
+curl -s -X POST -d "forget=<instance-id>" http://loki.observability:3100/ring
+
+# 3. Verify no UNHEALTHY members remain
+curl -s http://loki.observability:3100/ring | grep -c UNHEALTHY
+```
+
+Note: loki and fluent-bit images have no shell/curl; run the curls from a pod that
+has them (e.g. `kubectl exec -n rook-ceph-external deploy/rook-ceph-tools -- ...`).
+
+Symptom addendum: while the stale entry persists, the distributor returns HTTP 500
+on pushes, so **all fluent-bit pods go 0/1 Ready** (they stay `Running`, which
+plain `kubectl get pods | grep -v Running` sweeps miss — check READY columns).
+
+### Fallback Fix (January 2026): Full Restart
 
 **Full deployment restart** to clear memberlist state across all pods:
 
@@ -149,6 +174,9 @@ startupProbe:
 Instead of memberlist, Loki can use Consul, etcd, or multi-replica DNS. However, memberlist is simpler for small clusters and doesn't require additional infrastructure.
 
 ### 4. Runbook: When to Full Restart
+
+**Always try the `/ring` forget endpoint first** (see Preferred Fix above) — it
+resolves the stale-member case without touching healthy replicas.
 
 **Trigger a full restart if:**
 
