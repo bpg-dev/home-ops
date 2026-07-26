@@ -111,6 +111,25 @@ Symptom addendum: while the stale entry persists, the distributor returns HTTP 5
 on pushes, so **all fluent-bit pods go 0/1 Ready** (they stay `Running`, which
 plain `kubectl get pods | grep -v Running` sweeps miss — check READY columns).
 
+### Drain Deadlock Variant (2026-07-25, talos-prod-1 drain)
+
+Stale ring entries appear **even on graceful drain evictions**, not just abrupt
+node deaths — both Loki pods evicted from prod-1 (SIGTERM, clean shutdown path)
+left `past heartbeat timeout` entries behind. Expect one forget per evicted
+replica when draining a node hosting Loki pods.
+
+This also **deadlocks the drain itself** when combined with the PDB:
+
+1. Drain evicts Loki replica #1; replacement schedules on another node
+2. Replacement blocks on the stale ring entry → never becomes ready
+3. PDB (`minAvailable: 2`) now has 0 allowed disruptions → eviction of the
+   node's second replica is denied indefinitely; drain spins until timeout
+
+**Fix mid-drain:** forget the stale member (see above). The blocked replacement
+goes ready ~1 min later, the PDB unblocks, and the still-running drain proceeds
+on its own — no need to restart it. Repeat the ring check after the drain
+completes: the last evicted replica usually leaves its own stale entry.
+
 ### Fallback Fix (January 2026): Full Restart
 
 **Full deployment restart** to clear memberlist state across all pods:
@@ -205,7 +224,9 @@ When possible, drain nodes gracefully before maintenance:
 kubectl drain talos-prod-2 --ignore-daemonsets --delete-emptydir-data
 ```
 
-This gives pods time to gracefully leave the memberlist ring.
+**Caveat (2026-07-25):** in practice even graceful drain evictions left stale
+ring entries (see Drain Deadlock Variant above). Treat the ring check + forget
+as a standard step of any drain touching Loki pods, not as a failure mode.
 
 ### PodDisruptionBudget
 
@@ -254,5 +275,6 @@ kubectl scale deployment loki -n observability --replicas=3
 ## Document History
 
 - **Created**: 2026-01-18
+- **Updated**: 2026-07-25 (drain deadlock variant; stale entries from graceful evictions)
 - **Author**: Home-ops automation
 - **Incident Duration**: ~4 hours (partial degradation, 2/3 replicas operational)
