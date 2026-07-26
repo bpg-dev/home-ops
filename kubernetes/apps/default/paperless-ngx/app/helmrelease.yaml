@@ -246,11 +246,6 @@ spec:
         path: /mnt/tank/scanner
         globalMounts:
           - path: /consume
-      run-tmpfs:
-        enabled: true
-        type: emptyDir
-        globalMounts:
-          - path: /run
     resources:
       requests:
         cpu: 500m
