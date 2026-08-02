@@ -45,6 +45,9 @@ spec:
       work_mem: "4MB"
       min_wal_size: "1GB"
       max_wal_size: "4GB"
+      # Invalidate replication slots that retain more WAL than this instead of
+      # filling the volume (2026-08-01 incident: inactive slot filled primary disk)
+      max_slot_wal_keep_size: "8GB"
     # Configure pg_hba to allow password authentication with TLS
     # This is required even when enableSuperuserAccess is true
     pg_hba:

@@ -1,0 +1,31 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: postgres-cluster
+spec:
+  groups:
+    - name: postgres-cluster.rules
+      rules:
+        - alert: CNPGReplicationSlotInactive
+          expr: |-
+            cnpg_pg_replication_slots_active == 0
+          annotations:
+            summary: >-
+              Replication slot {{ $labels.slot_name }} on {{ $labels.pod }} is inactive;
+              its replica is not streaming and the slot is retaining WAL
+          for: 15m
+          labels:
+            severity: warning
+
+        - alert: CNPGReplicationSlotWalRetained
+          expr: |-
+            cnpg_pg_replication_slots_pg_wal_lsn_diff > 2147483648
+          annotations:
+            summary: >-
+              Replication slot {{ $labels.slot_name }} on {{ $labels.pod }} is retaining
+              {{ $value | humanize1024 }}B of WAL; primary volume fills if this keeps growing
+          for: 15m
+          labels:
+            severity: critical

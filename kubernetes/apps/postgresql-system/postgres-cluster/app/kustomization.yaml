@@ -8,5 +8,6 @@ resources:
   - ./externalsecrets.yaml
   - ./grafanadashboard.yaml
   - ./objectstore.yaml
+  - ./prometheusrule.yaml
   - ./scheduledbackup.yaml
   - ./volsync.yaml
