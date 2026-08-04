@@ -59,7 +59,7 @@ spec:
               # this list on every startup, so removals here actually revoke op.
               # db2236ef-809f-3fd7-a63a-5ab650ab6c83 = MrPurgen
               # ff7736d8-12fd-3a9e-8ebf-358ee00b02b4 = alix_kb
-              OPS: "db2236ef-809f-3fd7-a63a-5ab650ab6c83,ff7736d8-12fd-3a9e-8ebf-358ee00b02b4"
+              OPS: "ff7736d8-12fd-3a9e-8ebf-358ee00b02b4"
               OVERRIDE_OPS: "true"
               MAX_PLAYERS: 40
               KEEP_INVENTORY: true

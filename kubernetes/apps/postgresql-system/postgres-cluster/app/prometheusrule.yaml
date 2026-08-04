@@ -9,8 +9,11 @@ spec:
     - name: postgres-cluster.rules
       rules:
         - alert: CNPGReplicationSlotInactive
+          # Scope to the primary: CNPG HA slot synchronization keeps inactive
+          # copies of peer slots on replicas, which is expected.
           expr: |-
             cnpg_pg_replication_slots_active == 0
+            and on (namespace, pod) cnpg_pg_replication_in_recovery == 0
           annotations:
             summary: >-
               Replication slot {{ $labels.slot_name }} on {{ $labels.pod }} is inactive;
@@ -22,6 +25,7 @@ spec:
         - alert: CNPGReplicationSlotWalRetained
           expr: |-
             cnpg_pg_replication_slots_pg_wal_lsn_diff > 2147483648
+            and on (namespace, pod) cnpg_pg_replication_in_recovery == 0
           annotations:
             summary: >-
               Replication slot {{ $labels.slot_name }} on {{ $labels.pod }} is retaining
