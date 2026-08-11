@@ -91,7 +91,7 @@ spec:
                         curl -fsS --max-time 5 -o /dev/null http://localhost:80/api/ &&
                         cd /usr/src/paperless/src &&
                         celery --app paperless inspect ping
-                        --destination "celery@${HOSTNAME}" --timeout 10
+                        --destination "celery@$${HOSTNAME}" --timeout 10
                   initialDelaySeconds: 120
                   periodSeconds: 60
                   timeoutSeconds: 20
