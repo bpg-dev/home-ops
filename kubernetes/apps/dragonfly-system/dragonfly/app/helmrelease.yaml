@@ -1,0 +1,56 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: dragonfly-exporter
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: dragonfly-exporter
+  interval: 1h
+  values:
+    controllers:
+      dragonfly-exporter:
+        containers:
+          app:
+            image:
+              repository: docker.io/oliver006/redis_exporter
+              tag: v1.89.0
+            args:
+              # Watches the paperless celery queue depth so a wedged worker
+              # (e.g. after a dragonfly master failover) is visible in Prometheus.
+              - --redis.addr=redis://dragonfly:6379
+              - --check-single-keys=celery
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 9121
+              readiness: *probes
+            securityContext:
+              runAsUser: 65534
+              runAsGroup: 65534
+              runAsNonRoot: true
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 64Mi
+    service:
+      app:
+        ports:
+          metrics:
+            port: 9121
+    serviceMonitor:
+      app:
+        endpoints:
+          - port: metrics

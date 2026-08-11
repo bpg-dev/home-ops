@@ -1,0 +1,43 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: dragonfly-exporter
+spec:
+  groups:
+    - name: dragonfly-exporter.rules
+      rules:
+        # Paperless celery worker wedges silently after a dragonfly master
+        # failover: beat keeps enqueueing while nothing consumes. Normal queue
+        # depth is 0-2; sustained growth means the worker is stuck.
+        - alert: PaperlessCeleryQueueBacklog
+          expr: |-
+            redis_key_size{key="celery"} > 50
+          annotations:
+            summary: >-
+              Paperless celery queue has {{ $value }} pending tasks
+            description: >-
+              The celery task queue in dragonfly has been backing up for 30m,
+              which usually means the paperless celery worker is wedged (known
+              failure mode after a dragonfly master failover). Do NOT restart
+              the paperless pod - pending web uploads live in /tmp. Restart
+              only the worker: kubectl exec into the main container and run
+              "s6-svc -r /run/service/svc-worker"; if the PID survives, SIGKILL
+              the worker process group.
+          for: 30m
+          labels:
+            severity: warning
+        - alert: PaperlessCeleryQueueMetricAbsent
+          expr: |-
+            absent(redis_key_size{key="celery"})
+          annotations:
+            summary: >-
+              Celery queue depth metric is missing
+            description: >-
+              redis_key_size{key="celery"} is not being reported. The
+              dragonfly-exporter deployment may be down or unable to reach
+              dragonfly, leaving the paperless queue backlog unmonitored.
+          for: 1h
+          labels:
+            severity: warning

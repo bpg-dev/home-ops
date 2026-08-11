@@ -73,14 +73,36 @@ spec:
               - secretRef:
                   name: paperless-secret
             probes:
-              liveness: &probes
+              # Liveness checks both the webserver AND the celery worker. After a
+              # Dragonfly master failover the worker can wedge silently on dead broker
+              # connections (queue grows, zero consumption) — an HTTP-only probe never
+              # sees it. The ping is served by the worker's control thread, so long
+              # OCR jobs don't fail it. /tmp is an emptyDir, so a liveness restart
+              # cannot lose uploads pending consumption in /tmp/paperless.
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - /usr/bin/bash
+                      - -c
+                      - >-
+                        curl -fsS --max-time 5 -o /dev/null http://localhost:80/api/ &&
+                        cd /usr/src/paperless/src &&
+                        celery --app paperless inspect ping
+                        --destination "celery@${HOSTNAME}" --timeout 10
+                  initialDelaySeconds: 120
+                  periodSeconds: 60
+                  timeoutSeconds: 20
+                  failureThreshold: 3
+              readiness:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
                     path: /api/
                     port: *port
-              readiness: *probes
             resources:
               requests:
                 cpu: 100m
@@ -246,6 +268,14 @@ spec:
         path: /mnt/tank/scanner
         globalMounts:
           - path: /consume
+      tmp:
+        enabled: true
+        type: emptyDir
+        sizeLimit: 10Gi
+        advancedMounts:
+          paperless-ngx:
+            main:
+              - path: /tmp
     resources:
       requests:
         cpu: 500m

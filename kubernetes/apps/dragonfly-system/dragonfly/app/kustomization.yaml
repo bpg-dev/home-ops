@@ -5,4 +5,7 @@ kind: Kustomization
 resources:
   - ./dragonfly.yaml
   - ./grafanadashboard.yaml
+  - ./helmrelease.yaml
+  - ./ocirepository.yaml
   - ./podmonitor.yaml
+  - ./prometheusrule.yaml
