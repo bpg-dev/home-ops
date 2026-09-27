@@ -12,3 +12,4 @@ resources:
   - ./router/ks.yaml
   - ./status-exporter/ks.yaml
   - ./survival/ks.yaml
+  - ./world/ks.yaml

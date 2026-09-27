@@ -10,6 +10,7 @@ This repo runs multiple Minecraft servers in the `minecraft` namespace using Git
 - **Minecraft servers**:
   - **`survival`**: Paper, itzg Minecraft chart (`itzg/minecraft-server-charts`). Online-mode, no whitelist. **LAN / WireGuard only.**
   - **`modded`**: Fabric + Modrinth mods, `bjw-s/app-template` chart running `ghcr.io/itzg/minecraft-server`. Offline-mode, whitelist enforced. **Reachable from the internet** as `modded.${SECRET_DOMAIN}`.
+  - **`world`**: same stack, mods and whitelist as `modded`, with a separate world (survival game mode, normal difficulty). **Reachable from the internet** as `world.${SECRET_DOMAIN}`.
 - **Web UIs (BlueMap)**: exposed via **Gateway API `HTTPRoute`** through Envoy Gateway
   - Default in this repo: **internal-only** (uses `envoy-internal` in the `network` namespace)
 - **Backups**: Volsync component is enabled for Minecraft apps (PVC + ReplicationSource/Destination pattern)
@@ -21,24 +22,25 @@ This repo runs multiple Minecraft servers in the `minecraft` namespace using Git
 
 ```mermaid
 flowchart LR
-  client[Internet Minecraft client] -->|"modded.domain → CNAME apex.bpghome.net (ddclient DDNS)"| edge["OPNsense WAN (PPPoE)"]
+  client[Internet Minecraft client] -->|"modded.domain / world.domain → CNAME apex.bpghome.net (ddclient DDNS)"| edge["OPNsense WAN (PPPoE)"]
   edge -->|"Destination NAT TCP 25565 → 192.168.1.40"| lb["Cilium LB IP - 192.168.1.40"]
   lanClient[LAN client] -->|"dnsmasq host override → 192.168.1.40"| lb
   lb --> routerSvc["minecraft-router Service (LoadBalancer)"]
   routerSvc --> routerPod[mc-router Pod]
 
   routerPod -->|"host = modded.domain"| modded[Service: modded]
+  routerPod -->|"host = world.domain"| world[Service: world]
   routerPod -->|"host = mc.domain (LAN-only name)"| survival[Service: survival]
   routerPod -->|"bare IP / unknown host"| drop[connection closed]
 ```
 
 Notes:
 
-- The cluster provides the **LAN entrypoint** (`192.168.1.40:25565`). LAN clients resolve both `mc.` and `modded.` to that IP via OPNsense host overrides.
-- **Public path (modded only, since 2026-09-10)**:
-  - `modded.${SECRET_DOMAIN}` is a **DNS-only** (not proxied) Cloudflare CNAME to `apex.bpghome.net`, created by external-dns from `modded/app/dnsendpoint.yaml`.
+- The cluster provides the **LAN entrypoint** (`192.168.1.40:25565`). LAN clients resolve `mc.`, `modded.` and `world.` to that IP via OPNsense host overrides.
+- **Public path (`modded` since 2026-09-10, `world` since 2026-09-27)**:
+  - `modded.${SECRET_DOMAIN}` is a **DNS-only** (not proxied) Cloudflare CNAME to `apex.bpghome.net`, created by external-dns from `modded/app/dnsendpoint.yaml`. `world.${SECRET_DOMAIN}` is the same, from `world/app/dnsendpoint.yaml`.
   - `apex.bpghome.net` is kept current by the **os-ddclient** plugin on OPNsense (PPPoE address can change).
-  - OPNsense **Firewall → NAT → Destination NAT** rule "Minecraft modded (mc-router)": WAN, TCP `25565` → `192.168.1.40:25565`, firewall rule = Pass. If the rule is saved but `pfctl -sn | grep 25565` shows nothing, run `configctl filter reload`.
+  - OPNsense **Firewall → NAT → Destination NAT** rule "Minecraft modded (mc-router)": WAN, TCP `25565` → `192.168.1.40:25565`, firewall rule = Pass. The one rule serves every published server. If the rule is saved but `pfctl -sn | grep 25565` shows nothing, run `configctl filter reload`.
   - mc-router routes on the hostname the client typed, so the CNAME chain is transparent.
 - `mc.${SECRET_DOMAIN}` has **no public DNS record**; survival is only reachable from the LAN or WireGuard.
 - **mc-router MUST NOT set `DEFAULT`.** With the port forwarded, a default backend would send every bare-IP / unknown-hostname connection (scanners, the ISP reverse-DNS name, status checkers) to that server. Survival was briefly exposed this way on 2026-09-10.
@@ -55,6 +57,9 @@ flowchart LR
 
   gw --> hr2["HTTPRoute modded.<domain>"]
   hr2 --> bm2["Service modded 8100"]
+
+  gw --> hr3["HTTPRoute world.<domain>"]
+  hr3 --> bm3["Service world 8100"]
 ```
 
 ## Network / IPs
@@ -84,8 +89,10 @@ Examples:
 - `minecraft-router` API: `minecraft-router.${SECRET_DOMAIN}` (internal HTTPRoute)
 - `survival` game: `mc.${SECRET_DOMAIN}` (LAN host override only, no public record)
 - `modded` game: `modded.${SECRET_DOMAIN}` (LAN host override + public DNS-only CNAME via `DNSEndpoint`)
+- `world` game: `world.${SECRET_DOMAIN}` (LAN host override + public DNS-only CNAME via `DNSEndpoint`)
 - `survival` BlueMap: `bluemap-mc.${SECRET_DOMAIN}` (internal HTTPRoute)
 - `modded` BlueMap: `bluemap-modded.${SECRET_DOMAIN}` (internal HTTPRoute)
+- `world` BlueMap: `bluemap-world.${SECRET_DOMAIN}` (internal HTTPRoute)
 
 external-dns runs with `--cloudflare-proxied` (everything proxied by default). A game hostname must opt out with
 `providerSpecific: external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"` — note the **`alpha`** prefix; external-dns v0.21
@@ -123,6 +130,19 @@ silently ignores the newer unprefixed key and the record comes up proxied, which
 - Exposes:
   - Game service (routed through `minecraft-router`)
   - BlueMap on port `8100` via an internal route (as configured in the Helm values)
+
+### `world/`
+
+- Clone of `modded/`: same image, Fabric version, `MODRINTH_PROJECTS` list, offline-mode and whitelist handling. Everything in the `modded/` section applies, including the Modrinth/Zenarmor startup dependency.
+- Differences from `modded`:
+  - `MODE: survival`, `DIFFICULTY: normal` (modded is `easy`)
+  - `OPS` lists both MrPurgen and alix_kb (modded ops alix_kb only)
+  - `MAX_MEMORY` / memory request `8G` (modded is `12G`)
+- **Keep the mod list in sync by hand**: adding a mod to one server does not add it to the other.
+- **Published to the internet** as `world.${SECRET_DOMAIN}`.
+- Exposes:
+  - Game service (routed through `minecraft-router`)
+  - BlueMap on port `8100` via an internal route at `bluemap-world.${SECRET_DOMAIN}`
 
 ## Adding a new Minecraft server (extensibility)
 
@@ -376,6 +396,7 @@ kubectl get httproute -n minecraft
 ```bash
 flux reconcile ks survival -n minecraft --with-source
 flux reconcile ks modded -n minecraft --with-source
+flux reconcile ks world -n minecraft --with-source
 flux reconcile ks minecraft-router -n minecraft --with-source
 ```
 

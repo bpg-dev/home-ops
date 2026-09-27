@@ -1,0 +1,179 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app world
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: world
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      minecraft:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        initContainers:
+          00-fix-bluemap:
+            image:
+              repository: ghcr.io/home-operations/busybox
+              tag: 1.38.0
+            command:
+              - /bin/sh
+              - -lc
+            args:
+              - |
+                set -euo pipefail
+                mkdir -p /data/config/bluemap
+                if [ ! -f /data/config/bluemap/core.conf ]; then
+                  echo 'accept-download: true' > /data/config/bluemap/core.conf
+                  exit 0
+                fi
+                sed -i 's/^accept-download: false$/accept-download: true/' /data/config/bluemap/core.conf || true
+        containers:
+          world:
+            image:
+              repository: ghcr.io/itzg/minecraft-server
+              tag: 2026.7.2-java25
+            env:
+              EULA: "true"
+              TZ: America/Toronto
+              TYPE: "FABRIC"
+              VERSION: "26.2"
+              ONLINE_MODE: false
+              SERVER_NAME: *app
+              MODE: survival
+              DIFFICULTY: normal
+              # Server is offline-mode (ONLINE_MODE: false): players are identified by their
+              # offline UUID (md5 of "OfflinePlayer:<name>"), so ops must be keyed by that UUID.
+              # itzg resolves bare usernames to ONLINE Mojang UUIDs, which never match here, so
+              # ops are listed as offline UUIDs directly. OVERRIDE_OPS rewrites ops.json from
+              # this list on every startup, so removals here actually revoke op.
+              # db2236ef-809f-3fd7-a63a-5ab650ab6c83 = MrPurgen
+              # ff7736d8-12fd-3a9e-8ebf-358ee00b02b4 = alix_kb
+              OPS: |
+                db2236ef-809f-3fd7-a63a-5ab650ab6c83
+                ff7736d8-12fd-3a9e-8ebf-358ee00b02b4
+              OVERRIDE_OPS: "true"
+              # Whitelist uses the same offline UUIDs (compute with
+              # python3 -c 'import hashlib,uuid,sys;print(uuid.UUID(bytes=hashlib.md5(("OfflinePlayer:"+sys.argv[1]).encode()).digest(),version=3))' <name>).
+              # Setting WHITELIST enables white-list in server.properties. SYNCHRONIZE rewrites
+              # whitelist.json from this list on every startup, so removals here revoke access.
+              # db2236ef-809f-3fd7-a63a-5ab650ab6c83 = MrPurgen
+              # ff7736d8-12fd-3a9e-8ebf-358ee00b02b4 = alix_kb
+              WHITELIST: |
+                db2236ef-809f-3fd7-a63a-5ab650ab6c83
+                ff7736d8-12fd-3a9e-8ebf-358ee00b02b4
+              EXISTING_WHITELIST_FILE: SYNCHRONIZE
+              ENFORCE_WHITELIST: "true"
+              MAX_PLAYERS: 40
+              KEEP_INVENTORY: true
+              ENABLE_ROLLING_LOGS: false
+              ALLOW_FLIGHT: true
+              INIT_MEMORY: 1G
+              MAX_MEMORY: &max-memory 8G
+              MODRINTH_DOWNLOAD_DEPENDENCIES: required
+              MODRINTH_PROJECTS: |
+                bluemap
+                fabric-api
+                fabric-language-kotlin
+                cloth-config
+                cristel-lib
+                forge-config-api-port
+                balm
+                jamlib
+                puzzles-lib
+                clumps
+                elytra-trims
+                fallingtree
+                jade
+                journeymap
+                rightclickharvest
+                skinrestorer
+                trashslot
+                veinminer
+                visual-workbench
+            probes:
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 25565
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  failureThreshold: 60
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 25565
+                  periodSeconds: 30
+                  failureThreshold: 3
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 25565
+                  periodSeconds: 10
+                  failureThreshold: 3
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 500m
+                memory: *max-memory
+        pod:
+          securityContext:
+            runAsUser: 568
+            runAsGroup: 568
+            runAsNonRoot: true
+            fsGroup: 568
+            fsGroupChangePolicy: OnRootMismatch
+    service:
+      world:
+        controller: minecraft
+        annotations:
+          mc-router.itzg.me/externalServerName: "world.${SECRET_DOMAIN}"
+        ports:
+          game:
+            port: &game-port 25565
+          rcon:
+            port: &rcon-port 25578
+          http:
+            port: &web-port 8100
+    route:
+      world:
+        hostnames: ["bluemap-world.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - name: *app
+                port: *web-port
+            matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+    persistence:
+      tmp:
+        type: emptyDir
+      data:
+        existingClaim: *app
+        globalMounts:
+          - path: /data

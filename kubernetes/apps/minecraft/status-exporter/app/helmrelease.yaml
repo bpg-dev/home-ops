@@ -35,6 +35,8 @@ spec:
               - survival-minecraft:25565
               - -servers
               - modded:25565
+              - -servers
+              - world:25565
               - -port
               - "8080"
             resources:
