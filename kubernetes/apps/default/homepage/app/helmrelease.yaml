@@ -51,8 +51,14 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /
+                    # v2.x applies the HOMEPAGE_ALLOWED_HOSTS check to every path, so a
+                    # probe whose Host header is the pod IP gets HTTP 400. Send an
+                    # always-allowed Host and use the upstream healthcheck endpoint.
+                    path: /api/healthcheck
                     port: *port
+                    httpHeaders:
+                      - name: Host
+                        value: localhost:3000
               readiness: *probes
             securityContext:
               allowPrivilegeEscalation: false
