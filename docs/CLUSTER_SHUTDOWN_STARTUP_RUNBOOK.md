@@ -3,10 +3,25 @@
 Written 2026-08-19 for the move to the new location. Reusable for any planned
 full power-down.
 
-## Topology snapshot (2026-08-19)
+## Topology snapshot
+
+Current (2026-10-03, pve2 back from RMA, one Talos VM per host; full device map in
+`PVE_HOST_LAYOUT.md`):
 
 | Host | IP | Role | Notes |
-|------|-----|------|-------|
+| --- | --- | --- | --- |
+| pve1 | 192.168.1.81 | Proxmox, Ceph mon+mgr+mds+osd.0 | Hosts VM 1001 (talos-prod-1) |
+| pve2 | 192.168.1.82 | Proxmox, Ceph mon+mgr+mds+osd.1 | Hosts VM 1002 (talos-prod-2) |
+| pve3 | 192.168.1.83 | Proxmox, Ceph mon+mgr+mds+osd.2 | Hosts VM 1003 (talos-prod-3), 9000 (pve utility VM) |
+
+Each host's `rpool` has its SLOG on the Intel OSD drive, so **a PVE host will not import
+rpool (and will not boot) if that drive is missing or dead**. Recovery at the initramfs
+prompt: `zpool import -m -N rpool; exit`, then `zpool remove rpool <log device>` once up.
+
+Snapshot at the 2026-08-19 move (pve2 out for RMA, for the history below):
+
+| Host | IP | Role | Notes |
+| --- | --- | --- | --- |
 | pve1 | 192.168.1.81 | Proxmox, Ceph mon+mgr(active)+OSD | Hosts VMs 1001 (talos-prod-1), 1003 (talos-prod-3) |
 | pve2 | 192.168.1.82 | Proxmox, Ceph mon+OSD | **OUT FOR RMA — powered off**, see PVE2_RMA_GUIDE.md |
 | pve3 | 192.168.1.83 | Proxmox, Ceph mon+mgr(standby)+OSD | Hosts VMs 1002 (talos-prod-2), 9000 (pve utility VM) |
@@ -121,8 +136,10 @@ Do this last — it kills DNS/routing for everything else.
 1. **Network first**: OPNsense up, LAN live. Everything uses static IPs on
    192.168.1.0/24 — no DHCP dependency for infra.
 2. **TrueNAS** (192.168.1.10): power on, verify NFS exports come up.
-3. **pve1 and pve3**: power both on (roughly together — Ceph mon quorum
-   needs both since pve2 is absent). Talos VMs autostart.
+3. **PVE hosts**: power all three on roughly together (Ceph mon quorum needs
+   two of three; at the 2026-08 move only pve1 and pve3 existed). Talos VMs
+   autostart. If a host stops at the initramfs prompt with rpool failing to
+   import, its Intel P4600 (SLOG) is missing — see the note under Topology.
 4. **Unset Ceph flags** once mons have quorum:
 
    ```bash

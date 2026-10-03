@@ -53,6 +53,14 @@ The rpool is configured as a **ZFS mirror** across TWO drives:
 
 **This means**: No data migration needed! Simply replace the failing drive and resilver.
 
+> **2026-10-03 update:** `rpool` on every host now also has a `logs` vdev: a 32 GiB partition
+> (`nvme-INTEL_SSDPE2KE032T7_<serial>-part1`) on the Intel OSD drive, used as SLOG
+> (see `PVE_ZFS_SLOG_ON_P4600.md`). It is **not** part of `mirror-0` and is not touched by
+> this procedure. `zpool status` will show it below the mirror; leave it alone. The mirror
+> members are still the two 1 TB consumer drives (pve2: Kingston OM8PGP4 + Crucial P310 since
+> the 2026-01 replacement; pve1/pve3: OM8PGP4 + Kingston NV3). Current per-host device map:
+> `PVE_HOST_LAYOUT.md`.
+
 ## Current Configuration
 
 ### ZFS Pool Status
@@ -539,6 +547,7 @@ qm start 1002
 - **Created**: 2026-01-07
 - **Updated**: 2026-01-07 (Corrected: rpool is ZFS mirror, not single drive)
 - **Updated**: 2026-01-16 (Added driver unbind workaround notes, updated drive mapping)
+- **Updated**: 2026-10-03 (rpool now has a SLOG log vdev on the Intel drive; pointer to PVE_HOST_LAYOUT.md)
 - **Author**: Home-ops automation
 - **Reason**: Kingston OM8PGP41024Q-A0 causing system crashes (726+ NVMe errors, PCIe bus freezes)
 - **Related**: [PVE2_CRASH_INVESTIGATION.md](PVE2_CRASH_INVESTIGATION.md)

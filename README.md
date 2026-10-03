@@ -48,6 +48,14 @@ task talos:upgrade-k8s
 task talos:reset
 ```
 
+## Infrastructure
+
+Three Proxmox VE hosts (pve1/2/3), one Talos VM each, Ceph on an Intel P4600 per host,
+TrueNAS for NFS. Host hardware, disk layout (rpool mirror + SLOG, OSD partitions), VM
+sizing and placement are described in `docs/PVE_HOST_LAYOUT.md`; the VMs themselves are
+managed by OpenTofu in the `home-ops-infra` repo. Runbooks for host-level work live in
+`docs/` (see `PVE_*.md` and `CLUSTER_SHUTDOWN_STARTUP_RUNBOOK.md`).
+
 ## Repository layout
 
 ```text

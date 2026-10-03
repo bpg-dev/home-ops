@@ -363,7 +363,10 @@ ssh-keygen -R pve2; ssh-keygen -R 192.168.1.82; ssh-keygen -R pve2.bpghome.net
 ### 7.2 Proxmox installation
 
 - Boot the current PVE 9.x ISO. ZFS RAID1 across the two 1 TB NVMe drives only; leave the Intel
-  SSDPE2KE032T7 (OSD) untouched.
+  SSDPE2KE032T7 untouched. Since 2026-10-03 that drive carries two partitions: part1 is the
+  32 GiB rpool SLOG, part2 the OSD (`docs/PVE_ZFS_SLOG_ON_P4600.md`). After the install,
+  re-attach the log device: `zpool add -o ashift=12 rpool log /dev/disk/by-id/nvme-INTEL_SSDPE2KE032T7_<serial>-part1`
+  (wipe part1 first with `wipefs -a` if it still has the old pool's label).
 - Hostname `pve2.bpghome.net`, 192.168.1.82/24, gateway/DNS 192.168.1.1. The installer may come up
   on a different NIC/DHCP address — check the OPNsense lease table for the MS-01 MAC `38:05:25:37:95:1d`.
 - Install your SSH key, then switch repos (deb822 format, Debian **trixie**) and bring the box to the
@@ -448,11 +451,17 @@ Also drop stale `pve2` lines from `/root/.ssh/known_hosts` on pve1 and pve3 (onl
    pveceph mon create
    pveceph mgr create
    pveceph mds create
-   DEV=$(readlink -f /dev/disk/by-id/nvme-INTEL_SSDPE2KE032T7_PHLE746400EQ3P2EGN)
-   ceph-volume lvm zap $DEV --destroy        # old osd.1 LVM is still on it
-   pveceph osd create $DEV
+   DISK=/dev/disk/by-id/nvme-INTEL_SSDPE2KE032T7_PHLE746400EQ3P2EGN
+   # 2026-10-02 (whole-disk OSD, pre-SLOG layout):
+   #   ceph-volume lvm zap $(readlink -f $DISK) --destroy; pveceph osd create $(readlink -f $DISK)
+   # Current layout (part1 = rpool SLOG, part2 = OSD). pveceph refuses the partition, use ceph-volume:
+   ceph-volume lvm zap $(readlink -f ${DISK}-part2) --destroy   # old osd.1 LVM is still on it
+   ceph-volume lvm create --bluestore --data $(readlink -f ${DISK}-part2)
    ceph osd tree; ceph -s
    ```
+
+   If the drive is blank (no GPT), partition it first exactly as in
+   `docs/PVE_ZFS_SLOG_ON_P4600.md` step 3 and add the SLOG before creating the OSD.
 
    Backfill of ~520 GiB runs at roughly 350 MiB/s, one PG at a time. Expect it to take a while; the
    snaptrim backlog from the degraded months drains afterwards.
@@ -508,8 +517,10 @@ kubectl get pods -n rook-ceph-external
 
 - Transplanted drives boot the old install; it re-joins Ceph silently. Expect it.
 - Never introduce a newer-point-release Ceph daemon into an older cluster. Upgrade mons first.
-- pve1 (94 GB) hosts two 32 GB VMs on local ZFS; a runaway daemon kills a VM first because kvm has the
-  largest RSS. Watch `journalctl -k | grep -i "out of memory"` after any Ceph change.
+- pve1 (94 GB) hosted two 32 GB VMs on local ZFS during the outage; a runaway daemon kills a VM first
+  because kvm has the largest RSS. Watch `journalctl -k | grep -i "out of memory"` after any Ceph change.
+  Since 2026-10-03 each VM is sized at 48 GB, so a host can no longer carry two Talos VMs; a second
+  host outage now means one Talos node down, not a migration.
 - After any node outage: Loki needs a ring `forget` per dead replica (see
   `docs/LOKI_MEMBERLIST_RING_RECOVERY.md`), CNPG re-syncs on its own.
 - A rebooting node that answers ping on every link but listens on nothing is not "slow": it either
@@ -563,5 +574,6 @@ pvecm add 192.168.1.81
 
 - **Created**: 2026-01-21
 - **Updated**: 2026-10-02 — Part 7 rewritten after the actual restoration (PVE 9.2.21, Ceph 19.2.6); rolling-upgrade lessons (pve1 panic on 7.0.14-20, kernel pin, cephx mutes)
+- **Updated**: 2026-10-03 — Intel drive now split into SLOG + OSD partitions; OSD creation via ceph-volume; VMs 48 GB
 - **Author**: Home-ops automation
 - **Related Issues**: CPU hardware defects requiring RMA

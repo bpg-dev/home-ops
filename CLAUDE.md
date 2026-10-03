@@ -229,7 +229,11 @@ export APP_NAME=<workload-name>
 
 ### Infrastructure
 
-- **Proxmox VE**: 3-node cluster hosting Talos VMs
+- **Proxmox VE**: 3-node cluster (pve1/2/3), one Talos VM per host, 48 GiB RAM / 8 cores each;
+  VMs managed by OpenTofu in `../home-ops-infra/tf` (never resize/move them only in the PVE UI)
+- **Per-host disks**: rpool = ZFS mirror of two consumer 1 TB NVMe + 32 GiB SLOG partition on the
+  Intel P4600; the rest of the P4600 is the Ceph OSD (created with `ceph-volume`, not `pveceph`).
+  Details and gotchas: `docs/PVE_HOST_LAYOUT.md`
 - **TrueNAS Scale**: NFS storage server for volsync backups
 
 ### Storage Classes
@@ -460,6 +464,8 @@ The `docs/` directory contains operational runbooks and investigation notes. Che
 - **Alertmanager Silences**: `docs/ALERTMANAGER_SILENCE_MANAGEMENT.md`
 - **Kopia UI Snapshots**: `docs/KOPIA_UI_SNAPSHOT_VISIBILITY.md`
 - **Observability Migration**: `docs/OBSERVABILITY_MIGRATION_LOKI_THANOS_90D.md`
+- **Proxmox Host Layout** (hardware, disks, VMs): `docs/PVE_HOST_LAYOUT.md`
+- **Proxmox ZFS SLOG / etcd fsync**: `docs/PVE_ZFS_SLOG_ON_P4600.md`
 - **Proxmox Watchdog**: `docs/PVE_WATCHDOG_SETUP.md`
 - **Proxmox Log Forwarding**: `docs/PVE_LOG_FORWARDING.md`
 - **PVE2 Hardware Issues**: `docs/PVE2_CRASH_INVESTIGATION.md`, `docs/PVE2_NVME_REPLACEMENT_GUIDE.md`, `docs/PVE2_RMA_GUIDE.md`
