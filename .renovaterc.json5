@@ -53,6 +53,12 @@
       minimumGroupSize: 3,
     },
     {
+      description: "Hold external-dns chart below 1.22: v0.22+/v0.23 ignores the Gateway target annotation for gateway-httproute and deleted public CNAMEs (2026-10-03, see docs memory external-dns-v0-23-gateway-target-regression)",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/home-operations/charts-mirror/external-dns"],
+      allowedVersions: "<1.22",
+    },
+    {
       description: "Auto-merge GitHub Actions",
       matchManagers: ["github-actions"],
       automerge: true,
