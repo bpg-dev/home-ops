@@ -52,7 +52,7 @@ spec:
               ONLINE_MODE: false
               SERVER_NAME: *app
               MODE: survival
-              DIFFICULTY: normal
+              DIFFICULTY: easy
               # Server is offline-mode (ONLINE_MODE: false): players are identified by their
               # offline UUID (md5 of "OfflinePlayer:<name>"), so ops must be keyed by that UUID.
               # itzg resolves bare usernames to ONLINE Mojang UUIDs, which never match here, so
