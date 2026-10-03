@@ -100,9 +100,10 @@ node, one at a time: `talosctl shutdown --nodes <ip> --wait` (cordons and drains
 CNPG primary off it (`kubectl cnpg promote postgres postgres-2 -n postgresql-system`),
 and after any node restart check the Loki ring (`LOKI_MEMBERLIST_RING_RECOVERY.md`).
 
-Status 2026-10-03: talos-prod-1 restarted with 48 GiB; talos-prod-2 and talos-prod-3
-still running with 32 GiB until their restart. OpenTofu plan for the module shows the two
-`dedicated` changes and nothing else.
+Status 2026-10-03 19:10 EDT: all three VMs restarted with 48 GiB (node capacity
+49240948Ki each); `tofu plan` reports no changes. Each restart took about 3 minutes from
+`talosctl shutdown` to the node being Ready again; the only follow-up needed was a Loki ring
+`forget` for the pod that had lived on the restarted node.
 
 ## Related documents
 
