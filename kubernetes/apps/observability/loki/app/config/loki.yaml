@@ -39,6 +39,11 @@ storage_config:
     cache_location: /var/loki/cache
 
 ingester:
+  # Loki runs as a Deployment, so an evicted pod never comes back under the same
+  # name. Without this its ring entry stays UNHEALTHY, the replacement pod never
+  # becomes Ready, and the PDB (minAvailable 2) deadlocks every node drain until
+  # someone POSTs forget=<pod> to /ring (docs/LOKI_MEMBERLIST_RING_RECOVERY.md).
+  autoforget_unhealthy: true
   chunk_target_size: 1572864  # 1.5MB - flush chunks at this size to limit memory
   max_chunk_age: 2h           # force flush after 2 hours
   chunk_idle_period: 1h       # flush inactive chunks after 1 hour
