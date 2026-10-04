@@ -1,2 +1,9 @@
-- op: remove
-  path: /cluster/apiServer/admissionControl
+---
+# Remove the default PodSecurity admission configuration.
+# Strategic merge form: talhelper rejects the old RFC6902 ("op: remove") patch for
+# the multi-document machine configs it generates for Talos 1.13. "$$" escapes the
+# dollar sign for talhelper's envsubst so the directive reaches Talos as "$patch".
+cluster:
+  apiServer:
+    admissionControl:
+      $$patch: delete
