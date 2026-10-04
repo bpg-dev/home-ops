@@ -56,7 +56,8 @@ tasks:
       set -e
       tmp="$(mktemp)"
       trap 'rm -f "${tmp}"' EXIT
-      talhelper gencommand upgrade-k8s --extra-flags "--to '{{.KUBERNETES_VERSION}}'" > "${tmp}"
+      # talhelper already passes --to from talenv.yaml kubernetesVersion
+      talhelper gencommand upgrade-k8s > "${tmp}"
       bash "${tmp}"
     vars:
       KUBERNETES_VERSION:
