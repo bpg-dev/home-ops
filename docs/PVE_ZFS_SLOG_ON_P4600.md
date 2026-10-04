@@ -3,16 +3,17 @@
 **Status:** DONE 2026-10-03. pve3 17:28-17:45, pve1 17:46-18:00, pve2 18:01-18:14 EDT, ~14 min
 each including backfill, no client-visible impact. mclock profile reverted to `balanced`.
 
-First 20 minutes after completion (all three SLOGs active, pve2 still backfilling for part
-of the window):
+Result after 20 hours with all three SLOGs active (2026-10-03 18:30 to 2026-10-04 15:20 EDT),
+versus the 24 h baseline taken before the change:
 
-| node | fsync p50 | fsync p99 | backend commit p99 |
+| node | fsync p50 before -> after | fsync p99 before -> after | backend commit p99 before -> after |
 | --- | --- | --- | --- |
-| talos-prod-1 | 0.5 ms | 1.9 ms | 3.1 ms |
-| talos-prod-2 | 0.9 ms | 6.0 ms | 18.5 ms |
-| talos-prod-3 | 0.6 ms | 2.0 ms | 5.4 ms |
+| talos-prod-1 | 2.5 ms -> 0.6 ms | 18.9 ms -> 3.8 ms | 37.8 ms -> 5.5 ms |
+| talos-prod-2 | 2.4 ms -> 0.7 ms | 14.7 ms -> 3.9 ms | 26.1 ms -> 6.9 ms |
+| talos-prod-3 | 3.7 ms -> 0.6 ms | 34.3 ms -> 3.5 ms | 65.6 ms -> 3.8 ms |
 
-Re-check the 24 h numbers on 2026-10-04 and update this table.
+Worst 5-minute fsync p99 in the window: 8.7 ms (still under the 10 ms guidance). etcd leader
+changes: 0 (was ~1/day). The etcd heartbeat/election tuning considered earlier is not needed.
 
 ## Why
 
