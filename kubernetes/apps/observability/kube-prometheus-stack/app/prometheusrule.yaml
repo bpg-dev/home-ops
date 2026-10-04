@@ -1,0 +1,47 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: etcd-disk-latency
+spec:
+  groups:
+    - name: etcd-disk-latency.rules
+      rules:
+        # etcd WAL fsync p99 sits at 2-4 ms since the PVE hosts got a ZFS SLOG on the
+        # Intel P4600 (2026-10-03, docs/PVE_ZFS_SLOG_ON_P4600.md). Before that it was
+        # 15-35 ms and caused leader elections and lease-loss restarts. The stock
+        # etcdHighFsyncDurations alert only fires above 500 ms; this one catches a lost
+        # or degraded SLOG partition long before etcd suffers.
+        - alert: EtcdFsyncLatencyDegraded
+          expr: |-
+            histogram_quantile(0.99,
+              sum by (instance, le) (rate(etcd_disk_wal_fsync_duration_seconds_bucket[5m]))
+            ) > 0.025
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: >-
+              etcd on {{ $labels.instance }} has fsync p99 of {{ $value | humanizeDuration }} (expected < 10ms)
+            description: >-
+              WAL fsync latency on this node is well above the post-SLOG baseline. Check
+              `zpool status rpool` on the PVE host for a missing or faulted log vdev on the
+              Intel P4600 and `zpool iostat -v rpool` for log activity. See
+              docs/PVE_ZFS_SLOG_ON_P4600.md.
+
+        - alert: EtcdBackendCommitLatencyDegraded
+          expr: |-
+            histogram_quantile(0.99,
+              sum by (instance, le) (rate(etcd_disk_backend_commit_duration_seconds_bucket[5m]))
+            ) > 0.05
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: >-
+              etcd on {{ $labels.instance }} has backend commit p99 of {{ $value | humanizeDuration }} (expected < 25ms)
+            description: >-
+              bbolt commit latency is well above the post-SLOG baseline (4-7 ms). Same
+              checks as EtcdFsyncLatencyDegraded; also look for a write burst on the
+              node (image pulls, log compaction) in the node's disk I/O graphs.

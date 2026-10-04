@@ -9,6 +9,7 @@ resources:
   - ./helmrelease.yaml
   - ./ocirepository.yaml
   - ./pdb-prometheus.yaml
+  - ./prometheusrule.yaml
   - ./pvc-prometheus-0.yaml
   - ./pvc-prometheus-1.yaml
   - ./scrapeconfig.yaml
