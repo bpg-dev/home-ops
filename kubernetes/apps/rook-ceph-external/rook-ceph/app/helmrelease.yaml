@@ -20,38 +20,10 @@ spec:
       retries: 3
   values:
     csi:
-      cephFSKernelMountOptions: ms_mode=prefer-crc
-      # Enable the CephFS driver for external cluster
-      enableCephfsDriver: true
-      # Enable snapshotter if you want CephFS volume snapshots
-      enableCephfsSnapshotter: true
-      enableLiveness: true
-      # Use krbd (kernel RBD) instead of nbd for Talos compatibility
-      # krbd is already available in the kernel and doesn't require privileged mode
-      # Enable snapshotter if you want RBD volume snapshots
-      enableRbdSnapshotter: true
-      # High availability for CSI controllers
-      cephfs:
-        provisioner:
-          replicaCount: 2
-          affinity:
-            podAntiAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchLabels:
-                      app: rook-ceph-external.cephfs.csi.ceph.com-ctrlplugin
-                  topologyKey: kubernetes.io/hostname
-      rbd:
-        mounter: krbd
-        provisioner:
-          replicaCount: 2
-          affinity:
-            podAntiAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchLabels:
-                      app: rook-ceph-external.rbd.csi.ceph.com-ctrlplugin
-                  topologyKey: kubernetes.io/hostname
+      # Everything else that used to live here (driver enables, replicas, affinity,
+      # kernel mount options, krbd, liveness) is configured by the ceph-csi-drivers
+      # chart since rook v1.20 (see ../csi-drivers and docs/ROOK_CEPH_V1_20_UPGRADE.md).
+      # The chart has no values schema, so stale keys would be ignored silently.
       serviceMonitor:
         enabled: true
     enableDiscoveryDaemon: true
