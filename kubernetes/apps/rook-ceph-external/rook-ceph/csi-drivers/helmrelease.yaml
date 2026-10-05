@@ -113,6 +113,15 @@ spec:
         log:
           rotation:
             enabled: false
+        nodePlugin:
+          # Explicit (matches the operator default and what rook v1.19 set). Also
+          # the knob to touch when the Driver CRs need a reconcile: the operator
+          # does not watch the image-set ConfigMap, so a new rook image set only
+          # reaches the pods after a Driver spec change (2026-10-05).
+          updateStrategy:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 1
         controllerPlugin:
           # Chart default is 1, overriding the operatorConfig default of 2.
           replicas: 2
@@ -127,6 +136,15 @@ spec:
         log:
           rotation:
             enabled: false
+        nodePlugin:
+          # Explicit (matches the operator default and what rook v1.19 set). Also
+          # the knob to touch when the Driver CRs need a reconcile: the operator
+          # does not watch the image-set ConfigMap, so a new rook image set only
+          # reaches the pods after a Driver spec change (2026-10-05).
+          updateStrategy:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 1
         controllerPlugin:
           replicas: 2
           deploymentStrategy:
