@@ -1,7 +1,10 @@
 # Rook-Ceph v1.19 -> v1.20 upgrade (external cluster)
 
-Status: **step 1 (operator v1.20.8) done 2026-10-05, step 2 (cluster chart, #453) pending**. Renovate PRs #452 (operator) and
-#453 (cluster chart) are intentionally left open until the steps below are done.
+Status: **DONE 2026-10-05**. Operator chart v1.20.8 (`e01c6161`), ceph-csi-drivers 1.0.4
+(`3a0f4a54`), cluster chart v1.20.8 with Ceph client image pinned to v19.2.6 (`11ca564d`). Renovate PRs #452 (operator) and
+#453 (cluster chart) were merged in that order after the prep below. Kept as the
+reference for the next rook minor (v1.21 will bump the ceph-csi-operator subchart; see
+"Afterwards").
 
 ## Why this needs a runbook
 
@@ -187,6 +190,17 @@ Merge as-is after step 1 is verified. Chart changes relevant to this external cl
 Verify: `flux get ks -n rook-ceph-external`, CephCluster `status.ceph.health` back to
 `HEALTH_OK` and `status.phase: Connected`, toolbox pod Running, Grafana Ceph dashboards
 still populated, one more volsync smoke test.
+
+### What actually happened on 2026-10-05 (step 2)
+
+Merged as `11ca564d` with `cephImage.tag: v19.2.6` added to the cluster HelmRelease
+(the v1.20 chart's top-level `cephImage` feeds both `cephClusterSpec.cephVersion.image`
+and the toolbox image). Helm upgrade took ~20 s; rendered CephCluster diff was exactly the
+image pin, `mgr.modules rook: disabled`, cmd-reporter resources and
+`security.cephx.csi.keyType: aes`. Rook re-created the CephConnection/ClientProfile,
+CephCluster reported `version 19.2.6-0`, HEALTH_OK, Connected; toolbox rolled to
+quay.io/ceph/ceph:v19.2.6; a volsync backup right after succeeded. The CSI pods were not
+touched by this step.
 
 ## Afterwards
 
