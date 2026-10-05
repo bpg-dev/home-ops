@@ -59,6 +59,12 @@
       allowedVersions: "<1.22",
     },
     {
+      description: "Keep ceph-csi-drivers in step with the ceph-csi-operator subchart bundled in the rook-ceph chart (rook v1.20.x ships 1.0.4); lift when rook bumps it, see docs/ROOK_CEPH_V1_20_UPGRADE.md",
+      matchDatasources: ["helm"],
+      matchPackageNames: ["ceph-csi-drivers"],
+      allowedVersions: "<1.1",
+    },
+    {
       description: "Auto-merge GitHub Actions",
       matchManagers: ["github-actions"],
       automerge: true,

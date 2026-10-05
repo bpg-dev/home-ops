@@ -1,0 +1,139 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  # The release MUST be called "ceph-csi-drivers" and live in the rook operator
+  # namespace: rook >= v1.19.5 pre-labels the Driver and OperatorConfig CRs it
+  # created with meta.helm.sh/release-name=ceph-csi-drivers so this chart can
+  # adopt them (rook#17289). Any other name makes the Helm install fail with
+  # "exists and cannot be imported into the current release".
+  name: ceph-csi-drivers
+spec:
+  chart:
+    spec:
+      chart: ceph-csi-drivers
+      sourceRef:
+        kind: HelmRepository
+        name: ceph-csi-operator
+      # Keep in step with the ceph-csi-operator subchart bundled in the rook-ceph
+      # chart (rook v1.20.x -> ceph-csi-operator 1.0.4). See
+      # docs/ROOK_CEPH_V1_20_UPGRADE.md before bumping.
+      version: "1.0.4"
+  interval: 1h
+  timeout: 10m
+  # The rook v1.19 operator still rewrites the Driver CRs on its own reconcile
+  # (operator restart, CephCluster or operator-config changes), dropping the
+  # serviceAccountName this chart sets. Drift detection lets Flux put the chart's
+  # spec back; this matters most right after the rook v1.20 operator upgrade,
+  # when the ceph-csi-operator switches to the chart-managed ServiceAccounts.
+  driftDetection:
+    mode: enabled
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    # Rook-compatible defaults, see
+    # https://github.com/rook/rook/blob/release-1.20/deploy/charts/ceph-csi-drivers/values.yaml
+    # with every value that rook v1.19 used to put on the Driver CRs carried over,
+    # so adopting the CRs does not change the running CSI pods beyond the
+    # ServiceAccount names.
+    operatorConfig:
+      namespace: rook-ceph-external
+      driverSpecDefaults:
+        imageSet:
+          # Created by the rook-ceph chart from its csi.* image values
+          name: rook-csi-operator-image-set-configmap
+        clusterName: rook-ceph-external
+        # rook/operator defaults; the chart's own defaults are 30s and "none"
+        grpcTimeout: 150
+        snapshotPolicy: volumeSnapshot
+        log:
+          rotation:
+            # rook never enabled the log-rotator sidecar (hostPath under
+            # /var/lib/cephcsi); keep the pods as they are.
+            enabled: false
+        nodePlugin:
+          priorityClassName: system-node-critical
+          resources:
+            registrar:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 256Mi
+            plugin:
+              requests:
+                cpu: 250m
+                memory: 512Mi
+              limits:
+                memory: 1Gi
+        controllerPlugin:
+          priorityClassName: system-cluster-critical
+          replicas: 2
+          deploymentStrategy:
+            type: Recreate
+          resources:
+            provisioner: &sidecar
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                memory: 256Mi
+            attacher: *sidecar
+            resizer: *sidecar
+            snapshotter: *sidecar
+            plugin:
+              requests:
+                memory: 512Mi
+              limits:
+                memory: 1Gi
+            omapGenerator:
+              requests:
+                cpu: 250m
+                memory: 512Mi
+              limits:
+                memory: 1Gi
+    drivers:
+      # Driver names must stay "<operator namespace>.<type>.csi.ceph.com": they
+      # are the provisioner names in storageclasses.yaml / volumesnapshotclasses.yaml.
+      rbd:
+        enabled: true
+        name: rook-ceph-external.rbd.csi.ceph.com
+        # Chart default is "none", which drops the csi-snapshotter sidecar and
+        # breaks VolumeSnapshots (volsync).
+        snapshotPolicy: volumeSnapshot
+        # Chart default 30s; rook and the operator default to 150s.
+        grpcTimeout: 150
+        log:
+          rotation:
+            enabled: false
+        controllerPlugin:
+          # Chart default is 1, overriding the operatorConfig default of 2.
+          replicas: 2
+          deploymentStrategy:
+            type: Recreate
+      cephfs:
+        enabled: true
+        name: rook-ceph-external.cephfs.csi.ceph.com
+        # rook v1.19 enabled group snapshots for CephFS (CSI_ENABLE_VOLUME_GROUP_SNAPSHOT)
+        snapshotPolicy: volumeGroupSnapshot
+        grpcTimeout: 150
+        log:
+          rotation:
+            enabled: false
+        controllerPlugin:
+          replicas: 2
+          deploymentStrategy:
+            type: Recreate
+      nfs:
+        enabled: false
+        name: rook-ceph-external.nfs.csi.ceph.com
+      nvmeof:
+        enabled: false
+        name: rook-ceph-external.nvmeof.csi.ceph.com

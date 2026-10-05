@@ -28,6 +28,12 @@ spec:
         secretName: rook-ceph-mon
       crashCollector:
         disable: true
+      csi:
+        cephfs:
+          # rook v1.20 no longer reads CSI_CEPHFS_KERNEL_MOUNT_OPTIONS from the
+          # operator chart; the CephCluster spec is the only place left that feeds
+          # the ClientProfile's kernelMountOptions (msgr2 CRC mode for the kernel client).
+          kernelMountOptions: ms_mode=prefer-crc
       healthCheck:
         daemonHealth:
           mon:
@@ -36,4 +42,3 @@ spec:
     cephBlockPools: {}
     cephFileSystems: {}
     cephObjectStores: {}
-

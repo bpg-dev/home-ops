@@ -22,10 +22,30 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: rook-ceph-csi-drivers
+spec:
+  # Rook's required chart order is rook-ceph -> ceph-csi-drivers -> rook-ceph-cluster
+  # (https://rook.io/docs/rook/latest-release/Upgrade/rook-upgrade/#helm)
+  dependsOn:
+    - name: rook-ceph
+  interval: 1h
+  path: ./kubernetes/apps/rook-ceph-external/rook-ceph/csi-drivers
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: rook-ceph-external
+  wait: true
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: rook-ceph-cluster
 spec:
   dependsOn:
-    - name: rook-ceph
+    - name: rook-ceph-csi-drivers
   #   - name: volsync
   #     namespace: volsync-system
   healthChecks:

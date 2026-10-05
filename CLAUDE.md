@@ -461,6 +461,7 @@ The `docs/` directory contains operational runbooks and investigation notes. Che
 - **Storage Setup**: `docs/TRUENAS_NFS_SETUP.md`
 - **Talos Patches**: `talos/patches/README.md`
 - **S3/Garage Storage**: `docs/GARAGE.md`
+- **Rook-Ceph v1.20 upgrade (ceph-csi-drivers)**: `docs/ROOK_CEPH_V1_20_UPGRADE.md`
 - **Alertmanager Silences**: `docs/ALERTMANAGER_SILENCE_MANAGEMENT.md`
 - **Kopia UI Snapshots**: `docs/KOPIA_UI_SNAPSHOT_VISIBILITY.md`
 - **Observability Migration**: `docs/OBSERVABILITY_MIGRATION_LOKI_THANOS_90D.md`
