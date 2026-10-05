@@ -202,6 +202,15 @@ CephCluster reported `version 19.2.6-0`, HEALTH_OK, Connected; toolbox rolled to
 quay.io/ceph/ceph:v19.2.6; a volsync backup right after succeeded. The CSI pods were not
 touched by this step.
 
+- **Gotcha 3 (2026-10-05 evening), drift detection ping-pong.** `app/serviceaccount.yaml`
+  had carried a hand-written copy of the `rook-ceph-cmd-reporter` ServiceAccount/Role/
+  RoleBinding since 2025-11 with wider rules than the chart. Once drift detection was on,
+  kustomize-controller re-applied our Role every hour and Flux's drift correction patched
+  it back to the chart's rules, emitting a `DriftDetected` event (and an Alertmanager
+  notification) each time. Fixed by deleting our copy; the chart owns those objects.
+  Rule of thumb: with `driftDetection: enabled`, nothing else in the repo may define an
+  object the chart renders.
+
 ## Afterwards
 
 - Renovate: `.renovaterc.json5` pins `ceph-csi-drivers` to `<1.1` so the drivers chart

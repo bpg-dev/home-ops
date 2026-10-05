@@ -8,7 +8,6 @@ resources:
 - ./grafanadashboard.yaml
 - ./helmrelease.yaml
 - ./ocirepository.yaml
-- ./serviceaccount.yaml
 - ./storageclasses.yaml
 - ./volumesnapshotclasses.yaml
 
