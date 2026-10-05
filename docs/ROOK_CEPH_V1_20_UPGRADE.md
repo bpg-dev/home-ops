@@ -1,6 +1,6 @@
 # Rook-Ceph v1.19 -> v1.20 upgrade (external cluster)
 
-Status: **prep merged and verified 2026-10-05 (commit 3a0f4a54), upgrade pending**. Renovate PRs #452 (operator) and
+Status: **step 1 (operator v1.20.8) done 2026-10-05, step 2 (cluster chart, #453) pending**. Renovate PRs #452 (operator) and
 #453 (cluster chart) are intentionally left open until the steps below are done.
 
 ## Why this needs a runbook
@@ -140,6 +140,33 @@ recreates the pods within a minute. Existing mounts are unaffected either way.
 Rollback: revert the merge commit. rook v1.19.5's subchart recreates the `ceph-csi-*`
 SAs, the Driver CRs get rewritten by rook and the ceph-csi-drivers release can stay
 installed.
+
+### What actually happened on 2026-10-05 (step 1)
+
+Merged as `e01c6161` (PR #452 squashed together with the values trim, 13:08 UTC).
+
+- 13:08:21-13:08:53 Helm upgrade; rook operator and ceph-csi-controller-manager
+  restarted on the new images. The old `ceph-csi-*` / `rook-csi-*` ServiceAccounts were
+  removed by the subchart as expected.
+- 13:08:5x-13:09:05 the predicted race: the DaemonSets/ReplicaSets briefly failed with
+  `serviceaccount "ceph-csi-rbd-nodeplugin-sa" not found` and then
+  `"rbd-ctrlplugin-sa" not found` (rook v1.19.5's last Driver rewrite without
+  `serviceAccountName`). The `flux reconcile hr ceph-csi-drivers` run right after the
+  HR turned Ready restored the spec; every CSI pod was Running on the chart's
+  ServiceAccounts by 13:09:09. No RBAC errors, ClientProfile kept `ms_mode=prefer-crc`,
+  CephCluster HEALTH_OK/Connected, a scheduled volsync run at 13:10 provisioned fine.
+- **Gotcha 1, image-set ConfigMap not updated.** `rook-csi-operator-image-set-configmap`
+  had been created by the rook v1.19 operator (June 2026) and its `.data` fields are
+  owned by the `rook` field manager. The v1.20 chart now renders that ConfigMap, but the
+  Helm upgrade left the v1.19 image tags in place (labels updated, data not). Fix:
+  `driftDetection: enabled` on the `rook-ceph-operator` HelmRelease (`06dce5bb`). A
+  server-side diff of the whole release showed those four fields as the only drift, and
+  Flux corrected them on the next reconcile.
+- **Gotcha 2, the csi-operator does not watch that ConfigMap.** Correcting the image set
+  does not roll the CSI pods; the operator only reconciles on Driver/OperatorConfig
+  changes (or its 10 h resync). A Driver spec change is needed: the HelmRelease now sets
+  `nodePlugin.updateStrategy` explicitly, which triggered the roll onto cephcsi v3.17.1,
+  registrar v2.17.0, provisioner v6.2.0 and attacher v4.12.0.
 
 ## Step 2: cluster chart (PR #453, rook-ceph-cluster v1.19.5 -> v1.20.8)
 
