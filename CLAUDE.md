@@ -139,7 +139,7 @@ These rules prevent cluster failures, data corruption, or GitOps drift.
 ```bash
 export KUBECONFIG=./kubeconfig
 export SOPS_AGE_KEY_FILE=./age.key
-export TALOSCONFIG=./talos/clusterconfig/talosconfig
+export TALOSCONFIG=$PWD/talos/clusterconfig/talosconfig   # absolute: talos tasks run from talos/
 ```
 
 ### Task Automation
@@ -150,7 +150,7 @@ task reconcile                       # Force Flux to sync from Git
 task bootstrap:talos                 # Bootstrap Talos cluster
 task bootstrap:apps                  # Bootstrap apps into cluster
 task talos:generate-config           # Regenerate Talos configs
-task talos:apply-node IP=X.X.X.X MODE=auto  # Apply config to node
+task talos:apply-node IP=X.X.X.X MODE=auto  # Apply config to node (NOT until the multi-doc config migration is done, see talos/patches/README.md)
 task talos:upgrade-node IP=X.X.X.X   # Upgrade Talos version
 task talos:upgrade-k8s               # Upgrade Kubernetes version
 ```
@@ -438,6 +438,20 @@ flux reconcile hr <name> -n <namespace> --reset
 - Verify `SOPS_AGE_KEY_FILE` is set
 - Check `.sops.yaml` rules match file path
 
+**Helm upgrade "succeeded" but a field kept its old value:**
+
+- An operator may have created the object before the chart did and still own those
+  fields via server-side apply (`kubectl diff --server-side -f <(helm get manifest ...)`
+  shows the conflict). Helm's three-way merge skips them. Fix in Git with
+  `spec.driftDetection.mode: enabled` on the HelmRelease; Flux patches the chart values
+  back. Example: rook-ceph image-set ConfigMap, `docs/ROOK_CEPH_V1_20_UPGRADE.md`.
+- Operators do not necessarily watch ConfigMaps they consume; after a corrected
+  ConfigMap, a real spec change on the CR they do watch is what triggers the rollout.
+
+**Renovate PRs:** merge one at a time with `./scripts/merge-renovate-pr.sh <PR> [timeout]`
+(squash-merges, reconciles Flux, then waits for the touched HelmReleases to advance,
+the new tags to appear in pods, and the whole cluster to be green).
+
 ## Backup Strategy
 
 ### Volsync (Application Data)
@@ -460,6 +474,7 @@ The `docs/` directory contains operational runbooks and investigation notes. Che
 - **Backup Restoration**: `docs/VOLSYNC_POPULATOR_RESTORE.md`
 - **Storage Setup**: `docs/TRUENAS_NFS_SETUP.md`
 - **Talos Patches**: `talos/patches/README.md`
+- **Talos / Kubernetes Upgrades**: `docs/TALOS_UPGRADE_RUNBOOK.md`
 - **S3/Garage Storage**: `docs/GARAGE.md`
 - **Rook-Ceph v1.20 upgrade (ceph-csi-drivers)**: `docs/ROOK_CEPH_V1_20_UPGRADE.md`
 - **Alertmanager Silences**: `docs/ALERTMANAGER_SILENCE_MANAGEMENT.md`

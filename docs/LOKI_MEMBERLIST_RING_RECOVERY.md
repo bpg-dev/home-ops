@@ -5,7 +5,17 @@
 **Service**: Loki (log aggregation)
 **Issue**: Pod stuck in restart loop due to stale memberlist ring entry
 **Root Cause**: Abrupt node reboot (PVE2 outage) left stale instance in memberlist ring
-**Resolution**: Full deployment restart to clear memberlist state
+**Resolution**: Full deployment restart to clear memberlist state (2026-01); `forget` via the ring API (2026-07); `autoforget_unhealthy` in config (2026-10, durable)
+
+## Durable fix (2026-10-04)
+
+`ingester.autoforget_unhealthy: true` is now set in
+`kubernetes/apps/observability/loki/app/config/loki.yaml` (commit b5abccbd). Loki drops
+ring members that stay UNHEALTHY past the heartbeat timeout on its own, so a replica
+that died without leaving the ring (node reboot, drain during a Talos upgrade) no longer
+blocks the next replica's startup probe or deadlocks the PDB. Verified during the
+2026-10-04 Talos upgrade: all three node drains completed without a manual `forget`.
+Everything below stays as the manual recovery if that ever regresses.
 
 ## Timeline
 

@@ -229,6 +229,13 @@ sum by (instance) (increase(etcd_server_leader_changes_seen_total[1d]))
 Target: fsync p99 < 10 ms on all three nodes, leader changes ~0/day. Then update the
 table at the top of this document.
 
+Ongoing monitoring (added 2026-10-04,
+`kubernetes/apps/observability/kube-prometheus-stack/app/prometheusrule.yaml`):
+`EtcdFsyncLatencyDegraded` fires when the 5 m fsync p99 stays above 25 ms for 10 min on
+any node, `EtcdBackendCommitLatencyDegraded` at 50 ms. Both sit well below the pre-SLOG
+numbers (15-41 ms) and well above the post-SLOG ones (2-4 ms), so a firing alert means
+the SLOG is gone (`zpool status rpool` on that host) or the Intel drive is degrading.
+
 ## Rollback
 
 - SLOG only: `zpool remove rpool <part1 by-id>` (online; sync writes return to the

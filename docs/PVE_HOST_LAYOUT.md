@@ -2,7 +2,7 @@
 
 Current state of the three Proxmox VE hosts that run the Talos cluster. Update this file
 whenever hardware, disk layout, VM placement or VM sizing changes. Last verified
-2026-10-03.
+2026-10-05.
 
 ## Hosts
 
@@ -70,6 +70,18 @@ rpool
   re-add the SLOG. Full procedure with timings in `PVE_ZFS_SLOG_ON_P4600.md`.
 - With 3 OSDs and `size 3 / min_size 2`, any single OSD rebuild runs the cluster on two
   copies for ~15 minutes (345 GiB backfill). Never take two OSDs down at once.
+
+## Host-level settings that live only on the hosts
+
+Nothing re-applies these after a reinstall (the pve2 RMA rebuild lost the equivalents);
+check them when a host comes back.
+
+| Setting | State (verified 2026-10-05) | Why |
+| --- | --- | --- |
+| KSM | `ksmtuned` disabled, `/sys/kernel/mm/ksm/run = 2` (unmerge) on all three hosts, since 2026-10-04 | ksmd GPF kernel panic on pve1 (2026-08) took down two Talos VMs; with one 48 GiB VM per host there is nothing to dedupe. `systemctl disable --now ksmtuned; echo 2 > /sys/kernel/mm/ksm/run` |
+| Kernel pin | pve1 `proxmox-boot-tool kernel pin 7.0.14-8-pve`; pve2/pve3 on 7.0.14-20 | pve1 panics on newer kernels (`PVE1_CPU_FAULT_INVESTIGATION.md`) |
+| Watchdog, log forwarding | per `PVE_WATCHDOG_SETUP.md`, `PVE_LOG_FORWARDING.md` | |
+| Ceph health mutes | `insecure key types` muted until ~2026-11-01 | cephx aes256k needs kernel 7.0 in Talos (`PVE2_RMA_GUIDE.md`) |
 
 ## Ceph pools (all replicated size 3, min_size 2, 193 PGs total)
 
