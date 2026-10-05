@@ -10,6 +10,14 @@ spec:
   chartRef:
     kind: OCIRepository
     name: rook-ceph
+  # The CSI image-set ConfigMap (rook-csi-operator-image-set-configmap) was created
+  # by the rook v1.19 operator, which still owns its .data fields via server-side
+  # apply. The v1.20 Helm upgrade therefore left the old image tags in place even
+  # though the chart now renders the ConfigMap. Drift detection lets Flux patch the
+  # chart's values back; a server-side diff of the whole release showed those four
+  # fields as the only drift (2026-10-05, docs/ROOK_CEPH_V1_20_UPGRADE.md).
+  driftDetection:
+    mode: enabled
   install:
     remediation:
       retries: 3
