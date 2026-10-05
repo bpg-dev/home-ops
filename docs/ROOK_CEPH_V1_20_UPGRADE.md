@@ -1,6 +1,6 @@
 # Rook-Ceph v1.19 -> v1.20 upgrade (external cluster)
 
-Status: **prep merged, upgrade pending** (2026-10-05). Renovate PRs #452 (operator) and
+Status: **prep merged and verified 2026-10-05 (commit 3a0f4a54), upgrade pending**. Renovate PRs #452 (operator) and
 #453 (cluster chart) are intentionally left open until the steps below are done.
 
 ## Why this needs a runbook
@@ -55,6 +55,12 @@ live cluster on 2026-10-05):
   `ms_mode=prefer-crc` therefore now comes from
   `cephClusterSpec.csi.cephfs.kernelMountOptions` in the cluster HelmRelease (added in the
   prep; identical effect on v1.19.5).
+
+Observed on the prep merge itself (2026-10-05 12:56 UTC): Helm adopted the CRs at
+12:56:00, the cluster HelmRelease change triggered a rook CSI reconcile at 12:56:10 that
+rewrote both Driver CRs without `serviceAccountName`, and Flux's drift correction put them
+back within a minute; all CSI pods were on the new ServiceAccounts by 12:57:20 with no
+RBAC errors. The same sequence is expected during step 1, hence the explicit reconcile there.
 
 ### Verify after the prep merge
 
