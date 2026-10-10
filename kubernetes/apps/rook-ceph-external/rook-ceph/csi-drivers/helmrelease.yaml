@@ -19,7 +19,7 @@ spec:
       # Keep in step with the ceph-csi-operator subchart bundled in the rook-ceph
       # chart (rook v1.20.x -> ceph-csi-operator 1.0.4). See
       # docs/ROOK_CEPH_V1_20_UPGRADE.md before bumping.
-      version: "1.0.4"
+      version: "1.0.5"
   interval: 1h
   timeout: 10m
   # The rook v1.19 operator still rewrites the Driver CRs on its own reconcile
