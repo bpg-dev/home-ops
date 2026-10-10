@@ -31,7 +31,7 @@ spec:
                 topologyKey: kubernetes.io/hostname
       containers:
         - name: blackbox-exporter
-          image: prom/blackbox-exporter:v0.28.0
+          image: prom/blackbox-exporter:v0.29.0
           imagePullPolicy: IfNotPresent
           args:
             - --config.file=/etc/blackbox_exporter/config.yml
