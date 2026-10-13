@@ -65,6 +65,12 @@
       allowedVersions: "<1.1",
     },
     {
+      description: "Keep the Ceph client image (toolbox/cmd-reporter in the rook-ceph-cluster chart) on the same release as the external PVE Ceph cluster (20.2.x Tentacle); lift only when the Proxmox hosts upgrade, see docs/CEPH_SQUID_TO_TENTACLE_UPGRADE.md",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["quay.io/ceph/ceph"],
+      allowedVersions: "<21",
+    },
+    {
       description: "Auto-merge GitHub Actions",
       matchManagers: ["github-actions"],
       automerge: true,

@@ -477,6 +477,7 @@ The `docs/` directory contains operational runbooks and investigation notes. Che
 - **Talos / Kubernetes Upgrades**: `docs/TALOS_UPGRADE_RUNBOOK.md`
 - **S3/Garage Storage**: `docs/GARAGE.md`
 - **Rook-Ceph v1.20 upgrade (ceph-csi-drivers)**: `docs/ROOK_CEPH_V1_20_UPGRADE.md`
+- **Ceph Squid to Tentacle upgrade (PVE hosts)**: `docs/CEPH_SQUID_TO_TENTACLE_UPGRADE.md`
 - **Alertmanager Silences**: `docs/ALERTMANAGER_SILENCE_MANAGEMENT.md`
 - **Kopia UI Snapshots**: `docs/KOPIA_UI_SNAPSHOT_VISIBILITY.md`
 - **Observability Migration**: `docs/OBSERVABILITY_MIGRATION_LOKI_THANOS_90D.md`

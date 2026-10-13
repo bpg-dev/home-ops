@@ -8,9 +8,9 @@ whenever hardware, disk layout, VM placement or VM sizing changes. Last verified
 
 | Host | IP | Hardware | RAM | PVE / Ceph | Ceph roles | Talos VM |
 | --- | --- | --- | --- | --- | --- | --- |
-| pve1 | 192.168.1.81 | Minisforum MS-01, i9-13900H | 94 GiB usable | PVE 9.2, Ceph 19.2.6 | mon, mgr, mds, osd.0 | 1001 talos-prod-1 (192.168.1.11) |
-| pve2 | 192.168.1.82 | Minisforum MS-01, i9-13900H (RMA replacement, 2026-10-02) | 94 GiB usable | PVE 9.2, Ceph 19.2.6 | mon, mgr, mds, osd.1 | 1002 talos-prod-2 (192.168.1.12) |
-| pve3 | 192.168.1.83 | Minisforum MS-01, i9-13900H | 94 GiB usable | PVE 9.2, Ceph 19.2.6 | mon, mgr, mds, osd.2 | 1003 talos-prod-3 (192.168.1.13) |
+| pve1 | 192.168.1.81 | Minisforum MS-01, i9-13900H | 94 GiB usable | PVE 9.2, Ceph 20.2.4 | mon, mgr, mds, osd.0 | 1001 talos-prod-1 (192.168.1.11) |
+| pve2 | 192.168.1.82 | Minisforum MS-01, i9-13900H (RMA replacement, 2026-10-02) | 94 GiB usable | PVE 9.2, Ceph 20.2.4 | mon, mgr, mds, osd.1 | 1002 talos-prod-2 (192.168.1.12) |
+| pve3 | 192.168.1.83 | Minisforum MS-01, i9-13900H | 94 GiB usable | PVE 9.2, Ceph 20.2.4 | mon, mgr, mds, osd.2 | 1003 talos-prod-3 (192.168.1.13) |
 
 One Talos VM per host. VM placement and sizing are managed by OpenTofu in
 `~/code/home-ops-infra/tf` (module `k8s-prod`, bpg/proxmox provider); do not change

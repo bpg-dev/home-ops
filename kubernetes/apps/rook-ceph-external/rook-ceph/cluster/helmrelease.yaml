@@ -12,11 +12,12 @@ spec:
   values:
     # Feeds cephClusterSpec.cephVersion.image and the toolbox image. Rook only uses
     # it for the Ceph CLI clients here (toolbox, cmd-reporter); keep it on the same
-    # release as the external PVE cluster (Ceph 19.2.6 Squid) instead of the chart's
-    # Tentacle default. See docs/PVE_HOST_LAYOUT.md.
+    # release as the external PVE cluster (Ceph 20.2.4 Tentacle, see
+    # docs/CEPH_SQUID_TO_TENTACLE_UPGRADE.md and docs/PVE_HOST_LAYOUT.md). Renovate
+    # holds it below the next major (.renovaterc.json5).
     cephImage:
       repository: quay.io/ceph/ceph
-      tag: v19.2.6
+      tag: v20.2.4
     operatorNamespace: rook-ceph-external
     # Cluster name should match the namespace for external clusters
     clusterName: rook-ceph-external
