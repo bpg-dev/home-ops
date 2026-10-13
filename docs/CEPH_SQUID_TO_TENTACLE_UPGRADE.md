@@ -251,6 +251,7 @@ no kernel errors on pve1. All 12 daemons on 20.2.4-pve5, `require_osd_release te
   dropped. `require_min_compat_client` left at luminous on purpose.
 - Rook: CephCluster `Connected`, `status.ceph.health` back to HEALTH_OK within a minute of
   unsetting noout (its view of the mons is the real connectivity check); CSI pods untouched;
-  RBD write probe on a PVC OK. The toolbox pod's own `ceph -s` returns "RADOS permission
-  error" both before and after the upgrade (pre-existing, tracked in the ceph-watch-items
-  memory note), so it is not a usable verification step here.
+  RBD write probe on a PVC OK. The toolbox pod's plain `ceph -s` returns "RADOS permission
+  error" because its ceph.conf names `client.admin` while the external-cluster keyring only
+  holds `client.healthchecker`; `ceph -n client.healthchecker -s` from the toolbox works and
+  showed all 12 daemons on 20.2.4.
