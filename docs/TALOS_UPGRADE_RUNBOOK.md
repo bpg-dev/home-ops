@@ -1,8 +1,12 @@
 # Talos and Kubernetes upgrade runbook
 
 Last run: 2026-10-13, Talos v1.13.11 -> v1.14.2 (about 4 min per node, three Pending pods with
-node-pinned local storage caught up within a minute of the uncordon), all clean. Before that
-2026-10-04, Talos v1.13.7 -> v1.13.11 and Kubernetes v1.35.3 -> v1.36.3 (about 10 min).
+node-pinned local storage caught up within a minute of the uncordon), then Kubernetes
+v1.36.3 -> v1.37.1 (PR #512, about 7 min, no reboots), all clean. The static control-plane
+pods show one or two restarts afterwards: when the kubelet restarts at the end, the new
+kube-apiserver/controller-manager/scheduler container starts before the old process has
+released its port ("bind: address already in use"), exits 1 and comes straight back. Harmless.
+Before that 2026-10-04, Talos v1.13.7 -> v1.13.11 and Kubernetes v1.35.3 -> v1.36.3.
 Versions come in through Renovate PRs on `talos/talenv.yaml` (`ghcr.io/siderolabs/installer-base`
 for Talos since 1.14 stopped publishing `installer`, `ghcr.io/siderolabs/kubelet` for Kubernetes);
 merging the PR changes nothing on the nodes, the steps below do. Talos 1.14 added Kubernetes 1.37
@@ -73,8 +77,8 @@ Drain gotchas seen in past runs:
 ## Kubernetes (all control planes in one go)
 
 ```bash
-talosctl --nodes 192.168.1.11 upgrade-k8s --to v1.36.3 --dry-run   # version/flag/API checks
-talosctl --nodes 192.168.1.11 upgrade-k8s --to v1.36.3
+talosctl --nodes 192.168.1.11 upgrade-k8s --to v1.37.1 --dry-run   # version/flag/API checks
+talosctl --nodes 192.168.1.11 upgrade-k8s --to v1.37.1
 # or: task talos:upgrade-k8s (same command via talhelper gencommand)
 ```
 
