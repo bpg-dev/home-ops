@@ -1,9 +1,12 @@
 # Talos and Kubernetes upgrade runbook
 
-Last run: 2026-10-04, Talos v1.13.7 -> v1.13.11 (about 3 min per node) and Kubernetes
-v1.35.3 -> v1.36.3 (about 10 min), all clean. Versions come in through Renovate PRs on
-`talos/talconfig.yaml` (`ghcr.io/siderolabs/installer` for Talos, `ghcr.io/siderolabs/kubelet`
-for Kubernetes); merging the PR changes nothing on the nodes, the steps below do.
+Last run: 2026-10-13, Talos v1.13.11 -> v1.14.2 (about 4 min per node, three Pending pods with
+node-pinned local storage caught up within a minute of the uncordon), all clean. Before that
+2026-10-04, Talos v1.13.7 -> v1.13.11 and Kubernetes v1.35.3 -> v1.36.3 (about 10 min).
+Versions come in through Renovate PRs on `talos/talenv.yaml` (`ghcr.io/siderolabs/installer-base`
+for Talos since 1.14 stopped publishing `installer`, `ghcr.io/siderolabs/kubelet` for Kubernetes);
+merging the PR changes nothing on the nodes, the steps below do. Talos 1.14 added Kubernetes 1.37
+support; 1.13 topped out at 1.36.
 
 ## Before you start
 
