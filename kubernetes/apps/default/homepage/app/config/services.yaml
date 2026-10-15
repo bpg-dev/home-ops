@@ -94,6 +94,7 @@
       description: TrueNAS Scale
       widget:
         type: truenas
+        version: 2 # JSON-RPC over WebSocket; REST API removed in TrueNAS 26.04
         url: https://truenas.${SECRET_INTERNAL_DOMAIN}
         key: {{HOMEPAGE_VAR_TRUENAS_APIKEY}}
         enablePools: true
