@@ -176,14 +176,3 @@ spec:
           bookorbit:
             app:
               - path: /bookdrop
-      # BookLore cover images for the guided migration (media root /imports/booklore-data).
-      # Remove together with the booklore app once the migration is verified.
-      imports:
-        type: nfs
-        server: nas.internal
-        path: /mnt/tank/nfs/booklore/bookorbit-imports
-        advancedMounts:
-          bookorbit:
-            app:
-              - path: /imports
-                readOnly: true

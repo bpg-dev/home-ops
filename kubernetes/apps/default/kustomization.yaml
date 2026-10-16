@@ -10,7 +10,6 @@ components:
 
 resources:
   - ./actual-budget/ks.yaml
-  - ./booklore/ks.yaml
   - ./bookorbit/ks.yaml
   - ./cv-site/ks.yaml
   - ./echo/ks.yaml

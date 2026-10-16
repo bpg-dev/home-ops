@@ -1,6 +1,6 @@
 # BookLore -> BookOrbit migration
 
-Status: **IN PROGRESS** (started 2026-10-15). Design:
+Status: **DONE 2026-10-16** (deploy commit 96077662; retirement is the commit that removed kubernetes/apps/default/booklore). Design:
 `docs/superpowers/specs/2026-10-14-bookorbit-migration-design.md`.
 
 BookOrbit (<https://github.com/bookorbit/bookorbit>) is BookLore's official
@@ -49,7 +49,7 @@ same day the verification gate passes.
    kubectl -n default exec deploy/booklore -c app -- tar cf - -C /app/data images \
      | ssh root@nas.internal 'mkdir -p /mnt/tank/nfs/booklore/bookorbit-imports/booklore-data && tar xf - -C /mnt/tank/nfs/booklore/bookorbit-imports/booklore-data && chown -R kube:builtin_users /mnt/tank/nfs/booklore/bookorbit-imports && find /mnt/tank/nfs/booklore/bookorbit-imports -type f | wc -l'
    ```
-   Expected file count: 146 (as of 2026-10-14).
+   Expected file count: 554 (277 books x cover.jpg + thumbnail.jpg, as of 2026-10-15).
 
 ## Rollout
 
