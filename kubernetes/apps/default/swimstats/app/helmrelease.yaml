@@ -29,7 +29,7 @@ spec:
               tag: 17.4
             envFrom:
               - secretRef:
-                  name: swimstats-secret
+                  name: swimstats-init-secret
           02-migrate:
             image:
               repository: ghcr.io/bpg-dev/swimstats/backend
