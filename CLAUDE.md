@@ -481,6 +481,7 @@ The `docs/` directory contains operational runbooks and investigation notes. Che
 - **Alertmanager Silences**: `docs/ALERTMANAGER_SILENCE_MANAGEMENT.md`
 - **Kopia UI Snapshots**: `docs/KOPIA_UI_SNAPSHOT_VISIBILITY.md`
 - **Observability Migration**: `docs/OBSERVABILITY_MIGRATION_LOKI_THANOS_90D.md`
+- **BookLore to BookOrbit migration**: `docs/BOOKORBIT_MIGRATION.md`
 - **Proxmox Host Layout** (hardware, disks, VMs): `docs/PVE_HOST_LAYOUT.md`
 - **Proxmox ZFS SLOG / etcd fsync**: `docs/PVE_ZFS_SLOG_ON_P4600.md`
 - **Proxmox Watchdog**: `docs/PVE_WATCHDOG_SETUP.md`

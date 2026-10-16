@@ -1,0 +1,189 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app bookorbit
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: bookorbit
+  interval: 1h
+  timeout: 10m
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    controllers:
+      bookorbit:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        strategy: Recreate
+        initContainers:
+          # Creates the bookorbit role and database on the shared CNPG cluster (idempotent).
+          # Same pinned image as authentik's init-db; it ships psql, so 02 reuses it.
+          01-init-db:
+            image:
+              repository: ghcr.io/home-operations/postgres-init
+              tag: 18.6.0@sha256:b6d3af974df781c673d37e49bdddfa14a6f5be28b18d2cb7713f0449bea4057b
+            envFrom:
+              - secretRef:
+                  name: bookorbit-init-secret
+            securityContext: &initSecurityContext
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+          # BookOrbit's own migration runs CREATE EXTENSION as the app user, but
+          # pgvector ("vector") is not a trusted extension, so a superuser must
+          # create it first. ALTER EXTENSION ... UPDATE keeps the extensions current
+          # after CNPG image bumps. Idempotent; runs on every pod start.
+          02-init-extensions:
+            image:
+              repository: ghcr.io/home-operations/postgres-init
+              tag: 18.6.0@sha256:b6d3af974df781c673d37e49bdddfa14a6f5be28b18d2cb7713f0449bea4057b
+            env:
+              HOME: /tmp
+            envFrom:
+              - secretRef:
+                  name: bookorbit-init-secret
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                set -eu
+                export PGPASSWORD="$INIT_POSTGRES_SUPER_PASS"
+                psql -v ON_ERROR_STOP=1 -h "$INIT_POSTGRES_HOST" -U postgres -d "$INIT_POSTGRES_DBNAME" <<'SQL'
+                CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+                CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+                CREATE EXTENSION IF NOT EXISTS "unaccent";
+                CREATE EXTENSION IF NOT EXISTS "vector";
+                ALTER EXTENSION "uuid-ossp" UPDATE;
+                ALTER EXTENSION "pg_trgm" UPDATE;
+                ALTER EXTENSION "unaccent" UPDATE;
+                ALTER EXTENSION "vector" UPDATE;
+                SELECT extname, extversion FROM pg_extension WHERE extname IN ('uuid-ossp', 'pg_trgm', 'unaccent', 'vector');
+                SQL
+            securityContext: *initSecurityContext
+        containers:
+          app:
+            image:
+              repository: ghcr.io/bookorbit/bookorbit
+              tag: 3.4.0@sha256:99539be044c94f10fa5fba616cb08e1b128deb4996c975d181a950818a8632e4
+            env:
+              TZ: "America/Toronto"
+              PORT: &port 3000
+              # The entrypoint runs as the pod UID (no su-exec) and uses HOME for caches
+              HOME: /tmp
+              PUID: "1000"
+              PGID: "1000"
+              APP_URL: "https://bookorbit.${SECRET_DOMAIN}"
+              TRUST_PROXY: "true"
+              # Node heap sized from the cgroup memory limit
+              NODE_MAX_OLD_SPACE_SIZE: auto
+              LIBRARY_BROWSE_ROOT: /books
+              # Book Dock watches the NAS incoming share (same folder BookLore used as bookdrop)
+              BOOK_DOCK_PATH: /bookdrop
+              # sso.${SECRET_DOMAIN} resolves to envoy-internal's LAN address from inside the
+              # cluster; BookOrbit's production SSRF guard rejects private OIDC endpoints otherwise
+              OIDC_ALLOW_LOCAL_ISSUERS: "true"
+            envFrom:
+              - secretRef:
+                  name: bookorbit-secret
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v1/health
+                    port: *port
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                memory: 2Gi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        controller: bookorbit
+        ports:
+          http:
+            port: *port
+    route:
+      app:
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: "BookOrbit"
+          gethomepage.dev/description: "Digital library management"
+          gethomepage.dev/group: "Media"
+          gethomepage.dev/icon: "bookorbit.png"
+        hostnames: ["bookorbit.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *port
+    persistence:
+      # Covers and Book Dock staging on a Volsync-backed PVC
+      data:
+        existingClaim: "${VOLSYNC_CLAIM:=${APP}}"
+        advancedMounts:
+          bookorbit:
+            app:
+              - path: /data
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+      # Book library on NFS (computer-books/ and novels/ collections inside)
+      books:
+        type: nfs
+        server: nas.internal
+        path: /mnt/tank/nfs/booklore/library
+        advancedMounts:
+          bookorbit:
+            app:
+              - path: /books
+      # Book Dock drop folder on NFS
+      bookdrop:
+        type: nfs
+        server: nas.internal
+        path: /mnt/tank/nfs/booklore/incoming
+        advancedMounts:
+          bookorbit:
+            app:
+              - path: /bookdrop
+      # BookLore cover images for the guided migration (media root /imports/booklore-data).
+      # Remove together with the booklore app once the migration is verified.
+      imports:
+        type: nfs
+        server: nas.internal
+        path: /mnt/tank/nfs/booklore/bookorbit-imports
+        advancedMounts:
+          bookorbit:
+            app:
+              - path: /imports
+                readOnly: true

@@ -108,6 +108,10 @@ spec:
         ports:
           http:
             port: *port
+          # Reachable as booklore.default:3306 by BookOrbit's "Import from Booklore"
+          # wizard. Remove together with the app once the migration is verified.
+          mariadb:
+            port: 3306
     route:
       app:
         annotations:
