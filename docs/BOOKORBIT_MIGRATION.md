@@ -14,7 +14,10 @@ Both apps run side by side only for the migration window. Nobody edits metadata
 in BookLore once the pre-flight copies are taken, and BookLore is deleted the
 same day the verification gate passes.
 
-## What is in Git
+## What was in Git during the migration (deploy 96077662)
+
+The retirement commit removed the booklore app, its 3306 Service port and the
+`/imports` mount; only the bookorbit app remains.
 
 - `kubernetes/apps/default/bookorbit/` - app-template HelmRelease, ExternalSecret,
   Volsync-backed 10Gi PVC at `/data`, NFS mounts `/books` (library), `/bookdrop`
@@ -23,12 +26,14 @@ same day the verification gate passes.
 - Two init containers: `01-init-db` (onedr0p/postgres-init, role + database) and
   `02-init-extensions` (superuser `CREATE EXTENSION` for `uuid-ossp`, `pg_trgm`,
   `unaccent`, `vector`; pgvector is not a trusted extension, so the app user
-  cannot create it). They read `bookorbit-init-secret`, which holds the shared
+  cannot create it). A CNPG image without pgvector makes this init container
+  fail and blocks every bookorbit restart on purpose; check its log first. They read `bookorbit-init-secret`, which holds the shared
   CNPG superuser password; the app container reads only `bookorbit-secret`.
 - `OIDC_ALLOW_LOCAL_ISSUERS=true`: `sso.<domain>` resolves to envoy-internal's LAN
   address from inside the cluster and BookOrbit's production SSRF guard would
   otherwise reject Authentik's discovery document.
-- `booklore` Service exposes port 3306 (`booklore.default:3306`) for the wizard.
+- `booklore` Service exposed port 3306 (`booklore.default:3306`) for the wizard
+  (removed with the app).
 
 ## Pre-flight (BookLore live; no more metadata edits in BookLore after this)
 
@@ -70,7 +75,9 @@ same day the verification gate passes.
    - Providers > Create > OAuth2/OpenID Provider: name `bookorbit`, client type
      Confidential, redirect URI `https://bookorbit.<domain>/oauth2-callback`
      (strict), signing key the same as the booklore provider, scopes
-     `openid profile email`, subject mode same as booklore.
+     `openid profile email`, subject mode same as booklore. If the provider is
+     created through the Authentik API, `grant_types` defaults to empty; set it
+     to `authorization_code` and `refresh_token` or the login fails.
    - Applications > Create: name `BookOrbit`, slug `bookorbit`, provider `bookorbit`.
      Issuer becomes `https://sso.<domain>/application/o/bookorbit/`.
    - BookOrbit Settings > Authentication > OIDC: display name `Authentik`, issuer
@@ -78,11 +85,16 @@ same day the verification gate passes.
      `openid profile email`, claim mapping username `preferred_username`,
      name `name`, email `email`, auto-provision enabled, local login kept enabled.
 7. pasha and valia each log in once via "Sign in with Authentik" so their accounts
-   exist with the right usernames and emails. Promote `pasha` to admin.
-8. Settings > Libraries > create one library on `/books`, scan. Expect 270 books.
+   exist with the right usernames and emails. Promote `pasha` to superuser.
+   (Outcome: valia was skipped; see the gate outcome below.)
+8. Settings > Libraries > create one library on `/books` with scan mode
+   **File as Book** (irreversible; `/books` is flat plus series folders holding
+   several volumes, and "Folder as Book" would merge each series into one book).
+   Turn on "Watch folders". Scan. Expect 270 books.
    Leave file renaming and metadata write-back off until BookLore is gone.
    Settings > Book Dock: the 22 epubs from the NAS `incoming` share should be
-   listed; leave them for triage after the migration.
+   listed; leave them for triage after the migration. BookOrbit creates a
+   `covers/` directory inside that share for dock thumbnails; it is not clutter.
 
 ## Migration
 
@@ -101,20 +113,32 @@ same day the verification gate passes.
 13. Recreate the 5 BookLore magic shelves by hand as BookOrbit smart collections
     (magic shelves are not migrated).
 14. OPDS: Settings > OPDS, set a password, re-point the reader app to
-    `https://bookorbit.<domain>/opds` (credentials are not migrated).
+    `https://bookorbit.<domain>/api/v1/opds` (`/opds` serves the web app, not
+    the feed; credentials are not migrated).
 
 ## Verification gate (all must pass before retirement)
 
-- [ ] Dry run matched all 270 books; unresolved rows explained before the run.
-- [ ] pasha's reading progress present on the 7 books that had it in BookLore.
-- [ ] All 9 shelves arrived as collections under the right owners (admin 4,
+- [x] Dry run matched all 270 books; unresolved rows explained before the run.
+- [x] pasha's reading progress present on the 7 books that had it in BookLore.
+- [x] All 9 shelves arrived as collections under the right owners (admin 4,
       pasha 4, valia 1); 5 magic shelves recreated.
-- [ ] Covers, including custom-uploaded ones, show on a spot check.
-- [ ] pasha and valia log in through Authentik; admin logs in locally.
-- [ ] OPDS feed works from the reader with the new password.
-- [ ] `kubectl -n default get replicationsource bookorbit` shows a completed
-      sync; `kubectl -n postgresql-system get cluster postgres -o jsonpath='{.status.lastSuccessfulArchiveTime}'`
-      is later than the migration run.
+- [x] Covers, including custom-uploaded ones, show on a spot check.
+- [x] pasha and valia log in through Authentik; admin logs in locally.
+- [x] OPDS feed works from the reader with the new password.
+- [x] `kubectl -n default get replicationsource bookorbit` shows a completed
+      sync; CNPG `ContinuousArchiving` condition is True (the Barman plugin does
+      not populate `lastSuccessfulArchiveTime`).
+
+Outcome (2026-10-15, run #1, 5.9 s, 0 failed):
+
+- valia was skipped at the user's request: no BookOrbit account, her one
+  (empty) shelf was not mapped. She auto-provisions on her first Authentik login.
+- 8 shelves became collections (admin 4, pasha 4); only pasha's Favorites held
+  books (2). 268 of 270 covers imported; the other 2 books have no cover in
+  BookLore either. Bookmarks 0 because BookLore has no bookmark table.
+- Magic shelves recreated as 5 smart scopes under pasha (Security made visible
+  to all users; it matched 0 books in BookLore too).
+- OPDS account `pasha` on `/api/v1/opds`.
 
 ## Retirement (same day the gate passes)
 
