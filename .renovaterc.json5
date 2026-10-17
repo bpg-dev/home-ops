@@ -19,6 +19,9 @@
     // image leave the injected sidecar stuck at the old version. The whole
     // manifest must be re-downloaded on update — see the directory README.
     "kubernetes/apps/postgresql-system/barman-cloud-plugin/app/manifest.yaml",
+    // Retired apps are kept for reference only and are not reconciled by Flux;
+    // version bumps there are noise (impress/curl PRs on 2026-10-16).
+    "kubernetes/retired/**",
   ],
   flux: {
     managerFilePatterns: ["/(^|/)kubernetes/.+\\.ya?ml(?:\\.j2)?$/"],
