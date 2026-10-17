@@ -59,10 +59,10 @@
       allowedVersions: "<1.22",
     },
     {
-      description: "Keep ceph-csi-drivers in step with the ceph-csi-operator subchart bundled in the rook-ceph chart (rook v1.20.x ships 1.0.4); lift when rook bumps it, see docs/ROOK_CEPH_V1_20_UPGRADE.md",
+      description: "Keep ceph-csi-drivers in step with the ceph-csi-operator subchart bundled in the rook-ceph chart (rook v1.21.x ships 1.1.0); lift when rook bumps it, see docs/ROOK_CEPH_V1_21_UPGRADE.md",
       matchDatasources: ["helm"],
       matchPackageNames: ["ceph-csi-drivers"],
-      allowedVersions: "<1.1",
+      allowedVersions: "<1.2",
     },
     {
       description: "Keep the Ceph client image (toolbox/cmd-reporter in the rook-ceph-cluster chart) on the same release as the external PVE Ceph cluster (20.2.x Tentacle); lift only when the Proxmox hosts upgrade, see docs/CEPH_SQUID_TO_TENTACLE_UPGRADE.md",

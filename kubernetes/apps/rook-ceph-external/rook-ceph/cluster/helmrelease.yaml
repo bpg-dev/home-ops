@@ -36,6 +36,16 @@ spec:
         secretName: rook-ceph-mon
       crashCollector:
         disable: true
+      network:
+        connections:
+          # The rook-ceph-cluster chart defaults this to true since v1.21. For an
+          # external cluster that only rewrites the mon endpoints handed to the CSI
+          # drivers from 6789 to 3300; rook does not (and, with the read-only
+          # healthchecker user, cannot) set rbd_default_map_options=ms_mode=prefer-crc
+          # on the PVE cluster, and ceph-csi does not add it either, so new krbd maps
+          # would try msgr1 against the msgr2 port and fail. Keep msgr1 until the PVE
+          # side carries that option (docs/ROOK_CEPH_V1_21_UPGRADE.md).
+          requireMsgr2: false
       csi:
         cephfs:
           # rook v1.20 no longer reads CSI_CEPHFS_KERNEL_MOUNT_OPTIONS from the
