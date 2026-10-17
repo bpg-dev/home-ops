@@ -1,8 +1,21 @@
 # Rook-Ceph v1.20 -> v1.21 upgrade (external cluster)
 
-Status: **prep merged 2026-10-16**. Renovate PRs #554 (operator chart) and #555 (cluster
-chart) are open; the ceph-csi-drivers bump is a separate commit between them.
-Companion to `docs/ROOK_CEPH_V1_20_UPGRADE.md`, which explains the three-chart layout.
+Status: **DONE 2026-10-16** (21:20-21:50 EDT, no downtime). Prep `491a0a81`, operator chart
+1.21.0 via #554 (`9ccadf33`), ceph-csi-drivers 1.1.0 (`a552c972`), cluster chart 1.21.0 via
+#555 (`72e79e55`). Companion to `docs/ROOK_CEPH_V1_20_UPGRADE.md`, which explains the
+three-chart layout.
+
+What actually happened: the operator upgrade restarted `ceph-csi-controller-manager` on
+v1.1.0, which reconciled both Driver CRs and rolled all CSI pods onto cephcsi v3.18.1 and
+the new sidecars within 40 s, with the chart-managed ServiceAccounts intact (no SA race
+this time). The image-set ConfigMap came through with every value empty, as expected.
+The drivers chart 1.1.0 upgrade changed no pod. The cluster chart upgrade rendered
+`requireMsgr2: false`; the CephConnection kept the mons on `:6789` and the CephCluster
+stayed `Connected`/`HEALTH_OK` throughout. Verified with a manual volsync backup of wallos
+(snapshot + clone + krbd map on the new stack) and the scheduled backups that ran in
+between. Two harmless log lines after the operator restart: rook's usual external-cluster
+"ceph version is a major version higher than the local cluster 0.0.0" and the csi-operator's
+"WATCH_NAMESPACE must be set" (it watches its own namespace, which is what we want).
 
 ## What changes in v1.21 and whether it matters here
 
