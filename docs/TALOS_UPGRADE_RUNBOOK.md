@@ -1,6 +1,13 @@
 # Talos and Kubernetes upgrade runbook
 
-Last run: 2026-10-13, Talos v1.13.11 -> v1.14.2 (about 4 min per node, three Pending pods with
+Last run: 2026-10-16, Talos v1.14.2 -> v1.14.4 (PR #573, about 3 min per node, kernel 6.18.54 ->
+6.18.57). Node-pinned pods (dragonfly, postgres replica, garage, minecraft) sat Pending for
+30-90 s after each uncordon while Cilium came up, then recovered on their own; one
+kube-controller-manager restart on prod-2; CNPG switchover to postgres-2 before prod-3 took 20 s;
+volsync backup after the last node fine. The Claude Code auto-mode classifier blocks
+`task talos:upgrade-node` as a production deploy; it is now allowed via
+`.claude/settings.local.json` (gitignored), `talosctl upgrade-k8s` is not.
+Before that 2026-10-13, Talos v1.13.11 -> v1.14.2 (about 4 min per node, three Pending pods with
 node-pinned local storage caught up within a minute of the uncordon), then Kubernetes
 v1.36.3 -> v1.37.1 (PR #512, about 7 min, no reboots), all clean. The static control-plane
 pods show one or two restarts afterwards: when the kubelet restarts at the end, the new

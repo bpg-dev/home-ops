@@ -104,7 +104,7 @@ API (`/cluster/ceph/status`, `/nodes/<n>/disks/*`, `/nodes/<n>/ceph/osd`).
 | Memory | **48 GiB** (`memory: 49152`), raised from 32 GiB on 2026-10-03 because requests sat at 62-81 % and the hosts have the headroom |
 | Disk | `scsi0: local-zfs:vm-100X-disk-2`, 256 GiB, `cache=none,discard=on,iothread=1,ssd=1`, virtio-scsi-single |
 | Boot | UEFI (`efidisk0`), `onboot: 1`, QEMU guest agent enabled |
-| Talos | v1.14.2 with Kubernetes v1.37.1 (upgraded 2026-10-13 via `task talos:upgrade-node` per node, then `talosctl upgrade-k8s`). EPHEMERAL (incl. etcd) lives on the single VM disk |
+| Talos | v1.14.4 with Kubernetes v1.37.1 (Talos upgraded 2026-10-16 via `task talos:upgrade-node` per node; Kubernetes 2026-10-13 via `talosctl upgrade-k8s`). EPHEMERAL (incl. etcd) lives on the single VM disk |
 
 Memory changes via `qm set` or OpenTofu are only applied on a cold start. Procedure per
 node, one at a time: `talosctl shutdown --nodes <ip> --wait` (cordons and drains),
