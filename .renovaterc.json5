@@ -74,6 +74,12 @@
       allowedVersions: "<21",
     },
     {
+      description: "cv-site image is tagged YYYYMMDD-<git sha>; docker versioning treats each sha as a distinct compatibility suffix and never finds an update. Compare by date instead (year=major, month=minor, day=patch); the sha is left uncaptured because regex groups must be numeric",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/bpg-dev/cv"],
+      versioning: "regex:^(?<major>\\d{4})(?<minor>\\d{2})(?<patch>\\d{2})-[0-9a-f]{7}$",
+    },
+    {
       description: "Auto-merge GitHub Actions",
       matchManagers: ["github-actions"],
       automerge: true,
