@@ -17,9 +17,9 @@ spec:
         kind: HelmRepository
         name: ceph-csi-operator
       # Keep in step with the ceph-csi-operator subchart bundled in the rook-ceph
-      # chart (rook v1.20.x -> ceph-csi-operator 1.0.4). See
-      # docs/ROOK_CEPH_V1_20_UPGRADE.md before bumping.
-      version: "1.0.5"
+      # chart (rook v1.21.x -> ceph-csi-operator 1.1.0). See
+      # docs/ROOK_CEPH_V1_21_UPGRADE.md before bumping.
+      version: "1.1.0"
   interval: 1h
   timeout: 10m
   # The rook v1.19 operator still rewrites the Driver CRs on its own reconcile
@@ -39,7 +39,7 @@ spec:
       retries: 3
   values:
     # Rook-compatible defaults, see
-    # https://github.com/rook/rook/blob/release-1.20/deploy/charts/ceph-csi-drivers/values.yaml
+    # https://github.com/rook/rook/blob/release-1.21/deploy/charts/ceph-csi-drivers/values.yaml
     # with every value that rook v1.19 used to put on the Driver CRs carried over,
     # so adopting the CRs does not change the running CSI pods beyond the
     # ServiceAccount names.
