@@ -93,15 +93,11 @@ ruler:
   ring:
     kvstore:
       store: memberlist
+  # Rules come from the loki-rules ConfigMap mounted at /etc/loki/rules/fake
+  # (tenant "fake" because auth_enabled=false). With storage.type=s3 the ruler
+  # looked for rules in the bucket instead and silently evaluated nothing
+  # (found 2026-10-22: /prometheus/api/v1/rules returned zero groups).
   storage:
-    type: s3
-    s3:
-      endpoint: ${S3_ENDPOINT}
-      region: ${S3_REGION}
-      bucketnames: ${S3_BUCKET}
-      access_key_id: ${S3_ACCESS_KEY_ID}
-      secret_access_key: ${S3_SECRET_ACCESS_KEY}
-      s3forcepathstyle: true
-      insecure: true
-
-
+    type: local
+    local:
+      directory: /etc/loki/rules
