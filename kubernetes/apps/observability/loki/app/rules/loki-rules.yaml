@@ -41,6 +41,26 @@ groups:
             Application {{ $labels.app }} in namespace {{ $labels.namespace }} has produced
             more than 50 error/fatal log entries in the last 15 minutes.
 
+      # Kernel faults on the Proxmox hosts arrive via rsyslog -> fluent-bit syslog input
+      # (job=proxmox, ident=kernel). pve1 hit an Oops on 2026-10-18 that left the host
+      # half-broken for 3.5 days with no metric alert; this pages on the first trace line.
+      # 30-day back-test: only pve1's two real faults (2026-09-27, 2026-10-18) matched.
+      - alert: ProxmoxKernelFault
+        expr: |
+          sum by (host) (
+            count_over_time({job="proxmox", ident="kernel"} |~ "BUG: |Oops: |general protection fault|Kernel panic|exited with irqs disabled" [30m])
+          ) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kernel fault logged on Proxmox host {{ $labels.host }}"
+          description: |
+            The kernel on {{ $labels.host }} logged a BUG/Oops/GPF/panic line in the last 30 minutes
+            ({{ $value }} lines). The host may keep running with hung services (pvestatd,
+            pve-firewall) and D-state zombies, so the PVE UI shows it as unknown and ps/top/systemctl
+            hang. Check `dmesg -T | grep -E "BUG:|Oops|RIP:"` over SSH and plan a reboot.
+
       - alert: CriticalNamespaceErrors
         expr: |
           sum by (namespace, pod) (

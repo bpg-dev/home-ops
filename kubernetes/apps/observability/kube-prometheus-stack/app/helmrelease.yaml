@@ -236,3 +236,24 @@ spec:
                 annotations:
                   summary: Proxmox API exporter down
                   description: prometheus-pve-exporter is unreachable, so Proxmox API metrics are stale.
+              # A PVE host whose pvestatd is hung (e.g. after a kernel Oops that leaves a
+              # D-state zombie, pve1 2026-10-18..22) stays `online` in pve_up but drops
+              # out of the cluster resource stats: cpu/mem/uptime series for that node
+              # vanish while pve_node_info and pve_up keep reporting 1. Nothing else
+              # noticed for 3.5 days. Fires when a node is "up" but has no cpu stat.
+              - alert: ProxmoxNodeStatsMissing
+                expr: |
+                  max by (id) (pve_up{id=~"node/.*"}) == 1
+                    unless on (id) max by (id) (pve_cpu_usage_ratio)
+                for: 15m
+                labels:
+                  severity: critical
+                annotations:
+                  summary: Proxmox {{ $labels.id }} reports online but publishes no stats
+                  description: >-
+                    The PVE cluster view still lists {{ $labels.id }} as online but has had no
+                    CPU/memory/uptime stats for it for 15 minutes. On this cluster that means
+                    pvestatd on the host is hung (kernel Oops, D-state zombie). SSH to the host
+                    and check `dmesg | grep -E "BUG:|Oops"` and `cat /proc/loadavg`; do not use
+                    ps/top/systemctl, they will hang too. See memory note
+                    pve1-cpu-faults-prod-1-kubelet-hang-2026-09.
