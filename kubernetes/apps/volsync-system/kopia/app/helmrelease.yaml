@@ -28,6 +28,17 @@ spec:
               - secretRef:
                   name: kopia-secret
             probes:
+              # Opening the NFS repository can take minutes while the nightly
+              # PVE vzdump saturates the NAS; without this the liveness probe
+              # kills kopia at 30s and it crash-loops until the backup ends.
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: *port
+                  periodSeconds: 10
+                  failureThreshold: 60
               liveness: &probes
                 enabled: true
                 custom: true
