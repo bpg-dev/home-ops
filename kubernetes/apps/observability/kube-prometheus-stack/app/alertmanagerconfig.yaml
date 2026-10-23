@@ -19,6 +19,15 @@ spec:
           - name: alertname
             value: FluxOCIRepositoryOciartifactpullfailed
             matchType: =
+      # Log-volume heuristics from the Loki ruler. They fire on every reboot
+      # or rollout storm (first seen 2026-10-22 once the ruler loaded rules)
+      # and carry no actionable signal on their own; keep them in the UI only.
+      # ProxmoxKernelFault / CriticalNamespaceErrors are critical, still page.
+      - receiver: blackhole
+        matchers:
+          - name: alertname
+            value: (Loki|FluentBit)HasWarnOrErrorLogs|AppHighErrorRate
+            matchType: =~
       - receiver: pushover
         matchers:
           - name: severity

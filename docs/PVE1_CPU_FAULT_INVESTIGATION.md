@@ -102,6 +102,48 @@ Expected: offline `6-7`, nproc `18`, both VMs still `running`.
 
 To revert: `systemctl disable --now disable-cpu-core12.service; echo 1 > /sys/devices/system/cpu/cpu6/online; echo 1 > /sys/devices/system/cpu/cpu7/online`.
 
+## 2026-10-22: second core offlined (core 2, CPUs 4,5)
+
+Faults did not stop with core 12 offline. Kernel memory-corruption faults
+since then: 2026-09-27 pvestatd GPF in `__memcg_slab_post_alloc_hook` (CPU 4),
+2026-10-18 pve-firewall fork NULL deref in `anon_vma_interval_tree_insert`
+(CPU 4, host limped for 3.5 days), 2026-10-22 10:52 pvestatd GPF in
+`__memcg_slab_post_alloc_hook` again (CPU 4, 7.5 h after a reset). Three of
+four on CPU 4 (lscpu core 2, siblings 4-5). The decision rule above is met:
+treat pve1 as RMA hardware. Interim: offline core 2 as well, run memtest86+.
+
+Live (applied 2026-10-22 21:13 EDT, nproc 16, VMs kept running):
+
+```bash
+ssh root@192.168.1.81 'echo 0 > /sys/devices/system/cpu/cpu5/online; echo 0 > /sys/devices/system/cpu/cpu4/online; cat /sys/devices/system/cpu/offline; nproc'
+```
+
+Persistent (same pattern as core 12):
+
+```bash
+ssh root@192.168.1.81 'cat > /etc/systemd/system/disable-cpu-core2.service <<EOT
+[Unit]
+Description=Disable CPU core 2 (logical CPUs 4,5) - repeated kernel faults on CPU 4, see docs/PVE1_CPU_FAULT_INVESTIGATION.md
+After=sysinit.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "echo 0 > /sys/devices/system/cpu/cpu5/online; echo 0 > /sys/devices/system/cpu/cpu4/online"
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOT
+systemctl daemon-reload && systemctl enable --now disable-cpu-core2.service && systemctl is-active disable-cpu-core2.service'
+```
+
+Expected after both units: offline `4-7`, nproc `16`.
+
+Rebooting pve1 with an unkillable D-state task: `systemctl reboot` wedges in
+systemd-shutdown (network stays up, sshd gone) and the host only comes back
+when systemd-shutdown's 10-minute iTCO watchdog expires. Stop the VMs, then
+use `echo b > /proc/sysrq-trigger` instead. Set `ceph osd set noout` first.
+
 ## Monitoring after the change
 
 ```bash
