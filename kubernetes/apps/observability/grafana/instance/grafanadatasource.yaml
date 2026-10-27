@@ -13,8 +13,12 @@ spec:
     name: prometheus
     access: proxy
     isDefault: true
-    # Use ClusterIP service (not headless) so we can take advantage of sessionAffinity for HA "stickiness".
-    url: http://kube-prometheus-stack-prometheus.observability.svc.cluster.local:9090
+    # TEMPORARY (2026-10-27): pinned to replica 1 while replica 0 is rebuilt
+    # with an empty TSDB (corrupt block from pve2 memory faults). Replica 0
+    # has no history before 2026-10-27 until ~2026-12-26; switch back to the
+    # ClusterIP service (sessionAffinity ClientIP) after that:
+    # url: http://kube-prometheus-stack-prometheus.observability.svc.cluster.local:9090
+    url: http://prometheus-kube-prometheus-stack-1.prometheus-operated.observability.svc.cluster.local:9090
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafanadatasource_v1beta1.json
 apiVersion: grafana.integreatly.org/v1beta1
