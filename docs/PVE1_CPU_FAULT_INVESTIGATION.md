@@ -168,8 +168,10 @@ Mitigation applied live 2026-10-27 06:40 EDT (nproc 18, VMs kept running):
 ssh root@192.168.1.82 'echo 0 > /sys/devices/system/cpu/cpu5/online; echo 0 > /sys/devices/system/cpu/cpu4/online; cat /sys/devices/system/cpu/offline; nproc'
 ```
 
-Persist with the same `disable-cpu-core2.service` unit as on pve1 (section
-above, change the host). Follow-ups: memtest86+ on pve2 and pve1, rebuild
+Persisted with the same `disable-cpu-core2.service` unit as on pve1 (section
+above, change the host). Result: in the hour after the offline (10:40-11:45
+UTC) talos-prod-2 logged zero new faults (23 in the hour before, 192 the day
+before), pve2 host zero, no container restarts. Follow-ups: memtest86+ on pve2 and pve1, rebuild
 Prometheus replica 0 (corrupt block), watch the guest fault rate on
 talos-prod-2 drop to zero. Three of three MS-01 i9-13900H units have now shown
 this; plan replacement for the fleet, not one box.
