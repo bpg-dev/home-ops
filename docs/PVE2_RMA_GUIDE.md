@@ -4,6 +4,13 @@
 
 This document outlines the procedure for temporarily removing **pve2** (192.168.1.82) from the infrastructure for RMA replacement and restoring it upon return.
 
+> **2026-10-27:** the replacement unit (in service since 2026-10-02) started
+> the same random segfault/GPF pattern on 2026-10-20: host faults on CPU 4
+> (core 2), mon.pve2 crashes, guest talos-prod-2 at 100+ faults/day. Core 2 is
+> offlined via `disable-cpu-core2.service`. Evidence and decision rule:
+> `PVE1_CPU_FAULT_INVESTIGATION.md`, section "2026-10-27: pve2".
+
+
 **Node Details:**
 
 - Hostname: pve2

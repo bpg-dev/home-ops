@@ -144,6 +144,36 @@ systemd-shutdown (network stays up, sshd gone) and the host only comes back
 when systemd-shutdown's 10-minute iTCO watchdog expires. Stop the VMs, then
 use `echo b > /proc/sysrq-trigger` instead. Set `ceph osd set noout` first.
 
+## 2026-10-27: pve2 (replacement unit) shows the same fault pattern
+
+Found while chasing "random" container restarts after a Renovate merge batch:
+all 14 restarts of 2026-10-24..27 were on talos-prod-2 (VM 1002 on pve2):
+authentik-worker x10 (`Fatal Python error`), prometheus replica 0 x2 (SIGSEGV
+on a TSDB block with `read meta for chunk: invalid size`), envoy-internal x1,
+spegel x1. The guest kernel on talos-prod-2 logged 602 userland faults since
+2026-10-22 (40/69/78/116/192 per day, python/ceph/celery/envoy victims);
+talos-prod-1 and talos-prod-3 logged 0.
+
+pve2 host (replacement MS-01 since 2026-10-02, kernel 7.0.14-20): 23 kernel
+faults this boot, starting 2026-10-20, victims `ceph` CLI x14, pverados,
+pvedaemon, pveproxy, pvesh. 14 of the 18 faults with a CPU hint are on
+CPU 4 (lscpu core 2, siblings 4-5), the same core position that went bad
+second on pve1. mon.pve2 crashed in tcmalloc on 2026-10-21 and 2026-10-24.
+No MCE/EDAC errors. BIOS 1.27, microcode 0x6133 on all three hosts; pve2
+has its own Micron DIMMs (not transplanted). pve3 is still clean.
+
+Mitigation applied live 2026-10-27 06:40 EDT (nproc 18, VMs kept running):
+
+```bash
+ssh root@192.168.1.82 'echo 0 > /sys/devices/system/cpu/cpu5/online; echo 0 > /sys/devices/system/cpu/cpu4/online; cat /sys/devices/system/cpu/offline; nproc'
+```
+
+Persist with the same `disable-cpu-core2.service` unit as on pve1 (section
+above, change the host). Follow-ups: memtest86+ on pve2 and pve1, rebuild
+Prometheus replica 0 (corrupt block), watch the guest fault rate on
+talos-prod-2 drop to zero. Three of three MS-01 i9-13900H units have now shown
+this; plan replacement for the fleet, not one box.
+
 ## Monitoring after the change
 
 ```bash

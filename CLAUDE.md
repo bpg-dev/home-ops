@@ -475,6 +475,7 @@ The `docs/` directory contains operational runbooks and investigation notes. Che
 - **Storage Setup**: `docs/TRUENAS_NFS_SETUP.md`
 - **Talos Patches**: `talos/patches/README.md`
 - **Talos / Kubernetes Upgrades**: `docs/TALOS_UPGRADE_RUNBOOK.md`
+- **Admin cert renewal (kubeconfig / talosconfig, yearly)**: `docs/ADMIN_CERT_RENEWAL.md`
 - **S3/Garage Storage**: `docs/GARAGE.md`
 - **Rook-Ceph v1.20 upgrade (ceph-csi-drivers)**: `docs/ROOK_CEPH_V1_20_UPGRADE.md`
 - **Rook-Ceph v1.21 upgrade (requireMsgr2, csi-drivers 1.1.0)**: `docs/ROOK_CEPH_V1_21_UPGRADE.md`
@@ -491,3 +492,4 @@ The `docs/` directory contains operational runbooks and investigation notes. Che
 - **Spegel CPU Investigation**: `docs/SPEGEL_HIGH_CPU_INVESTIGATION.md`
 - **Thanos Recovery**: `docs/THANOS_COMPACTOR_HALT_RECOVERY.md`
 - **Loki Ring Recovery**: `docs/LOKI_MEMBERLIST_RING_RECOVERY.md`
+- **Loki compactor "unexpected EOF" / retention never runs**: `docs/LOKI_COMPACTOR_UNEXPECTED_EOF_RECOVERY.md`

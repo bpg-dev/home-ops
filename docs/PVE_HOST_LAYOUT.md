@@ -2,7 +2,7 @@
 
 Current state of the three Proxmox VE hosts that run the Talos cluster. Update this file
 whenever hardware, disk layout, VM placement or VM sizing changes. Last verified
-2026-10-05.
+2026-10-27.
 
 ## Hosts
 
@@ -16,6 +16,13 @@ One Talos VM per host. VM placement and sizing are managed by OpenTofu in
 `~/code/home-ops-infra/tf` (module `k8s-prod`, bpg/proxmox provider); do not change
 them in the PVE UI without updating that repo. pve1 has had CPU faults and kernel
 panics on newer kernels (pinned to 7.0.14-8); see `PVE1_CPU_FAULT_INVESTIGATION.md`.
+Offlined CPU cores (persisted by `disable-cpu-core*.service` units, nproc shown):
+
+| Host | Offline logical CPUs | Since | nproc |
+| --- | --- | --- | --- |
+| pve1 | 6-7 (core 3) and 4-5 (core 2) | 2026-09-02, 2026-10-22 | 16 |
+| pve2 | 4-5 (core 2) | 2026-10-27 | 18 |
+| pve3 | none | | 20 |
 
 ## Disks per host
 
