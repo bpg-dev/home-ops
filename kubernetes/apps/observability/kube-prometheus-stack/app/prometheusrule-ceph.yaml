@@ -1,0 +1,107 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ceph-external
+spec:
+  groups:
+    - name: ceph-external.rules
+      rules:
+        # The Ceph cluster lives on the PVE hosts and is scraped from the ceph-mgr
+        # prometheus module (ScrapeConfig ceph-metrics-exporter). Rook runs in
+        # external mode and only ships PV rules, so nothing watched Ceph health:
+        # on 2026-10-29 the cluster sat in HEALTH_ERR (scrub error, inconsistent
+        # PG on osd.0) for seven hours without an alert. Only the active mgr
+        # exports cluster-wide series, hence the max() aggregations.
+        #
+        # AUTH_INSECURE_* checks are muted on the cluster until the Talos nodes
+        # run kernel 7.0 and the cephx key migration can finish (memory note:
+        # pve2 BACK 2026-10-02). ceph_health_detail still exports muted checks,
+        # so they are excluded here explicitly; ceph_health_status honours mutes.
+        - alert: CephHealthError
+          expr: |-
+            max by (name) (ceph_health_detail{severity="HEALTH_ERR", name!~"AUTH_INSECURE_.*"}) == 1
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Ceph HEALTH_ERR: {{ $labels.name }}"
+            description: >-
+              The external Ceph cluster reports health check {{ $labels.name }} at
+              HEALTH_ERR. Run `ceph health detail` on a PVE host (ssh root@pve3.internal).
+              PG_DAMAGED / OSD_SCRUB_ERRORS: find the bad shard with
+              `rados list-inconsistent-obj <pgid>`, then `ceph pg repair <pgid>`; an
+              osd.0 repair on 2026-10-29 also tripped a BlueStore allocator assert,
+              so watch `ceph crash ls` afterwards. See docs/PVE1_CPU_FAULT_INVESTIGATION.md.
+
+        - alert: CephHealthWarning
+          expr: |-
+            max by (name) (ceph_health_detail{severity="HEALTH_WARN", name!~"AUTH_INSECURE_.*|RECENT_CRASH"}) == 1
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Ceph HEALTH_WARN: {{ $labels.name }} for 30 minutes"
+            description: >-
+              Health check {{ $labels.name }} has been active for 30 minutes. Planned PVE
+              host maintenance produces PG_DEGRADED / OSD_DOWN; silence this alert for the
+              window instead of ignoring it. Run `ceph health detail` on a PVE host.
+
+        - alert: CephDaemonRecentlyCrashed
+          expr: |-
+            max(ceph_health_detail{name="RECENT_CRASH"}) == 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: A Ceph daemon crashed recently
+            description: >-
+              `ceph crash ls` on a PVE host lists the new record ("*" = unarchived),
+              `ceph crash info <id>` shows the backtrace. mon/osd crashes inside tcmalloc,
+              rocksdb or the BlueStore allocator on pve1/pve2 have tracked host CPU and
+              memory faults (memory note ceph-watch-items-2026-07). Archive with
+              `ceph crash archive <id>` once reviewed; this alert clears after that.
+
+        - alert: CephOSDDown
+          expr: |-
+            max by (ceph_daemon) (ceph_osd_up) == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: Ceph {{ $labels.ceph_daemon }} is down
+            description: >-
+              With one OSD per PVE host, a down OSD leaves every PG with two copies and
+              min_size 2, so a second failure stops all I/O. Check `systemctl status
+              ceph-osd@N` and `journalctl -u ceph-osd@N` on the owning host.
+
+        - alert: CephMonOutOfQuorum
+          expr: |-
+            max by (ceph_daemon) (ceph_mon_quorum_status) == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: Ceph {{ $labels.ceph_daemon }} is out of quorum
+            description: >-
+              A monitor has left quorum; with three monitors a second loss freezes the
+              cluster. Check `systemctl status ceph-mon@<host>` and `ceph crash ls` on
+              that PVE host.
+
+        # Only the active ceph-mgr serves cluster series. If it stops answering, or
+        # mgr fails over to a daemon whose prometheus module is not enabled, every
+        # rule above goes silent instead of firing. CephMetricsExporterDown
+        # (helmrelease.yaml) covers an unreachable target; this covers blindness.
+        - alert: CephMetricsMissing
+          expr: |-
+            absent(ceph_health_status)
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: No Ceph health metrics from any ceph-mgr for 15 minutes
+            description: >-
+              Prometheus has no ceph_health_status series, so the Ceph alerts cannot
+              fire. Check `ceph mgr services` and `ceph mgr module ls | grep prometheus`
+              on a PVE host, and the ceph-metrics-exporter targets in Prometheus.

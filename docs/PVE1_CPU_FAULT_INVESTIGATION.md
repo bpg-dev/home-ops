@@ -176,6 +176,38 @@ Prometheus replica 0 (corrupt block), watch the guest fault rate on
 talos-prod-2 drop to zero. Three of three MS-01 i9-13900H units have now shown
 this; plan replacement for the fleet, not one box.
 
+Prometheus replica 0 was rebuilt empty on 2026-10-27 11:56 UTC and Grafana
+was pinned to replica 1 (commit 4edbf358), which runs on talos-prod-1 on
+**pve1**. Until the pin is reverted (planned ~2026-12-26), any pve1 outage,
+including the memtest86+ run, blanks every Grafana dashboard; alerts still
+work because both replicas evaluate rules. Before pve1 maintenance, switch
+`kubernetes/apps/observability/grafana/instance/grafanadatasource.yaml`
+back to the ClusterIP service URL kept in the comment, or run the pve2
+memtest first (nothing Grafana needs is pinned to pve2).
+
+## 2026-10-29: osd.0 BlueStore corruption (pg 3.14, allocator assert)
+
+A deep scrub at 00:35 EDT found a crc32c mismatch on one 4 KiB block of
+object `1000000001b.00000149` (the Proxmox 9.1 ISO in the PVE cephfs
+template store) on osd.0 (pve1, Intel P4600, zero NVMe media errors);
+osd.1/osd.2 agreed. Ceph sat in HEALTH_ERR for seven hours with no alert,
+because Rook's external mode ships no health rules (fixed by
+`kubernetes/apps/observability/kube-prometheus-stack/app/prometheusrule-ceph.yaml`).
+
+`ceph pg repair 3.14` fixed the shard, and osd.0 immediately aborted:
+`AvlAllocator _add_to_tree inconsistent tree state 0x4cc384d000~400000`,
+the same device offset as the bad block. The extent the object pointed at
+was already free in the allocator, so BlueStore metadata on osd.0 is
+inconsistent (extent map vs freelist), not just one bad sector. systemd
+restarted osd.0 in 11 s, a second deep scrub of 3.14 was clean. Earlier
+osd.0 crashes: 2026-09-01 startup segfault in allocation rebuild,
+2026-10-23 rocksdb WriteBatch in tcmalloc. Decision: either
+`ceph-bluestore-tool fsck --deep` offline, or rebuild osd.0 (226 GB,
+`ceph osd out 0`, wait for clean, destroy and recreate with ceph-volume as
+in docs/PVE_ZFS_SLOG_ON_P4600.md). Rebuild is the cleaner option while
+pve1 remains RMA hardware; set `ceph osd set noout` is NOT wanted here
+(we want the data to move).
+
 ## Monitoring after the change
 
 ```bash
