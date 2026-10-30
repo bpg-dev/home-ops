@@ -208,6 +208,38 @@ in docs/PVE_ZFS_SLOG_ON_P4600.md). Rebuild is the cleaner option while
 pve1 remains RMA hardware; set `ceph osd set noout` is NOT wanted here
 (we want the data to move).
 
+**Rebuilt 2026-10-30 12:55-13:07 UTC** (12 min for 236 GiB, no container
+restarts, PostgreSQL stayed healthy). Steps, run on pve1, partitions kept
+(the SLOG on nvme0n1p1 is untouched because `pveceph osd destroy --cleanup`
+only runs `ceph-volume lvm zap --osd-id 0 --destroy` for ceph-volume OSDs):
+
+```bash
+ceph config set osd osd_mclock_profile high_recovery_ops
+ceph osd out osd.0 && pveceph stop --service osd.0
+pveceph osd destroy 0 --cleanup
+ceph config rm osd.0 osd_mclock_max_capacity_iops_ssd
+systemctl disable 'ceph-volume@lvm-0-<old fsid>.service'   # stale activation units
+ceph-volume lvm create --bluestore --data /dev/nvme0n1p2     # comes back as osd.0
+# wait for 193 active+clean, then
+ceph config rm osd osd_mclock_profile
+```
+
+One minute after the new OSD came up (2026-10-30 12:56:41 UTC) pve1 logged
+`pverados[992462]: segfault at 3b40 ... in libc.so.6 likely on CPU 15
+(core 27)`: the first host fault since the 2026-10-22 reboot, on an E-core,
+not on the offlined cores 4-7. One fault in eight days under a heavy osdmap
+churn; per the decision rule below, faults on other cores mean a shared
+component, so keep pve1 on the RMA list and keep counting.
+
+Because the refill itself went through pve1's RAM, all 193 PGs were
+deep-scrubbed right after (`ceph pg deep-scrub <pgid>` in a loop; a single
+pass skipped 45 PGs and needed a re-request): finished 13:33 UTC, zero
+scrub errors. Repeat this after any future backfill onto osd.0.
+
+New osd fsid 2e15cca8-17df-45f2-acce-f24a019a38a3. With 3 OSDs and size 3
+the PGs are `active+undersized+degraded` on 2 copies for the whole rebuild;
+`min_size 2` keeps I/O flowing, a second OSD loss would not.
+
 ## Monitoring after the change
 
 ```bash
