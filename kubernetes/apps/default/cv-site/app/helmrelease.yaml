@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/bpg-dev/cv
-              tag: '20261018-c60fcfa'
+              tag: '20261031-fe919a8'
             probes:
               liveness:
                 enabled: true
