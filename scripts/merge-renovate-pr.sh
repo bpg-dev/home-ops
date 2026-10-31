@@ -26,7 +26,7 @@ echo "### PR #$PR: $TITLE"
 echo "dirs: $(echo $DIRS | tr '\n' ' ')"
 
 # new tags introduced by the diff (image tags or chart versions)
-TAGS=$(echo "$DIFF" | grep -E '^\+\s+(tag|version|image):' | sed -E 's/^\+\s+(tag|version|image):\s*//; s/^&[a-zA-Z]+ //; s/"//g; s/@sha256.*//; s/^.*://' | tr ' ' '\n' | grep -vE '^(&|$)' | sort -u)
+TAGS=$(echo "$DIFF" | grep -E '^\+\s+(tag|version|image):' | sed -E 's/^\+\s+(tag|version|image):\s*//; s/^&[a-zA-Z]+ //; s/"//g; s/@sha256.*//; s/^.*://' | tr -d "'" | tr ' ' '\n' | grep -vE '^(&|$)' | sort -u)
 echo "expect tags: $(echo $TAGS | tr '\n' ' ')"
 
 # touched HelmReleases: ns/name -> pre-merge helm revision
@@ -34,7 +34,7 @@ declare -A PRE
 HRS=""
 for d in $DIRS; do
   ns=${d%%/*}
-  for f in kubernetes/apps/$d/app/helmrelease.yaml kubernetes/apps/$d/app/*/helmrelease.yaml; do
+  for f in kubernetes/apps/$d/*/helmrelease.yaml kubernetes/apps/$d/app/*/helmrelease.yaml; do
     [ -f "$f" ] || continue
     for n in $(awk '/^kind: HelmRelease/{k=1} k&&/^metadata:/{m=1} m&&/^  name:/{print $NF; k=0; m=0}' "$f"); do
       v=$(kubectl get hr "$n" -n "$ns" -o jsonpath='{.status.history[0].version}' 2>/dev/null)
