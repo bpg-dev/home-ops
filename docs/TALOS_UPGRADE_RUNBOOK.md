@@ -1,6 +1,16 @@
 # Talos and Kubernetes upgrade runbook
 
-Last run: 2026-10-16, Talos v1.14.2 -> v1.14.4 (PR #573, about 3 min per node, kernel 6.18.54 ->
+Last run: 2026-10-31, Talos v1.14.4 -> v1.14.5 (PR #628, kernel 6.18.57 ->
+6.18.58, etcd 3.7.3) then Kubernetes v1.37.1 -> v1.37.2 (PR #629). 100-180 s per
+node, 7 min for Kubernetes, no stale DaemonSet pods, nothing Pending after the
+uncordons; CNPG promote to postgres-2 before prod-3 took 25 s.
+`etcdHighNumberOfLeaderChanges` fires for an hour after three reboots plus the
+apiserver roll, harmless. The classifier allowed `talosctl upgrade-k8s` this
+time without a prompt. Cilium 1.18.6 -> 1.19.10 -> 1.20.4 was done the same day
+right before, one minor per commit (Cilium only supports consecutive minors);
+`CiliumLoadBalancerIPPool` had to move to `cilium.io/v2` first (v2alpha1 dropped
+in 1.19).
+Before that 2026-10-16, Talos v1.14.2 -> v1.14.4 (PR #573, about 3 min per node, kernel 6.18.54 ->
 6.18.57). Node-pinned pods (dragonfly, postgres replica, garage, minecraft) sat Pending for
 30-90 s after each uncordon while Cilium came up, then recovered on their own; one
 kube-controller-manager restart on prod-2; CNPG switchover to postgres-2 before prod-3 took 20 s;
