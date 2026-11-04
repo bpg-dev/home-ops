@@ -480,6 +480,7 @@ The `docs/` directory contains operational runbooks and investigation notes. Che
 - **Rook-Ceph v1.20 upgrade (ceph-csi-drivers)**: `docs/ROOK_CEPH_V1_20_UPGRADE.md`
 - **Rook-Ceph v1.21 upgrade (requireMsgr2, csi-drivers 1.1.0)**: `docs/ROOK_CEPH_V1_21_UPGRADE.md`
 - **Ceph Squid to Tentacle upgrade (PVE hosts)**: `docs/CEPH_SQUID_TO_TENTACLE_UPGRADE.md`
+- **CephX aes256k key migration (PVE hosts, Talos kernel gate)**: `docs/CEPHX_AES256K_MIGRATION.md`
 - **Alertmanager Silences**: `docs/ALERTMANAGER_SILENCE_MANAGEMENT.md`
 - **Kopia UI Snapshots**: `docs/KOPIA_UI_SNAPSHOT_VISIBILITY.md`
 - **Observability Migration**: `docs/OBSERVABILITY_MIGRATION_LOKI_THANOS_90D.md`

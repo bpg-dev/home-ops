@@ -540,8 +540,9 @@ kubectl get pods -n rook-ceph-external
   the ESP shows `default proxmox-<ver>.conf`). Keep the previous kernel installed before every
   reboot.
 - Ceph 19.2.6 reports `HEALTH_ERR` purely from the six `AUTH_INSECURE_*` cephx checks while Talos
-  lacks kernel 7.0. `ceph health mute <CHECK> 30d` for each keeps the dashboard honest; the mutes
-  expire on their own, so re-mute or finish the key migration by then.
+  lacks kernel 7.0. The 30-day mutes used here expired on 2026-11-01 and broke Flux; the service
+  keys were migrated on 2026-11-03 instead (`CEPHX_AES256K_MIGRATION.md`), which leaves
+  `HEALTH_WARN` and needs no mutes.
 
 ---
 

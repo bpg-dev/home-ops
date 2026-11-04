@@ -88,7 +88,7 @@ check them when a host comes back.
 | KSM | `ksmtuned` disabled, `/sys/kernel/mm/ksm/run = 2` (unmerge) on all three hosts, since 2026-10-04 | ksmd GPF kernel panic on pve1 (2026-08) took down two Talos VMs; with one 48 GiB VM per host there is nothing to dedupe. `systemctl disable --now ksmtuned; echo 2 > /sys/kernel/mm/ksm/run` |
 | Kernel pin | pve1 `proxmox-boot-tool kernel pin 7.0.14-8-pve`; pve2/pve3 on 7.0.14-20 | pve1 panics on newer kernels (`PVE1_CPU_FAULT_INVESTIGATION.md`) |
 | Watchdog, log forwarding | per `PVE_WATCHDOG_SETUP.md`, `PVE_LOG_FORWARDING.md` | |
-| Ceph health mutes | `insecure key types` muted until ~2026-11-01 | cephx aes256k needs kernel 7.0 in Talos (`PVE2_RMA_GUIDE.md`) |
+| Ceph cephx ciphers | mgr/mds/osd keys and service tickets `aes256k` since 2026-11-03; client keys still `aes`, no mutes (HEALTH_WARN) | kernel RBD needs Linux 7.0 for aes256k, Talos is on 6.18 (`CEPHX_AES256K_MIGRATION.md`) |
 
 ## Ceph pools (all replicated size 3, min_size 2, 193 PGs total)
 

@@ -16,10 +16,11 @@ has been run.
 ## What this does NOT do
 
 - **It does not clear the cephx "insecure key type" warnings.** Those come from the new
-  aes256k key type introduced in 19.2.6 / 20.2.4 and are muted until 2026-11-01. Migrating
+  aes256k key type introduced in 19.2.6 / 20.2.4 and were muted until 2026-11-01. Migrating
   the keys is a separate job that is gated on the Talos kernel: krbd / kcephfs need Linux
   7.0 for aes256k, and Talos 1.13.11 and 1.14.2 both ship 6.18. Do not combine the two
-  changes in one window. See the memory note `ceph-19-2-6-aes256k-mixed-mon-incident` and
+  changes in one window. The daemon keys and service tickets were migrated on 2026-11-03,
+  see `CEPHX_AES256K_MIGRATION.md`. See the memory note `ceph-19-2-6-aes256k-mixed-mon-incident` and
   the Proxmox thread linked at the end.
 - It does not touch `require-min-compat-client` (currently `luminous`). The six "luminous"
   clients in `ceph features` are the three Talos nodes' krbd and kcephfs mounts; raising
