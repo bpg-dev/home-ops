@@ -54,25 +54,54 @@ invalidates every ticket and relies on every client re-authenticating cleanly.
 
 Status at any time: `pveceph auth status` and `ceph health detail`.
 
-## Phase 2, open: user-space Kubernetes keys
+## Phase 1b, done 2026-11-03: cluster-owned keys and client.admin
+
+Same helper, dry run then apply (the classifier blocks the apply, pasha runs it):
+
+```bash
+$H --rotate-cluster-keys --rotate-admin-key              # dry run
+$H --apply --assume-yes --rotate-cluster-keys --rotate-admin-key
+```
+
+- `mon.` key rotated, keyrings written on all three hosts, mons restarted one at
+  a time (quorum back within seconds each).
+- 7 `client.bootstrap-*` / `client.crash` keys replaced in place.
+- `client.admin` STAGED next to the old key, PVE rewrote its copies
+  (`/etc/pve/priv/ceph.client.admin.keyring`, `/etc/pve/priv/ceph/{talos,tank}.keyring`)
+  and remounted the CephFS storage on every host. Both keys stay valid until
+  confirmed. The holdouts were the librbd sessions of the pvelab VMs 9001/9002/9003
+  (three `tank` disks each); their system disk is 128 GB on local ZFS, so instead
+  of a live migration they were stopped and started one at a time (`qm shutdown`,
+  9002 needed `qm stop`). The Talos VMs have no Ceph disks, Rook does not use the
+  admin key (its sessions all come from the PVE hosts), nothing else to refresh.
+- `$H` dry run then said "Ready for confirmation: client.admin", and
+  `$H --apply --assume-yes --confirm-all-clients-refreshed` committed it. Only the
+  1Password `rook-ceph` field `admin-secret` (unused copy) had to be updated.
+
+## Phase 2, done 2026-11-03: user-space Kubernetes keys
 
 `client.healthchecker` (Rook operator, feeds `CephCluster.status`),
 `client.csi-rbd-provisioner` and `client.csi-cephfs-provisioner` (ceph-csi
 provisioner pods, librados, >= 3.17.1 required, we run 3.18.1) can move to
-`aes256k`. They only reduce the `AUTH_INSECURE_CLIENT_KEY_TYPE` count from 13 to
-10; the check itself stays until Talos has kernel 7.0.
+`aes256k`. `client.csi-rbd-node` / `client.csi-cephfs-node` are kernel clients
+and stay `aes` (Phase 3).
 
-The keys live in the 1Password item `rook-ceph` (fields `ceph-secret`,
-`csi-rbd-provisioner-userKey`, `csi-cephfs-provisioner-userKey`) and reach the
-cluster via the ExternalSecrets in
+The keys live in the 1Password item `rook-ceph` (vault HomeInfra, fields
+`ceph-secret`, `csi-rbd-provisioner-userKey`, `csi-cephfs-provisioner-userKey`)
+and reach the cluster via the ExternalSecrets in
 `kubernetes/apps/rook-ceph-external/rook-ceph/app/externalsecrets.yaml` (refresh
 2 h to 3 h). Never `kubectl` the Secrets directly.
 
-Ceph supports a pending (staged) key per entity:
+Ceph has a pending (staged) key per entity:
 `ceph auth get-or-create-pending <entity>` keeps the old key valid and promotes
 the pending key on its first use (`auth commit-pending` / `auth clear-pending`
-to force or abort). It takes no `--key_type`; the cipher follows
-`auth_preferred_cipher`.
+to force or abort). It takes NO `--key_type`: the cipher follows
+`auth_preferred_cipher`, so flip that for the call and flip it back. The output
+has two lines, `key = <old>` and `pending key = <new>`; take `$4` of the
+`pending key` line (an `aes256k` key is 60 base64 chars, an `aes` key 40; the key
+type is the first little-endian u16 of the decoded blob, 1 = aes, 2 = aes256k).
+
+Done 2026-11-03 22:30 EST:
 
 ```bash
 # on pve1, keys go to root-only files, never to the terminal
@@ -81,30 +110,46 @@ ceph mon set auth_preferred_cipher aes256k   # mon election
 for e in client.healthchecker client.csi-rbd-provisioner \
          client.csi-cephfs-provisioner; do
   ceph auth get-or-create-pending $e > /root/cephx-rotate/$e.pending
+  awk '/pending key = /{print $4}' /root/cephx-rotate/$e.pending \
+    | tr -d '\n' > /root/cephx-rotate/$e.key
 done
 ceph mon set auth_preferred_cipher aes       # back: Talos keys must stay aes
-pveceph auth status                          # shows "pending aes256k" per entity
 ```
 
-Then: put the three pending keys into the 1Password fields (`op item edit
-rook-ceph 'ceph-secret=…'` with the value read from the file, not pasted), wait
-for the ExternalSecrets to refresh (`kubectl get es -n rook-ceph-external`
-refreshTime, Secret resourceVersion), watch `pveceph auth status` flip each
-entity to `aes256k` on first use, confirm `CephCluster` stays `Connected` and a
-test PVC provisions. If the Rook operator keeps using a cached old key after the
-Secret changed, it needs a pod restart. Finish with `ceph auth commit-pending
-<entity>` for anything still pending, and `shred` the files.
+Then the three `.key` files were written into the 1Password fields with
+`op item edit rook-ceph 'ceph-secret=…'` (value read over ssh in a `$()`, output
+to /dev/null, verified by comparing sha256 of `op item get --reveal` with the file;
+the classifier blocks `op item edit`, pasha runs the script). `op whoami` says
+"not signed in" while `op item get/edit` still work through the desktop-app
+integration.
+
+Then (22:05 EST) the three ExternalSecrets were force-synced on request
+(`kubectl annotate externalsecret -n rook-ceph-external <name> force-sync=1
+--overwrite`, use a timestamp as the value; the Secrets re-rendered within
+seconds) and the two provisioner keys were promoted with
+`ceph auth commit-pending`, which is safe because ceph-csi reads the provisioner
+Secret on every CSI call.
+
+`client.healthchecker` is different: the Rook operator writes
+`/var/lib/rook/rook-ceph-external/client.healthchecker.keyring` from the Secret
+ONCE at pod start and never refreshes it (checked: file mtime = pod start). A
+`kubectl rollout restart deployment/rook-ceph-operator -n rook-ceph-external`
+(approved by pasha, seconds, no effect on CSI or volumes) made it write the new
+keyring, and its next health check promoted the pending key on its own, no
+`commit-pending` needed. The toolbox pod, by contrast, re-generates
+`/etc/ceph/keyring` from the mounted Secret within seconds, so it needs no
+restart; but do not run `ceph` in the toolbox between the Secret refresh and the
+operator restart, that would promote the key and break the operator.
+
+Finished 22:20 EST: `ceph health detail` lists only `client.csi-rbd-node` and
+`client.csi-cephfs-node`; `/root/cephx-rotate/` on pve1 shredded.
 
 ## Phase 3, blocked on Talos kernel >= 7.0
 
 1. `client.csi-rbd-node` / `client.csi-cephfs-node`: same staged procedure, but
    the new keys only take effect for new mounts; drain and reboot each node
    afterwards.
-2. `pve-cephx-rotate-service-keys --apply --rotate-cluster-keys` (bootstrap,
-   crash, mon key, restarts one mon at a time) and `--rotate-admin-key` (staged,
-   rewrites PVE's copies and the CephFS mount; PVE kernels are 7.0.14 so fine).
-   These two could also be done earlier; they are independent of Talos.
-3. Last: `--apply --confirm-all-clients-refreshed --restrict-ciphers`, which
+2. Last: `--apply --confirm-all-clients-refreshed --restrict-ciphers`, which
    removes `aes` from `auth_allowed_ciphers`. Refused while any key or live
    client still uses `aes`.
 
