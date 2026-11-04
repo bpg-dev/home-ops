@@ -77,6 +77,19 @@ $H --apply --assume-yes --rotate-cluster-keys --rotate-admin-key
 - `$H` dry run then said "Ready for confirmation: client.admin", and
   `$H --apply --assume-yes --confirm-all-clients-refreshed` committed it. Only the
   1Password `rook-ceph` field `admin-secret` (unused copy) had to be updated.
+- **Then fail the active mgr** (`ceph mgr fail <active>`). The helper restarts
+  standby mgrs to hand them their new key but gives the active one its key in
+  place. Its main monitor session is fine, but the Python modules (rbd_support,
+  devicehealth, ...) keep separate librados handles with the OLD key. Once the
+  confirm step invalidated that key (2026-11-03 21:54 EST) mgr.pve2 logged
+  `monclient(hunting): handle_auth_bad_method ... Permission denied` every few
+  minutes and `ceph rbd task list` hung. ceph-csi deletes RBD images and
+  snapshots through `rbd task add trash remove`, so every VolSync cleanup hung:
+  10 `volsync-*-src` snapshots and PVs stuck deleting, the RBD ctrlplugin
+  crash-looping, 7 `VolSyncVolumeOutOfSync` alerts overnight. Creates do not
+  touch the mgr, which is why the backups themselves kept succeeding. Fixed
+  2026-11-04 08:38 EST with `ceph mgr fail pve2`; everything drained within
+  two minutes. MDS, OSDs and mons were unaffected.
 
 ## Phase 2, done 2026-11-03: user-space Kubernetes keys
 
@@ -163,3 +176,7 @@ Finished 22:20 EST: `ceph health detail` lists only `client.csi-rbd-node` and
 - `ceph health mute <CHECK> --sticky` is the fallback if HEALTH_ERR ever has to
   be hidden again; a plain TTL mute expires silently and recreates the Flux
   failure.
+- After any key rotation that touches the mgr key, check
+  `journalctl -u ceph-mgr@<active> | grep handle_auth_bad_method` and time
+  `ceph rbd task list`; a silent hang there means the active mgr still holds
+  the old key in its module handles. `ceph mgr fail <active>` fixes it.
