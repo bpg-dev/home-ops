@@ -17,7 +17,7 @@ spec:
     # holds it below the next major (.renovaterc.json5).
     cephImage:
       repository: quay.io/ceph/ceph
-      tag: v20.2.4
+      tag: v20.2.5
     operatorNamespace: rook-ceph-external
     # Cluster name should match the namespace for external clusters
     clusterName: rook-ceph-external
