@@ -1,0 +1,62 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: pve-hosts
+spec:
+  groups:
+    - name: pve-hosts.rules
+      rules:
+        # The three MS-01 hosts (i9-13900H) run their CPU package hot even when idle:
+        # 2026-11-07 the 24 h averages were pve1 84 C, pve3 78 C, pve2 (replacement
+        # unit) 66 C, with short spikes to the 100 C Tjmax on pve1 and pve3 at 5-7 %
+        # CPU. node_hwmon_temp_celsius comes from the host node-exporter (ScrapeConfig
+        # pve-node-exporter); coretemp temp1 is the package sensor, nvme_* chips are
+        # the NVMe composite sensors. Instances are 192.168.1.81/82/83 = pve1/2/3.
+        - alert: PveHostCpuTemperatureHigh
+          expr: |-
+            node_hwmon_temp_celsius{job="pve-node-exporter", chip=~".*coretemp.*", sensor="temp1"} > 90
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: >-
+              CPU package on PVE host {{ $labels.instance }} at {{ $value }} C for 15 minutes
+            description: >-
+              The host CPU has been above 90 C continuously; the idle baseline is 65-85 C.
+              Check load on the host (`uptime`, `top`), fan noise and dust, and the
+              recent host faults in dmesg. pve1 and pve3 already peak at Tjmax under
+              light load (2026-11-07).
+
+        - alert: PveHostCpuTemperatureCritical
+          expr: |-
+            node_hwmon_temp_celsius{job="pve-node-exporter", chip=~".*coretemp.*", sensor="temp1"}
+              >= on (instance, chip, sensor)
+            (node_hwmon_temp_crit_celsius{job="pve-node-exporter"} - 3)
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: >-
+              CPU package on PVE host {{ $labels.instance }} is throttling at {{ $value }} C
+            description: >-
+              The CPU package has sat within 3 C of its critical temperature (Tjmax,
+              100 C on these i9-13900H) for 5 minutes, so it is thermally throttling.
+              Short spikes to Tjmax are normal on these hosts; a sustained plateau is
+              not. Check fans and airflow, then look for a runaway process or VM.
+
+        - alert: PveHostNvmeTemperatureHigh
+          expr: |-
+            node_hwmon_temp_celsius{job="pve-node-exporter", chip=~".*nvme.*"} > 70
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: >-
+              NVMe {{ $labels.chip }} on PVE host {{ $labels.instance }} at {{ $value }} C for 15 minutes
+            description: >-
+              Consumer NVMe drives start throttling around 70-80 C and age faster when
+              hot. Normal range on these hosts is 25-55 C. Match the chip to a device
+              with `ls /sys/class/hwmon/*/device` or `nvme list` on the host and check
+              `smartctl -A` for the warning/critical composite thresholds.

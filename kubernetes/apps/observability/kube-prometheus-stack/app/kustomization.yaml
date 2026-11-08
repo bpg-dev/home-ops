@@ -10,6 +10,7 @@ resources:
   - ./ocirepository.yaml
   - ./pdb-prometheus.yaml
   - ./prometheusrule-ceph.yaml
+  - ./prometheusrule-pve-hosts.yaml
   - ./prometheusrule.yaml
   - ./pvc-prometheus-0.yaml
   - ./pvc-prometheus-1.yaml
