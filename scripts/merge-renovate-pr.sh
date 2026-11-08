@@ -34,7 +34,12 @@ declare -A PRE
 HRS=""
 for d in $DIRS; do
   ns=${d%%/*}
-  for f in kubernetes/apps/$d/*/helmrelease.yaml kubernetes/apps/$d/app/*/helmrelease.yaml; do
+  # only HelmReleases whose chart or values the PR touched: rook-ceph has app/,
+  # cluster/ and csi-drivers/ side by side, dragonfly's CR shares a dir with the
+  # exporter HelmRelease; a Helm revision only advances for helmrelease.yaml or
+  # the chart source next to it
+  SUBDIRS=$(echo "$FILES" | grep -E "^kubernetes/apps/$d/.*/(helmrelease|ocirepository|helmrepository)\.yaml$" | xargs -n1 dirname | sort -u)
+  for f in $(for sd in $SUBDIRS; do ls "$sd"/helmrelease.yaml "$sd"/*/helmrelease.yaml 2>/dev/null; done | sort -u); do
     [ -f "$f" ] || continue
     for n in $(awk '/^kind: HelmRelease/{k=1} k&&/^metadata:/{m=1} m&&/^  name:/{print $NF; k=0; m=0}' "$f"); do
       v=$(kubectl get hr "$n" -n "$ns" -o jsonpath='{.status.history[0].version}' 2>/dev/null)
