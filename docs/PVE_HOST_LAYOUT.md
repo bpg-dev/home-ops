@@ -86,7 +86,8 @@ check them when a host comes back.
 | Setting | State (verified 2026-10-05) | Why |
 | --- | --- | --- |
 | KSM | `ksmtuned` disabled, `/sys/kernel/mm/ksm/run = 2` (unmerge) on all three hosts, since 2026-10-04 | ksmd GPF kernel panic on pve1 (2026-08) took down two Talos VMs; with one 48 GiB VM per host there is nothing to dedupe. `systemctl disable --now ksmtuned; echo 2 > /sys/kernel/mm/ksm/run` |
-| Kernel pin | pve1 `proxmox-boot-tool kernel pin 7.0.14-8-pve`; pve2/pve3 on 7.0.14-20 | pve1 panics on newer kernels (`PVE1_CPU_FAULT_INVESTIGATION.md`) |
+| Kernel pin | pve1 `proxmox-boot-tool kernel pin 7.0.14-8-pve`; pve2 on 7.0.14-20, pve3 on 7.0.14-28 (unpinned, rebooted 2026-11-08) | pve1 panics on newer kernels (`PVE1_CPU_FAULT_INVESTIGATION.md`) |
+| CPU frequency | `cpu-epp.service` on all three hosts since 2026-11-08: governor `powersave`, EPP `balance_performance`, `min_perf_pct` 40 | `performance` EPP idled the package at 78-85 C with sub-second spikes to 100 C; now 42 C / 13-16 W, etcd fsync unchanged (`PVE_THERMALS_AND_CPU_TUNING.md`) |
 | Watchdog, log forwarding | per `PVE_WATCHDOG_SETUP.md`, `PVE_LOG_FORWARDING.md` | |
 | Ceph cephx ciphers | mgr/mds/osd keys and service tickets `aes256k` since 2026-11-03; client keys still `aes`, no mutes (HEALTH_WARN) | kernel RBD needs Linux 7.0 for aes256k, Talos is on 6.18 (`CEPHX_AES256K_MIGRATION.md`) |
 
@@ -131,3 +132,4 @@ Status 2026-10-03 19:10 EDT: all three VMs restarted with 48 GiB (node capacity
 - `PVE2_NVME_REPLACEMENT_GUIDE.md` - replacing an rpool mirror member
 - `CLUSTER_SHUTDOWN_STARTUP_RUNBOOK.md` - full power-down and power-up
 - `PVE_WATCHDOG_SETUP.md`, `PVE_LOG_FORWARDING.md` - per-host services
+- `PVE_THERMALS_AND_CPU_TUNING.md` - package temperature findings, intel_pstate tuning, one-host shutdown recipe

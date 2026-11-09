@@ -487,6 +487,7 @@ The `docs/` directory contains operational runbooks and investigation notes. Che
 - **BookLore to BookOrbit migration**: `docs/BOOKORBIT_MIGRATION.md`
 - **Proxmox Host Layout** (hardware, disks, VMs): `docs/PVE_HOST_LAYOUT.md`
 - **Proxmox ZFS SLOG / etcd fsync**: `docs/PVE_ZFS_SLOG_ON_P4600.md`
+- **Proxmox thermals / CPU frequency tuning / one-host shutdown**: `docs/PVE_THERMALS_AND_CPU_TUNING.md`
 - **Proxmox Watchdog**: `docs/PVE_WATCHDOG_SETUP.md`
 - **Proxmox Log Forwarding**: `docs/PVE_LOG_FORWARDING.md`
 - **PVE2 Hardware Issues**: `docs/PVE2_CRASH_INVESTIGATION.md`, `docs/PVE2_NVME_REPLACEMENT_GUIDE.md`, `docs/PVE2_RMA_GUIDE.md`
