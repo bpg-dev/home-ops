@@ -1,0 +1,83 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: descheduler
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: descheduler
+  interval: 1h
+  values:
+    fullnameOverride: descheduler
+    # Nothing moves pods back after a node reboot (Talos upgrade, PVE host
+    # maintenance), so the rebooted node stays nearly empty. One run a night
+    # rebalances; it may restart single-replica apps (Minecraft, paperless),
+    # hence the quiet hour, after the 02:00-03:45 NAS backup window.
+    kind: CronJob
+    schedule: "10 5 * * *"
+    timeZone: America/Toronto
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+    deschedulerPolicy:
+      profiles:
+        - name: default
+          pluginConfig:
+            - name: DefaultEvictor
+              args:
+                nodeFit: true
+                # Leaves the hourly VolSync mover pods alone.
+                minPodAge: 15m
+                podProtections:
+                  defaultDisabled:
+                    # Almost every pod has an emptyDir.
+                    - PodsWithLocalStorage
+                  extraEnabled:
+                    - PodsWithPVC
+                  config:
+                    PodsWithPVC:
+                      # Node-bound volumes: eviction would only restart the
+                      # pod on the same node. ceph-rbd pods stay evictable.
+                      protectedStorageClasses:
+                        - name: openebs-hostpath
+            - name: LowNodeUtilization
+              args:
+                # Percent of allocatable, by requests. A node is a target when
+                # it is below ALL thresholds, a source when above ANY target.
+                thresholds:
+                  cpu: 50
+                  memory: 35
+                  pods: 100
+                targetThresholds:
+                  cpu: 75
+                  memory: 55
+                  pods: 100
+                evictionLimits:
+                  node: 10
+                evictableNamespaces:
+                  exclude: &excluded
+                    - dragonfly-system
+                    - kube-system
+                    - postgresql-system
+                    - rook-ceph-external
+                    - storage
+            - name: RemovePodsViolatingTopologySpreadConstraint
+              args:
+                constraints:
+                  - DoNotSchedule
+                  - ScheduleAnyway
+                namespaces:
+                  exclude: *excluded
+          plugins:
+            balance:
+              enabled:
+                - LowNodeUtilization
+                - RemovePodsViolatingTopologySpreadConstraint
