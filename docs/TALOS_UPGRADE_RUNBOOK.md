@@ -1,6 +1,17 @@
 # Talos and Kubernetes upgrade runbook
 
-Last run: 2026-10-31, Talos v1.14.4 -> v1.14.5 (PR #628, kernel 6.18.57 ->
+Last run: 2026-11-13, Talos v1.14.5 -> v1.14.6 (PR #675, kernel 6.18.58 ->
+6.18.63, Kubernetes unchanged at v1.37.2). 85 s / 230 s / 165 s for prod-1/2/3;
+CNPG primary moved postgres-2 -> postgres-3 before prod-2 (20 s), then to
+postgres-1 on prod-3 afterwards: nothing moves it back, and prod-1 sits on
+pve1, the host with the most CPU faults, so park it on pve3. dragonfly-2,
+postgres-3 and modded Minecraft caught up within 2-4 min of the prod-1 uncordon.
+The `storage/garage-cluster` Kustomization went False during a drain (its
+dry-run hit the garage-operator webhook while that pod was rescheduling, "no
+endpoints available"); a `flux reconcile ks garage-cluster -n storage` cleared it
+and its dependents (loki, garage-webui). `gh pr merge` on the Talos PR needs an
+explicit go-ahead from the user (the classifier blocks it).
+Before that 2026-10-31, Talos v1.14.4 -> v1.14.5 (PR #628, kernel 6.18.57 ->
 6.18.58, etcd 3.7.3) then Kubernetes v1.37.1 -> v1.37.2 (PR #629). 100-180 s per
 node, 7 min for Kubernetes, no stale DaemonSet pods, nothing Pending after the
 uncordons; CNPG promote to postgres-2 before prod-3 took 25 s.
