@@ -74,6 +74,12 @@
       allowedVersions: "<21",
     },
     {
+      description: "Hold Gotenberg below 9 for paperless-ngx: paperless (3.4.2 and 3.5.0) pins gotenberg-client 1.0.0, which calls the /forms/pdfengines routes (404 in v9) and sends the pdfa field (400 in v9), so email imports and office documents fail; lift when paperless ships a v9-capable gotenberg-client (see PR #666)",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["gotenberg/gotenberg"],
+      allowedVersions: "<9",
+    },
+    {
       description: "cv-site image is tagged YYYYMMDD-<git sha>; docker versioning treats each sha as a distinct compatibility suffix and never finds an update. Compare by date instead (year=major, month=minor, day=patch); the sha is left uncaptured because regex groups must be numeric",
       matchDatasources: ["docker"],
       matchPackageNames: ["ghcr.io/bpg-dev/cv"],
